@@ -6,15 +6,16 @@ corruption was detected.
 --snip--
 
 TODO:
-- .doc, .exe, .dll, .ttf, .otf
-- .ico (Need a custom loader to not just load the highest-quality version)
-- At least verify well-formedness of JSON (.json, .dashtoc) and XML
-- Media files (wmv, asf, mpeg, mpg, mpe, mp2, avi, ra, ram, mkv, ogm, ogv, ogx,
-    oga, mp3, webm)
+- Support an exclude option for the recursion
 - Verify both the executable part of a .exe and potential appended archives
   (as well as trying `innoextract -t`)
 - Figure out how to properly handle unzip complaining about and recovering from
   Zip files containing paths with backslashes.
+- At least verify well-formedness of JSON (.json, .dashtoc) and XML
+- Media files (wmv, asf, mpeg, mpg, mpe, mp2, avi, ra, ram, mkv, ogm, ogv, ogx,
+    oga, mp3, webm)
+- .ico (Need a custom loader to not just load the highest-quality version)
+- .doc, .iso, .bin, .cue, .toc, .dll, .ttf, .otf
 - Decide what to do with HTML, CSS, XUL, SVG, JS, .py, .c, and .cpp files
 - I think 7-zip only verifies data.tar.gz in .debs. Verify everything.
 - Use tar to check .tar.*/.tgz/etc. as a second layer of verification?
@@ -22,7 +23,6 @@ TODO:
 - See if this is entirely a subset of what JHOVE
   (http://jhove.openpreservation.org/) can do.
 - See if I can reuse code from diffoscope
-- Support an exclude option for the recursion
 - If all else fails:
   - use Pillow to look for horizontal stripes of identical pixels in JPEGs and
     fire off a warning:
