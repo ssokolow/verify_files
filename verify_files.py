@@ -9,16 +9,24 @@ TODO:
 - Support an exclude option for the recursion
 - Use `from distutils.spawn import find_executable as which` to detect missing
   dependencies and give a more helpful error message
+- Verify .git/ repositories using `git fsck`
 - Verify both the executable part of a .exe and potential appended archives
   (as well as trying `innoextract -t`)
 - Figure out how to properly handle unzip complaining about and recovering from
   Zip files containing paths with backslashes.
-- At least verify well-formedness of JSON (.json, .dashtoc) and XML
+- Verify well-formedness of JSON (.json, .dashtoc)
+- Use `defusedxml` to verify the well-formedness of XML files
 - Media files (wmv, asf, mpeg, mpg, mpe, mp2, avi, ra, ram, mkv, ogm, ogv, ogx,
     oga, mp3, webm)
+  - https://superuser.com/q/100288/48014
 - .ico (Need a custom loader to not just load the highest-quality version)
-- .doc, .iso, .bin, .cue, .toc, .dll, .ttf, .otf
-- Decide what to do with HTML, CSS, XUL, SVG, JS, .py, .c, and .cpp files
+- .doc, .iso, .bin, .cue, .toc, .dll, .ttf, .otf, .djvu, .chm, .ps, .mobi, .prc
+  - .doc will require a magic number check to differentiate MS Word documents
+    from DOS-era text files with .DOC extensions.
+- Decide what to do with HTML, CSS, XUL, SVG, JS, .py, .c, .cpp, and .asm files
+- Check whether any of the tools listed at
+  https://unix.stackexchange.com/a/312356/28019 can be pressed into service
+  for checking for corruption in RTF files and, if so, which is best.
 - I think 7-zip only verifies data.tar.gz in .debs. Verify everything.
 - Use tar to check .tar.*/.tgz/etc. as a second layer of verification?
 - Support an option to extract and validate nested archives
@@ -231,6 +239,9 @@ def process_file(path):
         log.error("Path does not exist: %s", path)
     elif os.stat(path).st_size == 0:
         log.error("File is empty: %s", path)
+    elif path.endswith('/hts-cache/new.zip'):
+        log.info("Skipping expected-to-be-spec-incompliant Zip file: %s",
+                 path)
     elif fext in EXT_PROCESSORS:
         EXT_PROCESSORS[fext](path)
     else:
