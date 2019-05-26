@@ -152,6 +152,7 @@ unknown_tar_processor = make_subproc_processor('TAR', ['tar', 'taf'])
 
 EXT_PROCESSORS = {
     '.7z': make_subproc_processor('7-Zip', ['7z', 't']),
+    '.arj': make_subproc_processor('ARJ', ['arj', 't']),
     '.bmp': pil_processor,
     '.bz2': make_bzip2_processor('BZip2'),
     '.cb7': make_subproc_processor('Comic Book Archive (7-Zip)', ['7z', 't']),
