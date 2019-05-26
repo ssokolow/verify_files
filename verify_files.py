@@ -7,6 +7,8 @@ corruption was detected.
 
 TODO:
 - Support an exclude option for the recursion
+- Use `from distutils.spawn import find_executable as which` to detect missing
+  dependencies and give a more helpful error message
 - Verify both the executable part of a .exe and potential appended archives
   (as well as trying `innoextract -t`)
 - Figure out how to properly handle unzip complaining about and recovering from
@@ -32,6 +34,7 @@ TODO:
 NOTES:
 - I have not yet found an automated way to detect the corruption in the
   embeddably-uncorrupt example image at https://superuser.com/q/276154
+- Info-ZIP is used rather than Python's built-in Zip support
 
 Dependencies:
 - Python 3.x
@@ -53,33 +56,14 @@ __appname__ = "Simple recursive detector for corrupted files"
 __version__ = "0.0pre0"
 __license__ = "GNU GPL 3.0 or later"
 
-import logging, os, subprocess
+import logging, os, subprocess, tarfile, zipfile
 from PIL import Image
 
 log = logging.getLogger(__name__)
 
-def make_unverifiable(fmt_name):
-    """Closure factory for formats with no internal integrity checks"""
-    def process(path):
-        """Report the given path as unverifiable"""
-        log.warning("%s files cannot be verified: %s", fmt_name, path)
-    return process
-
-def make_subproc_processor(fmt_name, argv_prefix, argv_suffix=None):
-    """Closure factory for formats verifiable by subprocess exit code"""
-    argv_suffix = argv_suffix or []
-
-    def process(path):
-        """Verify the given path"""
-        with open(os.devnull, 'w') as nul:
-            try:
-                subprocess.check_call(argv_prefix + [path] + argv_suffix,
-                                      stdout=nul, stderr=nul)
-            except subprocess.CalledProcessError:
-                log.error("%s verification failed: %s", fmt_name, path)
-
-        log.info("%s OK: %s", fmt_name, path)
-    return process
+def ignore(path):
+    """Ignore the given path, logging a debug-level message."""
+    log.debug("Ignoring %s", path)
 
 def pil_processor(path):
     """Verify the given path is a valid, uncorrupted image.
@@ -99,27 +83,104 @@ def pil_processor(path):
         log.error("Image file verification failed: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
 
-def ignore(path):
-    log.debug("Ignoring %s", path)
+def make_bzip2_processor(fmt_name):
+    """Closure factory for bzip2-compressed files"""
 
-PROCESSORS = {
+    # TODO: Implement a fallback using Python's bz2 module
+    return make_subproc_processor(fmt_name, ['bunzip2', '-t'])
+
+def make_gzip_processor(fmt_name):
+    """Closure factory for gzip-compressed files"""
+
+    # TODO: Implement a fallback using Python's gzip module
+    return make_subproc_processor(fmt_name, ['gunzip', '-t'])
+
+def make_header_check(magic_num_str):
+    """Closure factory for 'file has magic number' checks"""
+    def check(path):
+        """Check whether the specified file has the predefined magic number"""
+        with open(path, 'rb') as fobj:
+            return fobj.read(len(magic_num_str)) == magic_num_str
+
+    return check
+
+def make_subproc_processor(fmt_name, argv_prefix, argv_suffix=None):
+    """Closure factory for formats verifiable by subprocess exit code"""
+    argv_suffix = argv_suffix or []
+
+    def process(path):
+        """Verify the given path"""
+        with open(os.devnull, 'w') as nul:
+            try:
+                subprocess.check_call(argv_prefix + [path] + argv_suffix,
+                                      stdout=nul, stderr=nul)
+            except subprocess.CalledProcessError:
+                log.error("%s verification failed: %s", fmt_name, path)
+
+        log.info("%s OK: %s", fmt_name, path)
+    return process
+
+def make_unverifiable(fmt_name):
+    """Closure factory for formats with no internal integrity checks"""
+    def process(path):
+        """Do a simple read check, but then report the path as unverifiable"""
+        try:
+            with open(path, 'rb') as fobj:
+                for _block in iter(lambda: fobj.read(65535), b''):
+                    pass  # Just verify that the file contents are readable
+        except IOError:
+            log.error("Error while reading file: %s", path)
+        else:
+            log.warning("%s files cannot be verified: %s", fmt_name, path)
+    return process
+
+def make_xz_processor(fmt_name):
+    """Closure factory for lzma/xz-compressed files"""
+
+    # TODO: Implement a fallback using Python's lzma module
+    return make_subproc_processor(fmt_name, ['unxz', '-t'])
+
+def make_zip_processor(fmt_name):
+    """Closure factory for formats which use Zip archives as containers"""
+
+    # TODO: Implement a fallback using Python's zipfile module
+    return make_subproc_processor(fmt_name, ['unzip', '-t'])
+
+unknown_gzip_processor = make_gzip_processor('unknown GZip-compressed')
+unknown_zip_processor = make_zip_processor('unknown Zip-based')
+unknown_tar_processor = make_subproc_processor('TAR', ['tar', 'taf'])
+
+EXT_PROCESSORS = {
     '.7z': make_subproc_processor('7-Zip', ['7z', 't']),
     '.bmp': pil_processor,
-    '.bz2': make_subproc_processor('BZip2', ['bunzip2', '-t']),
+    '.bz2': make_bzip2_processor('BZip2'),
+    '.cb7': make_subproc_processor('Comic Book Archive (7-Zip)', ['7z', 't']),
+    '.cbz': make_zip_processor('Comic Book Archive (Zip)'),
     '.dcx': pil_processor,
     '.deb': make_subproc_processor('.deb', ['7z', 't']),  # TODO: Verify ALL
+    '.epub': make_zip_processor('ePub e-book'),
     '.fli': pil_processor,
     '.flc': pil_processor,
     '.gif': pil_processor,
-    '.gz': make_subproc_processor('GZip', ['gunzip', '-t']),
+    '.gz': make_gzip_processor('GZip'),
+    # TODO: Do a well-formedness check on HTML and report it as unverifiable
+    #       on success, since there's no way to catch corruption in the text.
     '.j2k': pil_processor,
     '.j2p': pil_processor,
+    '.jar': make_zip_processor('Java ARchive'),
     '.jpe': pil_processor,
     '.jpeg': pil_processor,
     '.jpg': pil_processor,  # TODO: https://superuser.com/q/276154
     '.jpx': pil_processor,
-    '.lzma': make_subproc_processor('.lzma', ['unxz', '-t']),
-    '.mobi': make_subproc_processor('Mobipocket', ['7z', 't']),
+    '.lzma': make_xz_processor('.lzma'),
+    '.odg': make_zip_processor('ODF Drawing'),
+    '.odp': make_zip_processor('ODF Presentation'),
+    '.ods': make_zip_processor('ODF Spreadsheet'),
+    '.odt': make_zip_processor('ODF Text Document'),
+    '.otg': make_zip_processor('ODF Drawing Template'),
+    '.otp': make_zip_processor('ODF Presentation Template'),
+    '.ots': make_zip_processor('ODF Spreadsheet Template'),
+    '.ott': make_zip_processor('ODF Text Document Template'),
     '.pbm': pil_processor,
     '.pcx': pil_processor,
     '.pdf': make_subproc_processor('PDF', ['pdftotext'], ['-']),
@@ -129,37 +190,54 @@ PROCESSORS = {
     '.pyc': ignore,
     '.pyo': ignore,
     '.rar': make_subproc_processor('RAR', ['unrar', 't']),
+    '.tar': unknown_tar_processor,
+    '.tbz2': unknown_tar_processor,
     '.tga': pil_processor,
+    '.tgz': unknown_tar_processor,
     '.tif': pil_processor,
     '.tiff': pil_processor,
     '.txt': make_unverifiable("Plaintext"),
+    # NOTE: .war is handled by header detection because it could be a Java WAR
+    #       (which is a Zip file) or a Konqueror WAR (which is a TAR file).
+    '.txz': unknown_tar_processor,
     '.webp': pil_processor,
     '.xbm': pil_processor,
+    '.xpi': make_zip_processor('Mozilla XPI'),
     '.xpm': pil_processor,
-    '.xz': make_subproc_processor('.xz', ['unxz', '-t']),
-    '.zip': make_subproc_processor('Zip', ['unzip', '-t']),
+    '.xz': make_xz_processor('.xz'),
+    '.zip': make_zip_processor('Zip'),
 }
 
-for alias, target in {'.tgz': '.gz', '.tbz2': '.bz2', '.txz': '.xz'}.items():
-    PROCESSORS[alias] = PROCESSORS[target]
 for ext in ('.cbr', '.rsn'):
-    PROCESSORS[ext] = PROCESSORS['.rar']
-for ext in ('.cbz', '.epub', '.jar', '.xpi',
-            '.odt', '.ods', '.odp', '.odg',
-            '.ott', '.ots', '.otp', '.otg'):
-    PROCESSORS[ext] = PROCESSORS['.zip']
+    EXT_PROCESSORS[ext] = EXT_PROCESSORS['.rar']
+
+# Callback-based identification with a defined fallback chain
+# (Useful for ensuring formats are checked most-likely first)
+HEADER_PROCESSORS = (
+    (zipfile.is_zipfile, unknown_zip_processor),
+    (make_header_check(b'\x1f\x8b'), unknown_gzip_processor),
+    (make_header_check(b'SQLite format 3\x00'), make_subproc_processor(
+        'SQLite 3.x', ['sqlite3'], ['PRAGMA integrity_check;'])),
+    (tarfile.is_tarfile, unknown_tar_processor),
+)
 
 def process_file(path):
     """Check the given path for corruption"""
+    log.debug("Processing %r", path)
     fext = os.path.splitext(path)[1].lower()
 
     if not os.path.exists(path):
         log.error("Path does not exist: %s", path)
     elif os.stat(path).st_size == 0:
         log.error("File is empty: %s", path)
-    elif fext in PROCESSORS:
-        PROCESSORS[fext](path)
+    elif fext in EXT_PROCESSORS:
+        EXT_PROCESSORS[fext](path)
     else:
+        for check, validator in HEADER_PROCESSORS:
+            if check(path):
+                validator(path)
+                return
+
         log.error("Unrecognized file type: %s", path)
 
 def walk_path(root):
