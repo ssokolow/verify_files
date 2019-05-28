@@ -90,6 +90,8 @@ def json_processor(path):
         # I've seen TypeError but I'm not sure if that's the only type possible
         log.error("JSON file is not well-formed: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
+    else:
+        log.info("JSON file is well-formed: %s", path)
 
 def pdf_processor(path):
     """Use pdftotext to check the validity of a PDF file as well as possible"""
@@ -120,6 +122,7 @@ def pil_processor(path):
         with open(path, 'rb') as iobj:
             img = Image.open(iobj)
             img.load()
+        # TODO: rework so this can display an OK message
         return True
     # TODO: Identify what Image.open can *actually* raise
     except Exception as err:  # pylint: disable=broad-except
@@ -135,8 +138,9 @@ def py_processor(path):
     except Exception as err:  # pylint: disable=broad-except
         # I've seen TypeError (null bytes) and SyntaxError but I'm not sure
         # if those are the only types of error possible
-        log.error("Python file verification failed: %s", path)
+        log.error("Python file is not syntactically valid: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
+        return
 
     log.info("Python file is syntactically valid: %s", path)
 
@@ -191,6 +195,7 @@ def make_subproc_processor(fmt_name, argv_prefix, argv_suffix=None):
                                       stdout=nul, stderr=nul)
             except subprocess.CalledProcessError:
                 log.error("%s verification failed: %s", fmt_name, path)
+                return
 
         log.info("%s OK: %s", fmt_name, path)
     return process
@@ -229,14 +234,17 @@ def sqlite3_processor(path):
     except Exception as err:
         log.error("SQLite 3.x database verification failed: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
+        return
+
+    log.info("SQLite 3.x database passes integrity check: %s", path)
 
 
 # TODO: Rework so things like .tar.gz can be checked as compressed tar files
 #       rather than just .gz files. (Probably best to just use precedence-based
 #       header checks but with an "expected extensions" list for each format.
 EXT_PROCESSORS = {
-    '.7z': make_subproc_processor('7-Zip', ['7z', 't']),
-    '.arj': make_subproc_processor('ARJ', ['arj', 't']),
+    '.7z': make_subproc_processor('7-Zip archive', ['7z', 't']),
+    '.arj': make_subproc_processor('ARJ archive', ['arj', 't']),
     '.bmp': pil_processor,
     '.bz2': make_compressed_processor('BZip2', bz2),
     '.cb7': make_subproc_processor('Comic Book Archive (7-Zip)', ['7z', 't']),
@@ -354,6 +362,7 @@ def walk_path(root):
     else:
         for path, dirs, files in os.walk(root):
             dirs.sort()
+            files.sort()
 
             for fname in files:
                 fpath = os.path.join(path, fname)
