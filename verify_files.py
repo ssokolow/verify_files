@@ -64,7 +64,7 @@ __appname__ = "Simple recursive detector for corrupted files"
 __version__ = "0.0pre0"
 __license__ = "GNU GPL 3.0 or later"
 
-import logging, os, subprocess, tarfile, zipfile
+import ast, json, logging, os, sqlite3, subprocess, tarfile, zipfile
 from PIL import Image
 
 log = logging.getLogger(__name__)
@@ -72,6 +72,16 @@ log = logging.getLogger(__name__)
 def ignore(path):
     """Ignore the given path, logging a debug-level message."""
     log.debug("Ignoring %s", path)
+
+def json_processor(path):
+    """Do a basic well-formedness check on the given JSON file"""
+    try:
+        with open(path, 'r') as fobj:
+            json.load(fobj)
+    except Exception as err:  # pylint: disable=broad-except
+        # I've seen TypeError but I'm not sure if that's the only type possible
+        log.error("JSON file is not well-formed: %s", path)
+        log.debug("...because: %s: %s", err.__class__.__name__, err)
 
 def pil_processor(path):
     """Verify the given path is a valid, uncorrupted image.
@@ -89,6 +99,17 @@ def pil_processor(path):
     # TODO: Identify what Image.open can *actually* raise
     except Exception as err:  # pylint: disable=broad-except
         log.error("Image file verification failed: %s", path)
+        log.debug("...because: %s: %s", err.__class__.__name__, err)
+
+def py_processor(path):
+    """Do a basic SyntaxError check on the given Python file"""
+    try:
+        with open(path, 'rb') as fobj:
+            ast.parse(fobj.read())
+    except Exception as err:  # pylint: disable=broad-except
+        # I've seen TypeError (null bytes) and SyntaxError but I'm not sure
+        # if those are the only types of error possible
+        log.error("Python file verification failed: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
 
 def make_bzip2_processor(fmt_name):
@@ -154,6 +175,13 @@ def make_zip_processor(fmt_name):
     # TODO: Implement a fallback using Python's zipfile module
     return make_subproc_processor(fmt_name, ['unzip', '-t'])
 
+def sqlite3_processor(path):
+    try:
+        sqlite3.connect(path).execute('PRAGMA integrity_check')
+    except Exception as err:
+        log.error("SQLite 3.x database verification failed: %s", path)
+        log.debug("...because: %s: %s", err.__class__.__name__, err)
+
 unknown_gzip_processor = make_gzip_processor('unknown GZip-compressed')
 unknown_zip_processor = make_zip_processor('unknown Zip-based')
 unknown_tar_processor = make_subproc_processor('TAR', ['tar', 'taf'])
@@ -167,6 +195,7 @@ EXT_PROCESSORS = {
     '.cbz': make_zip_processor('Comic Book Archive (Zip)'),
     '.dcx': pil_processor,
     '.deb': make_subproc_processor('.deb', ['7z', 't']),  # TODO: Verify ALL
+    '.dashtoc': json_processor,
     '.epub': make_zip_processor('ePub e-book'),
     '.fli': pil_processor,
     '.flc': pil_processor,
@@ -181,6 +210,7 @@ EXT_PROCESSORS = {
     '.jpeg': pil_processor,
     '.jpg': pil_processor,  # TODO: https://superuser.com/q/276154
     '.jpx': pil_processor,
+    '.json': json_processor,
     '.lzma': make_xz_processor('.lzma'),
     '.odg': make_zip_processor('ODF Drawing'),
     '.odp': make_zip_processor('ODF Presentation'),
@@ -196,6 +226,7 @@ EXT_PROCESSORS = {
     '.pgm': pil_processor,
     '.png': pil_processor,
     '.ppm': pil_processor,
+    '.py': py_processor,
     '.pyc': ignore,
     '.pyo': ignore,
     '.rar': make_subproc_processor('RAR', ['unrar', 't']),
@@ -225,8 +256,7 @@ for ext in ('.cbr', '.rsn'):
 HEADER_PROCESSORS = (
     (zipfile.is_zipfile, unknown_zip_processor),
     (make_header_check(b'\x1f\x8b'), unknown_gzip_processor),
-    (make_header_check(b'SQLite format 3\x00'), make_subproc_processor(
-        'SQLite 3.x', ['sqlite3'], ['PRAGMA integrity_check;'])),
+    (make_header_check(b'SQLite format 3\x00'), sqlite3_processor),
     (tarfile.is_tarfile, unknown_tar_processor),
 )
 
