@@ -91,6 +91,22 @@ def json_processor(path):
         log.error("JSON file is not well-formed: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
 
+def pdf_processor(path):
+    """Use pdftotext to check the validity of a PDF file as well as possible"""
+    try:
+        result = subprocess.check_output(['pdftotext', path, os.devnull],
+                                         stderr=subprocess.STDOUT).strip()
+        if b'Error' in result:
+            log.error("PDF file is not well-formed: %s", path)
+            log.debug("...because:\n%s", result)
+            return
+    except subprocess.CalledProcessError as err:
+        log.error("PDF file is not well-formed: %s", path)
+        log.debug("...because: %s: %s", err.__class__.__name__, err)
+        return
+
+    log.info("PDF file is well-formed: %s", path)
+
 def pil_processor(path):
     """Verify the given path is a valid, uncorrupted image.
 
@@ -263,7 +279,7 @@ EXT_PROCESSORS = {
     '.ott': make_zip_processor('ODF Text Document Template'),
     '.pbm': pil_processor,
     '.pcx': pil_processor,
-    '.pdf': make_subproc_processor('PDF', ['pdftotext'], ['-']),
+    '.pdf': pdf_processor,
     '.pgm': pil_processor,
     '.png': pil_processor,
     '.ppm': pil_processor,
