@@ -211,6 +211,7 @@ EXT_PROCESSORS = {
     '.jpg': pil_processor,  # TODO: https://superuser.com/q/276154
     '.jpx': pil_processor,
     '.json': json_processor,
+    '.lz': make_subproc_processor('Lzip', ['lz', '-t']),
     '.lzma': make_xz_processor('.lzma'),
     '.odg': make_zip_processor('ODF Drawing'),
     '.odp': make_zip_processor('ODF Presentation'),
