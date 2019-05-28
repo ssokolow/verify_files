@@ -207,6 +207,7 @@ EXT_PROCESSORS = {
     '.deb': make_subproc_processor('.deb', ['7z', 't']),
     '.dib': pil_processor,
     '.epub': make_zip_processor('ePub e-book'),
+    '.flac': make_subproc_processor('FLAC', ['flac', '-t']),
     '.fli': pil_processor,
     '.flc': pil_processor,
     '.gif': pil_processor,
