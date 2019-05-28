@@ -46,14 +46,10 @@ NOTES:
 
 Dependencies:
 - Python 3.x
-- bunzip2   (for checking bzip2 files)
-- gunzip    (for checking gzip files)
 - p7zip     (for checking 7-Zip, .deb, .rpm, and Mobipocket files)
 - pdftotext (for checking PDFs)
 - Pillow    (for checking images)
 - unrar     (for checking RAR/CBR/RSN files)
-- unzip     (for checking Zip/CBZ/ePub/ODF/JAR/XPI files)
-- unxz      (for checking .xz and .lzma files)
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -64,10 +60,16 @@ __appname__ = "Simple recursive detector for corrupted files"
 __version__ = "0.0pre0"
 __license__ = "GNU GPL 3.0 or later"
 
-import ast, json, logging, os, sqlite3, subprocess, tarfile, zipfile
+import logging, os, subprocess
+import ast, bz2, gzip, json, lzma, sqlite3, tarfile, zipfile
 from PIL import Image
 
 log = logging.getLogger(__name__)
+
+def read_chunked(file_obj, chunk_size=65535):
+    """Generator to tidy up code that reads a file incrementally"""
+    for block in iter(lambda: file_obj.read(chunk_size), b''):
+        yield block
 
 def ignore(path):
     """Ignore the given path, logging a debug-level message."""
@@ -120,17 +122,37 @@ def py_processor(path):
         log.error("Python file verification failed: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
 
-def make_bzip2_processor(fmt_name):
-    """Closure factory for bzip2-compressed files"""
+    log.info("Python file is syntactically valid: %s", path)
 
-    # TODO: Implement a fallback using Python's bz2 module
-    return make_subproc_processor(fmt_name, ['bunzip2', '-t'])
+def tar_processor(path):
+    """Verify the given tar archive's integrity to whatever extent possible
 
-def make_gzip_processor(fmt_name):
-    """Closure factory for gzip-compressed files"""
+    (Unless compressed with something like gzip, tar files have no CRCs)
+    """
+    try:
+        with tarfile.open(path) as tobj:
+            tobj.getmembers()
+    except Exception as err:
+        log.error("TAR verification failed: %s", path)
+        log.debug("...because: %s: %s", err.__class__.__name__, err)
+    else:
+        log.info("TAR OK: %s", path)
 
-    # TODO: Implement a fallback using Python's gzip module
-    return make_subproc_processor(fmt_name, ['gunzip', '-t'])
+def make_compressed_processor(fmt_name, module):
+    """Closure factory for module.open().read()-based verifiers"""
+    """Do a basic CRC verification on the given gzip file"""
+    def check(path):
+        """Check whether the given file has a valid CRC"""
+        try:
+            with module.open(path, mode='rb') as fobj:
+                for _block in read_chunked(fobj):
+                    pass  # Make sure the decompressor has to CRC everything
+        except Exception as err:
+            log.error("%s verification failed: %s", fmt_name, path)
+            log.debug("...because: %s: %s", err.__class__.__name__, err)
+        else:
+            log.info("%s OK: %s", fmt_name, path)
+    return check
 
 def make_header_check(magic_num_str):
     """Closure factory for 'file has magic number' checks"""
@@ -163,25 +185,27 @@ def make_unverifiable(fmt_name):
         """Do a simple read check, but then report the path as unverifiable"""
         try:
             with open(path, 'rb') as fobj:
-                for _block in iter(lambda: fobj.read(65535), b''):
+                for _block in read_chunked(fobj):
                     pass  # Just verify that the file contents are readable
-        except IOError:
+        except (OSError, IOError):
             log.error("Error while reading file: %s", path)
         else:
             log.warning("%s files cannot be verified: %s", fmt_name, path)
     return process
 
-def make_xz_processor(fmt_name):
-    """Closure factory for lzma/xz-compressed files"""
-
-    # TODO: Implement a fallback using Python's lzma module
-    return make_subproc_processor(fmt_name, ['unxz', '-t'])
-
 def make_zip_processor(fmt_name):
     """Closure factory for formats which use Zip archives as containers"""
-
-    # TODO: Implement a fallback using Python's zipfile module
-    return make_subproc_processor(fmt_name, ['unzip', '-t'])
+    def process(path):
+        """Check the Zip file for CRC errors"""
+        try:
+            with zipfile.ZipFile(path) as zobj:
+                first_bad = zobj.testzip()
+                if first_bad:
+                    log.error("Error encountered in %r at %r", path, first_bad)
+        except Exception as err:
+            log.error("%s verification failed: %s", fmt_name, path)
+            log.debug("...because: %s: %s", err.__class__.__name__, err)
+    return process
 
 def sqlite3_processor(path):
     try:
@@ -190,15 +214,15 @@ def sqlite3_processor(path):
         log.error("SQLite 3.x database verification failed: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
 
-unknown_gzip_processor = make_gzip_processor('unknown GZip-compressed')
-unknown_zip_processor = make_zip_processor('unknown Zip-based')
-unknown_tar_processor = make_subproc_processor('TAR', ['tar', 'taf'])
 
+# TODO: Rework so things like .tar.gz can be checked as compressed tar files
+#       rather than just .gz files. (Probably best to just use precedence-based
+#       header checks but with an "expected extensions" list for each format.
 EXT_PROCESSORS = {
     '.7z': make_subproc_processor('7-Zip', ['7z', 't']),
     '.arj': make_subproc_processor('ARJ', ['arj', 't']),
     '.bmp': pil_processor,
-    '.bz2': make_bzip2_processor('BZip2'),
+    '.bz2': make_compressed_processor('BZip2', bz2),
     '.cb7': make_subproc_processor('Comic Book Archive (7-Zip)', ['7z', 't']),
     '.cbz': make_zip_processor('Comic Book Archive (Zip)'),
     '.cur': pil_multi_processor,
@@ -211,7 +235,7 @@ EXT_PROCESSORS = {
     '.fli': pil_processor,
     '.flc': pil_processor,
     '.gif': pil_processor,
-    '.gz': make_gzip_processor('GZip'),
+    '.gz': make_compressed_processor('GZip', gzip),
     '.ico': pil_multi_processor,
     # TODO: Do a well-formedness check on HTML and report it as unverifiable
     #       on success, since there's no way to catch corruption in the text.
@@ -227,8 +251,8 @@ EXT_PROCESSORS = {
     '.jpf': pil_processor,
     '.jpx': pil_processor,
     '.json': json_processor,
-    '.lz': make_subproc_processor('Lzip', ['lz', '-t']),
-    '.lzma': make_xz_processor('.lzma'),
+    '.lz': make_subproc_processor('Lzip', ['lzip', '-t']),
+    '.lzma': make_compressed_processor('.lzma', lzma),
     '.odg': make_zip_processor('ODF Drawing'),
     '.odp': make_zip_processor('ODF Presentation'),
     '.ods': make_zip_processor('ODF Spreadsheet'),
@@ -247,22 +271,25 @@ EXT_PROCESSORS = {
     '.pyc': ignore,
     '.pyo': ignore,
     '.rar': make_subproc_processor('RAR', ['unrar', 't']),
-    '.tar': unknown_tar_processor,
-    '.tbz2': unknown_tar_processor,
+    # TODO: Use an OK message for uncompressed TAR that's clear about
+    #       how limited the check is.
+    '.tar': tar_processor,
+    '.tbz2': tar_processor,
     '.tga': pil_processor,
-    '.tgz': unknown_tar_processor,
+    '.tgz': tar_processor,
     '.tif': pil_processor,
     '.tiff': pil_processor,
+    '.tlz': tar_processor,
     '.txt': make_unverifiable("Plaintext"),
     # NOTE: .war is handled by header detection because it could be a Java WAR
     #       (which is a Zip file) or a Konqueror WAR (which is a TAR file).
-    '.txz': unknown_tar_processor,
+    '.txz': tar_processor,
     '.webp': pil_processor,
     '.xbm': pil_processor,
     '.xpi': make_zip_processor('Mozilla XPI'),
     '.xpm': pil_processor,
-    '.xz': make_xz_processor('.xz'),
-    '.zip': make_zip_processor('Zip'),
+    '.xz': make_compressed_processor('.xz', lzma),
+    '.zip': make_zip_processor('Zip archive'),
 }
 
 for ext in ('.cbr', '.rsn'):
@@ -271,10 +298,15 @@ for ext in ('.cbr', '.rsn'):
 # Callback-based identification with a defined fallback chain
 # (Useful for ensuring formats are checked most-likely first)
 HEADER_PROCESSORS = (
-    (zipfile.is_zipfile, unknown_zip_processor),
-    (make_header_check(b'\x1f\x8b'), unknown_gzip_processor),
+    (zipfile.is_zipfile, make_zip_processor('unknown Zip-based')),
     (make_header_check(b'SQLite format 3\x00'), sqlite3_processor),
-    (tarfile.is_tarfile, unknown_tar_processor),
+
+    # TAR check should come before the compressions it might be inside
+    (tarfile.is_tarfile, tar_processor),
+    (make_header_check(b'\x1f\x8b'), make_compressed_processor('GZip', gzip)),
+    (make_header_check(b'BZh'), make_compressed_processor('BZip2', bz2)),
+    (make_header_check(b'\xFD7zXZ\x00'),
+     make_compressed_processor('.xz', lzma)),
 )
 
 def process_file(path):
