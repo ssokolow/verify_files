@@ -73,6 +73,12 @@ def ignore(path):
     """Ignore the given path, logging a debug-level message."""
     log.debug("Ignoring %s", path)
 
+def pil_multi_processor(path):
+    """Do an incomplete check of multi-frame image file validity"""
+    if pil_processor(path):
+        log.warning("Support for verifying all frames in image file not yet "
+                    "implemented: %s", path)
+
 def json_processor(path):
     """Do a basic well-formedness check on the given JSON file"""
     try:
@@ -96,10 +102,12 @@ def pil_processor(path):
         with open(path, 'rb') as iobj:
             img = Image.open(iobj)
             img.load()
+        return True
     # TODO: Identify what Image.open can *actually* raise
     except Exception as err:  # pylint: disable=broad-except
         log.error("Image file verification failed: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
+        return False
 
 def py_processor(path):
     """Do a basic SyntaxError check on the given Python file"""
@@ -193,22 +201,29 @@ EXT_PROCESSORS = {
     '.bz2': make_bzip2_processor('BZip2'),
     '.cb7': make_subproc_processor('Comic Book Archive (7-Zip)', ['7z', 't']),
     '.cbz': make_zip_processor('Comic Book Archive (Zip)'),
-    '.dcx': pil_processor,
-    '.deb': make_subproc_processor('.deb', ['7z', 't']),  # TODO: Verify ALL
+    '.cur': pil_multi_processor,
     '.dashtoc': json_processor,
+    '.dcx': pil_multi_processor,
+    '.deb': make_subproc_processor('.deb', ['7z', 't']),
+    '.dib': pil_processor,
     '.epub': make_zip_processor('ePub e-book'),
     '.fli': pil_processor,
     '.flc': pil_processor,
     '.gif': pil_processor,
     '.gz': make_gzip_processor('GZip'),
+    '.ico': pil_multi_processor,
     # TODO: Do a well-formedness check on HTML and report it as unverifiable
     #       on success, since there's no way to catch corruption in the text.
     '.j2k': pil_processor,
-    '.j2p': pil_processor,
     '.jar': make_zip_processor('Java ARchive'),
+    '.jfi': pil_processor,
+    '.jfif': pil_processor,
+    '.jif': pil_processor,
     '.jpe': pil_processor,
     '.jpeg': pil_processor,
-    '.jpg': pil_processor,  # TODO: https://superuser.com/q/276154
+    '.jpg': pil_processor,
+    '.jp2': pil_processor,
+    '.jpf': pil_processor,
     '.jpx': pil_processor,
     '.json': json_processor,
     '.lz': make_subproc_processor('Lzip', ['lz', '-t']),
