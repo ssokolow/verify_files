@@ -62,7 +62,11 @@ __license__ = "GNU GPL 3.0 or later"
 
 import logging, os, subprocess
 import ast, bz2, gzip, json, lzma, sqlite3, tarfile, zipfile
-from PIL import Image
+
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 try:
     from defusedxml.sax import parse as sax_parse
@@ -123,6 +127,10 @@ def pil_processor(path):
     @attention: Don't use this for formats where PIL/Pillow only reads one
         of several subimages. It'll lend a false sense of security.
     """
+    if Image is None:
+        log.warning("Must install Pillow to test image files: %s", path)
+        return False
+
     try:
         # Load the image to detect corruption in the most thorough way
         with open(path, 'rb') as iobj:
