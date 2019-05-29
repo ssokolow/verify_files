@@ -242,13 +242,23 @@ def sqlite3_processor(path):
 
     log.info("SQLite 3.x database passes integrity check: %s", path)
 
+ffmpeg_cmd = ['ffmpeg', '-f', 'null', '-', '-i']
 
 # TODO: Rework so things like .tar.gz can be checked as compressed tar files
 #       rather than just .gz files. (Probably best to just use precedence-based
 #       header checks but with an "expected extensions" list for each format.
 EXT_PROCESSORS = {
+    '.3gp': make_subproc_processor('MPEG-4 Part 12 Media', ffmpeg_cmd),
+    '.3g2': make_subproc_processor('MPEG-4 Part 12 Media', ffmpeg_cmd),
     '.7z': make_subproc_processor('7-Zip archive', ['7z', 't']),
+    '.aac': make_subproc_processor('AAC (ADTS Stream)', ffmpeg_cmd),
+    '.ape': make_subproc_processor('Monkey\'s Audio', ffmpeg_cmd),
     '.arj': make_subproc_processor('ARJ archive', ['arj', 't']),
+    '.aif': make_subproc_processor('AIFF Audio', ffmpeg_cmd),
+    '.aifc': make_subproc_processor('AIFF Audio (Compressed)', ffmpeg_cmd),
+    '.aiff': make_subproc_processor('AIFF Audio', ffmpeg_cmd),
+    '.asf': make_subproc_processor('Microsoft ASF', ffmpeg_cmd),
+    '.avi': make_subproc_processor('Microsoft AVI Video', ffmpeg_cmd),
     '.bmp': pil_processor,
     '.bz2': make_compressed_processor('BZip2', bz2),
     '.cb7': make_subproc_processor('Comic Book Archive (7-Zip)', ['7z', 't']),
@@ -262,8 +272,12 @@ EXT_PROCESSORS = {
     '.docx': make_zip_processor('OOXML Document'),
     '.epub': make_zip_processor('ePub e-book'),
     '.flac': make_subproc_processor('FLAC', ['flac', '-t']),
+    '.f4a': make_subproc_processor('FLV Audio', ffmpeg_cmd),
+    '.f4b': make_subproc_processor('FLV Audiobook', ffmpeg_cmd),
+    '.f4v': make_subproc_processor('FLV Video', ffmpeg_cmd),
     '.fli': pil_processor,
     '.flc': pil_processor,
+    '.flv': make_subproc_processor('Flash Video', ffmpeg_cmd),
     '.gif': pil_processor,
     '.gz': make_compressed_processor('GZip', gzip),
     '.ico': pil_multi_processor,
@@ -283,10 +297,34 @@ EXT_PROCESSORS = {
     '.json': json_processor,
     '.lz': make_subproc_processor('Lzip', ['lzip', '-t']),
     '.lzma': make_compressed_processor('.lzma', lzma),
+    '.m4a': make_subproc_processor('MPEG-4 Part 14 Audio', ffmpeg_cmd),
+    '.m4b': make_subproc_processor('MPEG-4 Part 14 Audiobook', ffmpeg_cmd),
+    '.m4r': make_subproc_processor('MPEG-4 Part 14 Ringtone', ffmpeg_cmd),
+    '.m4v': make_subproc_processor('MPEG-4 Part 14 Video', ffmpeg_cmd),
+    '.mk3d': make_subproc_processor('Matroska Video (3D)', ffmpeg_cmd),
+    '.mka': make_subproc_processor('Matroska Audio', ffmpeg_cmd),
+    '.mkv': make_subproc_processor('Matroska Video', ffmpeg_cmd),
+    '.mov': make_subproc_processor('Quicktime Video', ffmpeg_cmd),
+    '.mp+': make_subproc_processor('Musepack Audio', ffmpeg_cmd),
+    '.mp1': make_subproc_processor('MPEG Layer 1 Audio', ffmpeg_cmd),
+    '.mp2': make_subproc_processor('MPEG Layer 2 Audio', ffmpeg_cmd),
+    '.mp3': make_subproc_processor('MPEG Layer 3 Audio', ffmpeg_cmd),
+    '.mp4': make_subproc_processor('MPEG-4 Part 14 Video', ffmpeg_cmd),
+    '.mpc': make_subproc_processor('Musepack Audio', ffmpeg_cmd),
+    '.mpe': make_subproc_processor('MPEG Video', ffmpeg_cmd),
+    '.mpeg': make_subproc_processor('MPEG Video', ffmpeg_cmd),
+    '.mpg': make_subproc_processor('MPEG Video', ffmpeg_cmd),
+    '.mpp': make_subproc_processor('Musepack Audio', ffmpeg_cmd),
     '.odg': make_zip_processor('ODF Drawing'),
     '.odp': make_zip_processor('ODF Presentation'),
     '.ods': make_zip_processor('ODF Spreadsheet'),
     '.odt': make_zip_processor('ODF Text Document'),
+    '.oga': make_subproc_processor('Ogg containing audio (.oga)', ffmpeg_cmd),
+    '.ogg': make_subproc_processor('Ogg Vorbis (.ogg)', ffmpeg_cmd),
+    '.ogm': make_subproc_processor('OGM (Ogg, Unofficial)', ffmpeg_cmd),
+    '.ogv': make_subproc_processor('Ogg containing video (.ogv)', ffmpeg_cmd),
+    '.ogx': make_subproc_processor('Ogg (unspecified) (.ogx)', ffmpeg_cmd),
+    '.opus': make_subproc_processor('Opus Audio', ffmpeg_cmd),
     '.otg': make_zip_processor('ODF Drawing Template'),
     '.otp': make_zip_processor('ODF Presentation Template'),
     '.ots': make_zip_processor('ODF Spreadsheet Template'),
@@ -304,6 +342,12 @@ EXT_PROCESSORS = {
     '.pyo': ignore,
     # TODO: Use an OK message for uncompressed TAR that's clear about
     #       how limited the check is.
+    '.ra': make_subproc_processor('RealAudio', ffmpeg_cmd),
+    '.rm': make_subproc_processor('RealMedia Video', ffmpeg_cmd),
+    '.rmvb': make_subproc_processor('RealMedia Video (VBR)', ffmpeg_cmd),
+    '.rv': make_subproc_processor('RealVideo', ffmpeg_cmd),
+    '.shn': make_subproc_processor('Shorten Audio', ffmpeg_cmd),
+    '.spx': make_subproc_processor('Speex Audio', ffmpeg_cmd),
     '.tar': tar_processor,
     '.tbz2': tar_processor,
     '.tga': pil_processor,
@@ -311,11 +355,20 @@ EXT_PROCESSORS = {
     '.tif': pil_processor,
     '.tiff': pil_processor,
     '.tlz': tar_processor,
+    '.ts': make_subproc_processor('MPEG Transport Stream', ffmpeg_cmd),
+    '.tsa': make_subproc_processor('MPEG Transport Stream Audio', ffmpeg_cmd),
+    '.tsv': make_subproc_processor('MPEG Transport Stream Video', ffmpeg_cmd),
     '.txt': make_unverifiable("Plaintext"),
     # NOTE: .war is handled by header detection because it could be a Java WAR
     #       (which is a Zip file) or a Konqueror WAR (which is a TAR file).
     '.txz': tar_processor,
+    '.voc': make_subproc_processor('Soundblaster VOC Audio', ffmpeg_cmd),
+    '.wav': make_subproc_processor('Microsoft Waveform Audio', ffmpeg_cmd),
+    '.webm': make_subproc_processor('WebM Video', ffmpeg_cmd),
     '.webp': pil_processor,
+    '.wma': make_subproc_processor('Windows Media Audio', ffmpeg_cmd),
+    '.wmv': make_subproc_processor('Windows Media Video', ffmpeg_cmd),
+    '.wv': make_subproc_processor('WavPack Audio', ffmpeg_cmd),
     '.xbm': pil_processor,
     '.xlsx': make_zip_processor('OOXML Workbook'),
     '.xlsm': make_zip_processor('Macro-enabled OOXML Workbook'),
@@ -334,6 +387,9 @@ EXT_PROCESSORS = {
 # Callback-based identification with a defined fallback chain
 # (Useful for ensuring formats are checked most-likely first)
 HEADER_PROCESSORS = (
+    # TODO: Figure out how to identify FLAC inside an Ogg container so it can
+    #       be checked properly. (ffmpeg doesn't detect my test corruption like
+    #       `flac -t` does)
     (zipfile.is_zipfile, make_zip_processor('unknown Zip-based')),
     (make_header_check(b'SQLite format 3\x00'), sqlite3_processor),
 
@@ -343,6 +399,9 @@ HEADER_PROCESSORS = (
     (make_header_check(b'BZh'), make_compressed_processor('BZip2', bz2)),
     (make_header_check(b'\xFD7zXZ\x00'),
      make_compressed_processor('.xz', lzma)),
+
+    (make_header_check(b'.snd'),
+     make_subproc_processor('Sun Audio (with header)', ffmpeg_cmd)),
 
     # Formats where redistributable test files cannot be created without paying
     # a license fee:
