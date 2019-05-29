@@ -301,6 +301,7 @@ EXT_PROCESSORS = {
     '.bz2': make_compressed_processor('BZip2', bz2),
     '.cb7': make_subproc_processor('Comic Book Archive (7-Zip)', ['7z', 't']),
     '.cbz': make_zip_processor('Comic Book Archive (Zip)'),
+    '.cbt': tar_processor,
     '.cur': pil_multi_processor,
     '.dashtoc': json_processor,
     '.dcx': pil_multi_processor,
