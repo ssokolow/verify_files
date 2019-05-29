@@ -62,6 +62,7 @@ __license__ = "GNU GPL 3.0 or later"
 
 import logging, os, subprocess
 import ast, bz2, gzip, json, lzma, sqlite3, tarfile, zipfile
+from distutils.spawn import find_executable as which
 
 try:
     from PIL import Image
@@ -202,6 +203,11 @@ def make_subproc_processor(fmt_name, argv_prefix, argv_suffix=None):
 
     def process(path):
         """Verify the given path"""
+        if not which(argv_prefix[0]):
+            log.warning("Must install %s to test %s files",
+                        argv_prefix[0], fmt_name)
+            return
+
         with open(os.devnull, 'w') as nul:
             try:
                 subprocess.check_call(argv_prefix + [path] + argv_suffix,
