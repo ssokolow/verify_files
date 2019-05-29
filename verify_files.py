@@ -65,10 +65,10 @@ import ast, bz2, gzip, json, lzma, sqlite3, tarfile, zipfile
 from PIL import Image
 
 try:
-    from defusedxml.sax import parse as SAX_parse
+    from defusedxml.sax import parse as sax_parse
     from xml.sax import ContentHandler as SAX_ContentHandler
 except ImportError:
-    SAX_parse = None
+    sax_parse = None
 
 log = logging.getLogger(__name__)
 
@@ -166,7 +166,6 @@ def tar_processor(path):
 
 def make_compressed_processor(fmt_name, module):
     """Closure factory for module.open().read()-based verifiers"""
-    """Do a basic CRC verification on the given gzip file"""
     def check(path):
         """Check whether the given file has a valid CRC"""
         try:
@@ -251,7 +250,7 @@ def sqlite3_processor(path):
 
 def xml_processor(path):
     """Do a basic well-formedness check on the given XML file"""
-    if SAX_parse is None:
+    if sax_parse is None:
         log.warning("Must install defusedxml to test XML files: %s", path)
         return
 
@@ -259,7 +258,7 @@ def xml_processor(path):
         with open(path, 'rb') as fobj:
             # We just want the side-effect of throwing an exception if the XML
             # couldn't be parsed
-            SAX_parse(fobj, SAX_ContentHandler())
+            sax_parse(fobj, SAX_ContentHandler())
     except Exception as err:
         log.error("XML is not well-formed: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
