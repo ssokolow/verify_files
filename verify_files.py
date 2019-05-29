@@ -2,54 +2,6 @@
 # -*- coding: utf-8 -*-
 """A simple tool to recursively walk a set of paths and report files where
 corruption was detected.
-
---snip--
-
-TODO:
-- Support an exclude option for the recursion
-- Use `from distutils.spawn import find_executable as which` to detect missing
-  dependencies and give a more helpful error message
-- Verify .git/ repositories using `git fsck`
-- Verify both the executable part of a .exe and potential appended archives
-  (as well as trying `innoextract -t`)
-- Figure out how to properly handle unzip complaining about and recovering from
-  Zip files containing paths with backslashes.
-- Verify well-formedness of JSON (.json, .dashtoc)
-- Use `defusedxml` to verify the well-formedness of XML files
-- Media files (wmv, asf, mpeg, mpg, mpe, mp2, avi, ra, ram, mkv, ogm, ogv, ogx,
-    oga, mp3, webm)
-  - https://superuser.com/q/100288/48014
-- .ico (Need a custom loader to not just load the highest-quality version)
-- .doc, .iso, .bin, .cue, .toc, .dll, .ttf, .otf, .djvu, .chm, .ps, .mobi, .prc
-  - .doc will require a magic number check to differentiate MS Word documents
-    from DOS-era text files with .DOC extensions.
-- Decide what to do with HTML, CSS, XUL, SVG, JS, .py, .c, .cpp, and .asm files
-- Check whether any of the tools listed at
-  https://unix.stackexchange.com/a/312356/28019 can be pressed into service
-  for checking for corruption in RTF files and, if so, which is best.
-- I think 7-zip only verifies data.tar.gz in .debs. Verify everything.
-- Use tar to check .tar.*/.tgz/etc. as a second layer of verification?
-- Support an option to extract and validate nested archives
-- See if this is entirely a subset of what JHOVE
-  (http://jhove.openpreservation.org/) can do.
-- See if I can reuse code from diffoscope
-- If all else fails:
-  - use Pillow to look for horizontal stripes of identical pixels in JPEGs and
-    fire off a warning:
-    https://www.reddit.com/r/csharp/comments/1fq46h/how_to_detect_partially_corrupt_images/
-  - For images w/o CRCs, look for suspicious block-sized regions of 00 or FF.
-
-NOTES:
-- I have not yet found an automated way to detect the corruption in the
-  embeddably-uncorrupt example image at https://superuser.com/q/276154
-- Info-ZIP is used rather than Python's built-in Zip support
-
-Dependencies:
-- Python 3.x
-- p7zip     (for checking 7-Zip, .deb, .rpm, and Mobipocket files)
-- pdftotext (for checking PDFs)
-- Pillow    (for checking images)
-- unrar     (for checking RAR/CBR/RSN files)
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -305,7 +257,7 @@ EXT_PROCESSORS = {
     '.cur': pil_multi_processor,
     '.dashtoc': json_processor,
     '.dcx': pil_multi_processor,
-    '.deb': make_subproc_processor('.deb', ['7z', 't']),
+    '.deb': make_subproc_processor('.deb', ['7z', 't']),  # TODO: Test file
     '.dib': pil_processor,
     '.docm': make_zip_processor('Macro-enabled OOXML Document'),
     '.docx': make_zip_processor('OOXML Document'),
@@ -320,8 +272,6 @@ EXT_PROCESSORS = {
     '.gif': pil_processor,
     '.gz': make_compressed_processor('GZip', gzip),
     '.ico': pil_multi_processor,
-    # TODO: Do a well-formedness check on HTML and report it as unverifiable
-    #       on success, since there's no way to catch corruption in the text.
     '.j2k': pil_processor,
     '.jar': make_zip_processor('Java ARchive'),
     '.jfi': pil_processor,
@@ -429,6 +379,7 @@ EXT_PROCESSORS = {
 # Callback-based identification with a defined fallback chain
 # (Useful for ensuring formats are checked most-likely first)
 HEADER_PROCESSORS = (
+    # TODO: 7-Zip, GIF, JPEG, LZIP, PDF, PNG
     # TODO: Figure out how to identify FLAC inside an Ogg container so it can
     #       be checked properly. (ffmpeg doesn't detect my test corruption like
     #       `flac -t` does)
