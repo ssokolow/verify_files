@@ -64,6 +64,12 @@ import logging, os, subprocess
 import ast, bz2, gzip, json, lzma, sqlite3, tarfile, zipfile
 from PIL import Image
 
+try:
+    from defusedxml.sax import parse as SAX_parse
+    from xml.sax import ContentHandler as SAX_ContentHandler
+except ImportError:
+    SAX_parse = None
+
 log = logging.getLogger(__name__)
 
 def read_chunked(file_obj, chunk_size=65535):
@@ -233,6 +239,7 @@ def make_zip_processor(fmt_name):
     return process
 
 def sqlite3_processor(path):
+    """Run SQLite 3.x's 'PRAGMA integrity_check' on a database"""
     try:
         sqlite3.connect(path).execute('PRAGMA integrity_check')
     except Exception as err:
@@ -241,6 +248,24 @@ def sqlite3_processor(path):
         return
 
     log.info("SQLite 3.x database passes integrity check: %s", path)
+
+def xml_processor(path):
+    """Do a basic well-formedness check on the given XML file"""
+    if SAX_parse is None:
+        log.warning("Must install defusedxml to test XML files: %s", path)
+        return
+
+    try:
+        with open(path, 'rb') as fobj:
+            # We just want the side-effect of throwing an exception if the XML
+            # couldn't be parsed
+            SAX_parse(fobj, SAX_ContentHandler())
+    except Exception as err:
+        log.error("XML is not well-formed: %s", path)
+        log.debug("...because: %s: %s", err.__class__.__name__, err)
+        return
+
+    log.info("XML is well-formed: %s", path)
 
 ffmpeg_cmd = ['ffmpeg', '-f', 'null', '-', '-i']
 
@@ -343,8 +368,10 @@ EXT_PROCESSORS = {
     # TODO: Use an OK message for uncompressed TAR that's clear about
     #       how limited the check is.
     '.ra': make_subproc_processor('RealAudio', ffmpeg_cmd),
+    '.rdf': xml_processor,
     '.rm': make_subproc_processor('RealMedia Video', ffmpeg_cmd),
     '.rmvb': make_subproc_processor('RealMedia Video (VBR)', ffmpeg_cmd),
+    '.rss': xml_processor,
     '.rv': make_subproc_processor('RealVideo', ffmpeg_cmd),
     '.shn': make_subproc_processor('Shorten Audio', ffmpeg_cmd),
     '.spx': make_subproc_processor('Speex Audio', ffmpeg_cmd),
@@ -372,6 +399,7 @@ EXT_PROCESSORS = {
     '.xbm': pil_processor,
     '.xlsx': make_zip_processor('OOXML Workbook'),
     '.xlsm': make_zip_processor('Macro-enabled OOXML Workbook'),
+    '.xml': xml_processor,
     '.xpi': make_zip_processor('Mozilla XPI'),
     '.xpm': pil_processor,
     '.xz': make_compressed_processor('.xz', lzma),
@@ -390,6 +418,7 @@ HEADER_PROCESSORS = (
     # TODO: Figure out how to identify FLAC inside an Ogg container so it can
     #       be checked properly. (ffmpeg doesn't detect my test corruption like
     #       `flac -t` does)
+    # TODO: Java and Konqueror .war test files
     (zipfile.is_zipfile, make_zip_processor('unknown Zip-based')),
     (make_header_check(b'SQLite format 3\x00'), sqlite3_processor),
 
@@ -403,10 +432,15 @@ HEADER_PROCESSORS = (
     (make_header_check(b'.snd'),
      make_subproc_processor('Sun Audio (with header)', ffmpeg_cmd)),
 
-    # Formats where redistributable test files cannot be created without paying
-    # a license fee:
+    # -- Formats where redistributable test files cannot be created without --
+    # -- paying a license fee:                                              --
     (make_header_check(b'\x52\x61\x72\x21\x1A\x07'),
      make_subproc_processor('RAR', ['unrar', 't'])),
+    # ------------------------------------------------------------------------
+
+    # TODO: Write a variant of make_header_check that's suited to the
+    # non-significant whitespace and comments present in textual formats
+    (make_header_check(b'<?xml '), xml_processor),
 )
 
 def process_file(path):
