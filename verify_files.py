@@ -223,9 +223,13 @@ def make_zip_processor(fmt_name):
                 first_bad = zobj.testzip()
                 if first_bad:
                     log.error("Error encountered in %r at %r", path, first_bad)
+                    return
         except Exception as err:
             log.error("%s verification failed: %s", fmt_name, path)
             log.debug("...because: %s: %s", err.__class__.__name__, err)
+            return
+
+        log.info("%s OK: %s", fmt_name, path)
     return process
 
 def sqlite3_processor(path):
