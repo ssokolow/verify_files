@@ -302,7 +302,6 @@ EXT_PROCESSORS = {
     '.py': py_processor,
     '.pyc': ignore,
     '.pyo': ignore,
-    '.rar': make_subproc_processor('RAR', ['unrar', 't']),
     # TODO: Use an OK message for uncompressed TAR that's clear about
     #       how limited the check is.
     '.tar': tar_processor,
@@ -324,10 +323,13 @@ EXT_PROCESSORS = {
     '.xpm': pil_processor,
     '.xz': make_compressed_processor('.xz', lzma),
     '.zip': make_zip_processor('Zip archive'),
-}
 
-for ext in ('.cbr', '.rsn'):
-    EXT_PROCESSORS[ext] = EXT_PROCESSORS['.rar']
+    # Formats where redistributable test files cannot be created without paying
+    # a license fee:
+    '.cbr': make_subproc_processor('Comic Book Archive (RAR)', ['unrar', 't']),
+    '.rar': make_subproc_processor('RAR', ['unrar', 't']),
+    '.rsn': make_subproc_processor('RSN', ['unrar', 't']),
+}
 
 # Callback-based identification with a defined fallback chain
 # (Useful for ensuring formats are checked most-likely first)
@@ -341,6 +343,11 @@ HEADER_PROCESSORS = (
     (make_header_check(b'BZh'), make_compressed_processor('BZip2', bz2)),
     (make_header_check(b'\xFD7zXZ\x00'),
      make_compressed_processor('.xz', lzma)),
+
+    # Formats where redistributable test files cannot be created without paying
+    # a license fee:
+    (make_header_check(b'\x52\x61\x72\x21\x1A\x07'),
+     make_subproc_processor('RAR', ['unrar', 't'])),
 )
 
 def process_file(path):
