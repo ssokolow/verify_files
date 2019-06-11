@@ -204,9 +204,15 @@ def make_zip_processor(fmt_name):
     return process
 
 def sqlite3_processor(path):
-    """Run SQLite 3.x's 'PRAGMA integrity_check' on a database"""
+    """Run SQLite 3.x's integrity_check and foreign_key_check pragmas"""
     try:
-        sqlite3.connect(path).execute('PRAGMA integrity_check')
+        db = sqlite3.connect(path)
+        db.execute('PRAGMA integrity_check')  # Raises exception
+
+        broken_foreigns = db.execute('PRAGMA foreign_key_check').fetchone()
+        if broken_foreigns:
+            raise Exception("Broken foreign key references detected: {!r}"
+                            .format(broken_foreigns))
     except Exception as err:
         log.error("SQLite 3.x database verification failed: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
