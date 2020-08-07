@@ -535,7 +535,8 @@ HEADER_PROCESSORS = (
      make_subproc_processor('Sun Audio (with header)', ffmpeg_cmd)),
 )
 
-def process_file(path):
+
+def process_file(path, list_unrecognized=False):
     """Check the given path for corruption"""
     log.debug("Processing %r", path)
     fext = os.path.splitext(path)[1].lower()
@@ -548,27 +549,37 @@ def process_file(path):
         log.info("Skipping expected-to-be-spec-incompliant Zip file: %s",
                  path)
     elif fext in EXT_PROCESSORS:
-        EXT_PROCESSORS[fext](path)
+        if not list_unrecognized:
+            EXT_PROCESSORS[fext](path)
     else:
         for check, validator in HEADER_PROCESSORS:
             if check(path):
-                validator(path)
+                if not list_unrecognized:
+                    validator(path)
                 return
 
         log.error("Unrecognized file type: %s", path)
 
-def walk_path(root):
+
+def walk_path(root, list_unrecognized=False):
     """Process the given folder tree"""
     if os.path.isfile(root):
-        process_file(root)
-    else:
+        process_file(root, list_unrecognized)
+    elif os.path.isdir(root):
         for path, dirs, files in os.walk(root):
             dirs.sort()
             files.sort()
 
+            if '.git' in dirs:
+                dirs.remove('.git')
+                # TODO: `git fsck`
+
             for fname in files:
                 fpath = os.path.join(path, fname)
-                process_file(fpath)
+                process_file(fpath, list_unrecognized)
+    else:
+        log.error("Bad path: %s", root)
+
 
 def main():
     """The main entry point, compatible with setuptools entry points."""
@@ -590,6 +601,9 @@ def main():
     parser.add_argument('-q', '--quiet', action="count",
         default=0, help="Decrease the verbosity. Use twice for extra effect.")
     parser.add_argument('path', nargs='+')
+    parser.add_argument('--list-unrecognized', action="store_true",
+        default=False,
+        help="Just quickly identify files that have no checker registered")
     # Reminder: %(default)s can be used in help strings.
 
     args = parser.parse_args()
@@ -603,7 +617,7 @@ def main():
                         format='%(levelname)s: %(message)s')
 
     for path in args.path:
-        walk_path(path)
+        walk_path(path, args.list_unrecognized)
 
 if __name__ == '__main__':
     main()
