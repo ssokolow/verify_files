@@ -12,8 +12,9 @@ __appname__ = "Simple recursive detector for corrupted files"
 __version__ = "0.0pre0"
 __license__ = "GNU GPL 3.0 or later"
 
-import logging, os, subprocess
-import ast, bz2, gzip, json, lzma, sqlite3, tarfile, zipfile
+import logging, os, re, tempfile
+import ast, binhex, bz2, gzip, json, lzma, sqlite3, tarfile, zipfile
+import subprocess  # nosec
 from distutils.spawn import find_executable as which
 
 try:
@@ -33,6 +34,42 @@ def read_chunked(file_obj, chunk_size=65535):
     """Generator to tidy up code that reads a file incrementally"""
     for block in iter(lambda: file_obj.read(chunk_size), b''):
         yield block
+
+
+def bin_processor(path):
+    """Conditionally ignore InnoSetup BIN files"""
+    with open(path, 'rb') as fobj:
+        is_innosetup = (fobj.read(7) == b"idska32") or rar_header_check(path)
+
+    if not is_innosetup:
+        log.error("Unrecognized file type: %s", path)
+        return
+
+    base_name = re.match(r'(.*)-\d+\.bin', path, re.I)
+    if not base_name:
+        log.error("Filename is not a valid InnoSetup BIN pattern: %s", path)
+        return
+
+    exe_name = base_name.group(1) + '.exe'
+    if not os.path.exists(exe_name):  # TODO: Support case-insensitivity
+        log.error("No corresponding InnoSetup EXE file: %s", path)
+        return
+
+    log.info("Skipping .bin file for %s: %s", os.path.basename(exe_name), path)
+
+
+def binhex_processor(path):
+    """Verify the given path is a valid, uncorrupted binhex4 file."""
+    try:
+        with tempfile.TemporaryDirectory(prefix='verify_files-') as tmpdir:
+            with open(path, 'rb') as fobj:
+                binhex.hexbin(fobj, os.path.join(tmpdir, "out"))
+            return True
+    except Exception as err:  # pylint: disable=broad-except
+        log.error("BinHex file verification failed: %s", path)
+        log.debug("...because: %s: %s", err.__class__.__name__, err)
+        return False
+
 
 def ignore(path):
     """Ignore the given path, logging a debug-level message."""
@@ -238,6 +275,8 @@ def xml_processor(path):
 
     log.info("XML is well-formed: %s", path)
 
+rar_header_check = make_header_check(b'\x52\x61\x72\x21\x1A\x07')
+
 ffmpeg_cmd = ['ffmpeg', '-f', 'null', '-', '-i']
 
 # TODO: Rework so things like .tar.gz can be checked as compressed tar files
@@ -255,8 +294,12 @@ EXT_PROCESSORS = {
     '.aiff': make_subproc_processor('AIFF Audio', ffmpeg_cmd),
     '.asf': make_subproc_processor('Microsoft ASF', ffmpeg_cmd),
     '.avi': make_subproc_processor('Microsoft AVI Video', ffmpeg_cmd),
+    '.bin': bin_processor,
     '.bmp': pil_processor,
     '.bz2': make_compressed_processor('BZip2', bz2),
+    # TODO: Also support InstallShield CABs and use a custom message to
+    # acknowledge that it might also be just an unsupported variant
+    '.cab': make_subproc_processor('Microsoft CAB', ['cabextract', '-t']),
     '.cb7': make_subproc_processor('Comic Book Archive (7-Zip)', ['7z', 't']),
     '.cbz': make_zip_processor('Comic Book Archive (Zip)'),
     '.cbt': tar_processor,
@@ -264,10 +307,14 @@ EXT_PROCESSORS = {
     '.dashtoc': json_processor,
     '.dcx': pil_multi_processor,
     '.deb': make_subproc_processor('.deb', ['7z', 't']),  # TODO: Test file
+    '.dmg': make_subproc_processor('.dmg', ['7z', 't']),  # TODO: Test file
     '.dib': pil_processor,
     '.docm': make_zip_processor('Macro-enabled OOXML Document'),
     '.docx': make_zip_processor('OOXML Document'),
     '.epub': make_zip_processor('ePub e-book'),
+    # TODO: Support other kinds of EXEs too
+    '.exe': make_subproc_processor('Inno Setup Installer',
+                                   ['innoextract', '-t', '-g']),
     '.flac': make_subproc_processor('FLAC', ['flac', '-t']),
     '.f4a': make_subproc_processor('FLV Audio', ffmpeg_cmd),
     '.f4b': make_subproc_processor('FLV Audiobook', ffmpeg_cmd),
@@ -277,6 +324,7 @@ EXT_PROCESSORS = {
     '.flv': make_subproc_processor('Flash Video', ffmpeg_cmd),
     '.gif': pil_processor,
     '.gz': make_compressed_processor('GZip', gzip),
+    '.hqx': binhex_processor,
     '.ico': pil_multi_processor,
     '.j2k': pil_processor,
     '.jar': make_zip_processor('Java ARchive'),
@@ -290,7 +338,9 @@ EXT_PROCESSORS = {
     '.jpf': pil_processor,
     '.jpx': pil_processor,
     '.json': json_processor,
+    '.lha': make_subproc_processor('LHA archive', ['7z', 't']),
     '.lz': make_subproc_processor('Lzip', ['lzip', '-t']),
+    '.lzh': make_subproc_processor('LHA archive', ['7z', 't']),
     '.lzma': make_compressed_processor('.lzma', lzma),
     '.m4a': make_subproc_processor('MPEG-4 Part 14 Audio', ffmpeg_cmd),
     '.m4b': make_subproc_processor('MPEG-4 Part 14 Audiobook', ffmpeg_cmd),
@@ -310,6 +360,7 @@ EXT_PROCESSORS = {
     '.mpeg': make_subproc_processor('MPEG Video', ffmpeg_cmd),
     '.mpg': make_subproc_processor('MPEG Video', ffmpeg_cmd),
     '.mpp': make_subproc_processor('Musepack Audio', ffmpeg_cmd),
+    '.msi': make_subproc_processor('MSI Installer', ['7z', 't']),
     '.odb': make_zip_processor('ODF Database'),
     '.odc': make_zip_processor('ODF Chart'),
     '.odf': make_zip_processor('ODF Formula'),
@@ -352,10 +403,12 @@ EXT_PROCESSORS = {
     '.rdf': xml_processor,
     '.rm': make_subproc_processor('RealMedia Video', ffmpeg_cmd),
     '.rmvb': make_subproc_processor('RealMedia Video (VBR)', ffmpeg_cmd),
+    '.rpm': make_subproc_processor('RPM Package', ['rpm', '--checksig']),
     '.rss': xml_processor,
     '.rv': make_subproc_processor('RealVideo', ffmpeg_cmd),
     '.shn': make_subproc_processor('Shorten Audio', ffmpeg_cmd),
     '.spx': make_subproc_processor('Speex Audio', ffmpeg_cmd),
+    '.svg': xml_processor,  # TODO: Validate more thoroughly?
     '.tar': tar_processor,
     '.tbz2': tar_processor,
     '.tga': pil_processor,
@@ -396,33 +449,50 @@ EXT_PROCESSORS = {
 # Callback-based identification with a defined fallback chain
 # (Useful for ensuring formats are checked most-likely first)
 HEADER_PROCESSORS = (
-    # TODO: 7-Zip, GIF, JPEG, LZIP, PDF, PNG
     # TODO: Figure out how to identify FLAC inside an Ogg container so it can
     #       be checked properly. (ffmpeg doesn't detect my test corruption like
     #       `flac -t` does)
     # TODO: Java and Konqueror .war test files
+    # TODO: Don't let a match for a header-based format block a match for a
+    #       trailer-based format. (eg. a PNG or EXE with a Zip concatenated)
+
+    # Zip files should come first since it's the most popular basis for
+    # exchange formats which has a magic number for *reliabl* header-detection.
+    # (Unlike, for example, JSON)
     (zipfile.is_zipfile, make_zip_processor('unknown Zip-based')),
     (make_header_check(b'SQLite format 3\x00'), sqlite3_processor),
 
-    # TAR check should come before the compressions it might be inside
+    # TAR check should come before the compressions it might be inside and
+    # GZip should come as early as possible after Zip for similar reasons.
     (tarfile.is_tarfile, tar_processor),
     (make_header_check(b'\x1f\x8b'), make_compressed_processor('GZip', gzip)),
     (make_header_check(b'BZh'), make_compressed_processor('BZip2', bz2)),
     (make_header_check(b'\xFD7zXZ\x00'),
      make_compressed_processor('.xz', lzma)),
 
-    (make_header_check(b'.snd'),
-     make_subproc_processor('Sun Audio (with header)', ffmpeg_cmd)),
-
     # -- Formats where redistributable test files cannot be created without --
     # -- paying a license fee:                                              --
-    (make_header_check(b'\x52\x61\x72\x21\x1A\x07'),
-     make_subproc_processor('RAR', ['unrar', 't'])),
+    (rar_header_check, make_subproc_processor('RAR', ['unrar', 't'])),
     # ------------------------------------------------------------------------
 
     # TODO: Write a variant of make_header_check that's suited to the
     # non-significant whitespace and comments present in textual formats
     (make_header_check(b'<?xml '), xml_processor),
+    (make_header_check(b'%PDF'), pdf_processor),
+
+    # TODO: Match b"GIF87a" or b"GIF89a" and nothing else once the checks have
+    # been rewritten to only read the file once.
+    (make_header_check(b'GIF8'), pil_processor),
+    (make_header_check(b'\xff\xd8\xff'), pil_processor),  # JPEG
+    (make_header_check(b'\x89PNG\r\n\x1a\n'), pil_processor),
+
+    (make_header_check(b'7z\xbc\xaf\x27\x1c'),
+     make_subproc_processor('7-Zip archive', ['7z', 't'])),
+    (make_header_check(b'\x4c\x5a\x49\x50'),
+     make_subproc_processor('Lzip', ['lzip', '-t'])),
+
+    (make_header_check(b'.snd'),
+     make_subproc_processor('Sun Audio (with header)', ffmpeg_cmd)),
 )
 
 def process_file(path):

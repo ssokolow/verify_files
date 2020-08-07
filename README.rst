@@ -39,22 +39,28 @@ Dependencies
 Optional:
 ---------
 
-- defusedxml_ (for checking XML files, no unsafe fallback is provided)
-- ffmpeg_     (for checking non-FLAC media files)
-- flac_       (for checking FLAC files)
-- lzip_       (for checking lzip-compressed files)
-- p7zip_      (for checking 7-Zip, .cb7, and .deb files)
-- pdftotext_  (for checking PDFs)
-- Pillow_     (for checking images)
-- unrar_      (for checking RAR/CBR/RSN files)
+- cabextract_  (for checking Microsoft Cabinet archives)
+- defusedxml_  (for checking XML files, no unsafe fallback is provided)
+- ffmpeg_      (for checking non-FLAC media files)
+- flac_        (for checking FLAC files)
+- innoextract_ (for checking InnoSetup installers)
+- lzip_        (for checking lzip-compressed files)
+- p7zip_       (for checking 7-Zip, .cb7, .deb, .dmg, LHA, and MSI files)
+- pdftotext_   (for checking PDFs)
+- Pillow_      (for checking images)
+- RPM_         (for checking RPM packages)
+- unrar_       (for checking RAR/CBR/RSN files)
 
+.. _cabextract: https://www.cabextract.org.uk/
 .. _defusedxml: https://pypi.org/project/defusedxml/
 .. _flac: https://xiph.org/flac/
+.. _innoextract: https://constexpr.org/innoextract/
 .. _lzip: http://lzip.nongnu.org/
 .. _p7zip: http://p7zip.sourceforge.net/
 .. _pdftotext: https://en.wikipedia.org/wiki/Pdftotext
 .. _Pillow: https://python-pillow.org/
 .. _Python: https://www.python.org/
+.. _RPM: http://rpm.org/
 .. _unrar: https://www.rarlab.com/rar_add.htm
 
 
@@ -112,7 +118,9 @@ extensions will be identified based on their contents and checked as follows:
     Any file which begins with ``<?xml`` followed by a space will be checked
     to see if it can be parsed.
 
-    Future improvements to this script will allow for variations in whitespace.
+    In the future, this header check will be made more lenient to accomodate
+    variations in whitespace without devolving into a generic substring match
+    for ``<?xml`` inside a file which might actually be something else.
 **XZ:**
     Any file which begins with an XZ header will be checked for corruption
     using the format's internal integrity checks.
@@ -129,10 +137,11 @@ Extension-based Identification
 ------------------------------
 
 **Archives:**
-    ``.7z``, ``.arj``, ``.rar``, ``.tar``, ``.tbz2``, ``.tgz``, ``.txz``,
-    and ``.zip`` files will be fed to the appropriate archive tool's test
-    function. This will generally perform a CRC check on the compressed data,
-    but some files may also contain more robust integrity information.
+    ``.7z``, ``.arj``, ``.dmg``, ``.hqx``, ``.lha``, ``.lzh``, ``.msi``,
+    ``.rar``, ``.tar``, ``.tbz2``, ``.tgz``, ``.txz``, and ``.zip`` files will
+    be fed to the appropriate archive tool's test function. This will generally
+    perform a CRC check on the compressed data, but some files may also
+    contain more robust integrity information.
 
     At present, unpacking archives to check the files inside for corruption
     introduced before the archive was created is not supported, but is planned.
@@ -236,12 +245,20 @@ Extension-based Identification
     corruption that don't interfere with image loading, such as the distinctive
     bars of nonsense color at the bottom of certain types of corrupted JPEGs.
 
+**InnoSetup EXE Files:**
+    ``.exe`` files will be fed to ``innoextract -t -g`` on the assumption that
+    they are InnoSetup installers. This will also verify any accompanying
+    ``.bin`` files, whether they're InnoSetup's native split-file format or the
+    RAR files that GOG.com briefly used.
 **JSON Data:**
     ``.json`` and ``.dashtoc`` files will be loaded using the JSON parser from
     the Python standard library as a basic well-formedness check.
 
     Due to the format's lack of a `magic number`_, JSON files with unfamiliar
     extensions will **not** be recognized.
+**Microsoft Cabinet Files:**
+    ``.cab`` files will be fed to ``cabextract -t`` to check their internal
+    checksums.
 **PDF Documents:**
     The PDF format makes no provisions for internal checksumming. However, as
     with any structured markup, some degree of corruption detection *is*
@@ -254,9 +271,14 @@ Extension-based Identification
     Files with a ``.txt`` extension have no means of checking for corruption
     but will be read from disk in full in order catch any corruption which is
     detectable at the level of the filesystem or disk firmware.
-**XML, RDF, and RSS Files:**
-    Files with an ``.rdf``, ``.rss``, or ``.xml`` extension will be parsed to
-    verify that their markup is well-formed.
+**RPM Packages:**
+    Files with a ``.rpm`` extension will be fed to RPM's ``--checksig`` mode.
+
+    (Note that not all of the metadata in an RPM file is covered by the
+    signatures in question.)
+**XML, RDF, RSS, and SVG Files:**
+    Files with an ``.rdf``, ``.rss``, ``.svg``, or ``.xml`` extension will be
+    parsed to verify that their markup is well-formed.
 
 .. _3GPP: https://en.wikipedia.org/wiki/3GP_and_3G2
 .. _AAC: https://en.wikipedia.org/wiki/Advanced_Audio_Coding
@@ -342,6 +364,9 @@ Sorted by a rough approximation of the order I expect to tackle them.
       ``chktrust`` tool for verifying Authenticode signatures.
     * I'll want ``innoextract -t`` to be an "archive unpacker" that *only* gets
       used in the fallback chain for self-extractors.
+    * I'll want check ordering to be flexible enough to defer ``.bin`` until
+      after ``.exe`` of the same prefix so I can catch ``.bin`` files that
+      match a ``.exe`` file that turned out to not be an InnoSetup EXE.
     * If I remember correctly, ``.dll`` files are just PE-format binaries
       without an entry point, so anything that checks the correctness of the
       ``.exe`` portion of a self-extractor should also work on a DLL.
