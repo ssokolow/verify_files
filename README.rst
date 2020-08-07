@@ -269,8 +269,14 @@ Extension-based Identification
     is not well-formed.
 **Plaintext Files:**
     Files with a ``.txt`` extension have no means of checking for corruption
-    but will be read from disk in full in order catch any corruption which is
-    detectable at the level of the filesystem or disk firmware.
+    but will be read from disk in full in order to:
+
+    1. Catch any corruption which is detectable at the level of the filesystem
+       or disk firmware.
+    2. Perform some heuristic checks for null codepoints, which should not
+       occur in ``.txt`` files (text editors like ``NOTEPAD.exe`` treat them as
+       the end of the file) but could be inserted by a recovery operation that
+       represents an unreadable filesystem/media block as a span of nulls.
 **RPM Packages:**
     Files with a ``.rpm`` extension will be fed to RPM's ``--checksig`` mode.
 
@@ -352,6 +358,9 @@ Ideas for Further Checks
 
 Sorted by a rough approximation of the order I expect to tackle them.
 
+**Plaintext Files:**
+    Maybe I can also check for use of ``FF`` bytes, since that's the other
+    common fill byte for failed reads.
 **git repositories:**
     Verify repositories using `git fsck` and figure out how
     to check the working tree against the repository.

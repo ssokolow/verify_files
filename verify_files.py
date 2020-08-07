@@ -13,7 +13,7 @@ __version__ = "0.0pre0"
 __license__ = "GNU GPL 3.0 or later"
 
 import logging, os, re, tempfile
-import ast, binhex, bz2, gzip, json, lzma, sqlite3, tarfile, zipfile
+import ast, binhex, bz2, codecs, gzip, json, lzma, sqlite3, tarfile, zipfile
 import subprocess  # nosec
 from distutils.spawn import find_executable as which
 
@@ -147,6 +147,46 @@ def py_processor(path):
         return
 
     log.info("Python file is syntactically valid: %s", path)
+
+
+def txt_processor(path):
+    """Do a basic check for suspicious null bytes in a plaintext file"""
+    try:
+        with open(path, mode='rb') as fobj:
+            raw = fobj.read()
+
+        boms = [
+            (codecs.BOM_UTF32_LE, 'utf-32-le'),
+            (codecs.BOM_UTF32_BE, 'utf-32-be'),
+            (codecs.BOM_UTF16_LE, 'utf-16-le'),
+            (codecs.BOM_UTF16_BE, 'utf-16-be'),
+            (codecs.BOM_UTF8, 'utf-8'),
+        ]
+
+        for bom, encoding in boms:
+            if not raw.startswith(bom):
+                continue
+
+            try:
+                text = raw.decode(encoding)
+                if '\0' in text:
+                    raise ValueError("A null byte in a {}-encoded .txt file "
+                        "is likely to be corruption".format(encoding.upper()))
+                break
+            except UnicodeDecodeError:
+                raise ValueError("File began with BOM for {} but decoding "
+                    "failed".format(encoding))
+
+        # BOM-less UTF-32-compatible check for null bytes which will also catch
+        # two sequential nulls in UTF-16 as long as they're aligned properly
+        if all(b'\0' in raw[x::4] for x in range(4)):
+            raise ValueError("A null byte in a .txt file is likely corruption")
+    except Exception as err:  # pylint: disable=broad-except
+        log.error("Plaintext verification failed: %s", path)
+        log.debug("...because: %s: %s", err.__class__.__name__, err)
+    else:
+        log.warning("Plaintext files have no checksum: %s", path)
+
 
 def tar_processor(path):
     """Verify the given tar archive's integrity to whatever extent possible
@@ -419,7 +459,7 @@ EXT_PROCESSORS = {
     '.ts': make_subproc_processor('MPEG Transport Stream', ffmpeg_cmd),
     '.tsa': make_subproc_processor('MPEG Transport Stream Audio', ffmpeg_cmd),
     '.tsv': make_subproc_processor('MPEG Transport Stream Video', ffmpeg_cmd),
-    '.txt': make_unverifiable("Plaintext"),
+    '.txt': txt_processor,
     # NOTE: .war is handled by header detection because it could be a Java WAR
     #       (which is a Zip file) or a Konqueror WAR (which is a TAR file).
     '.txz': tar_processor,
