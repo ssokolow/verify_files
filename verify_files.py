@@ -17,18 +17,25 @@ import ast, binhex, bz2, codecs, gzip, json, lzma, sqlite3, tarfile, zipfile
 import subprocess  # nosec
 from distutils.spawn import find_executable as which
 
+# pylint: disable=wrong-import-order
 try:
-    from PIL import Image
+    from PIL import Image  # type: ignore
 except ImportError:
     Image = None
 
 try:
-    from defusedxml.sax import parse as sax_parse
-    from xml.sax import ContentHandler as SAX_ContentHandler
+    from defusedxml import defuse_stdlib  # type: ignore
+    from defusedxml.sax import parse as sax_parse  # type: ignore
+    defuse_stdlib()
+
+    # As far as I can tell, use of defusedxml.sax.parse makes this safe
+    # and no ContentHandler is offered by defusedxml
+    from xml.sax import ContentHandler as SAX_ContentHandler  # nosec
 except ImportError:
     sax_parse = None
 
 log = logging.getLogger(__name__)
+
 
 def read_chunked(file_obj, chunk_size=65535):
     """Generator to tidy up code that reads a file incrementally"""
@@ -75,11 +82,13 @@ def ignore(path):
     """Ignore the given path, logging a debug-level message."""
     log.debug("Ignoring %s", path)
 
+
 def pil_multi_processor(path):
     """Do an incomplete check of multi-frame image file validity"""
     if pil_processor(path):
         log.warning("Support for verifying all frames in image file not yet "
                     "implemented: %s", path)
+
 
 def json_processor(path):
     """Do a basic well-formedness check on the given JSON file"""
@@ -93,11 +102,13 @@ def json_processor(path):
     else:
         log.info("JSON file is well-formed: %s", path)
 
+
 def pdf_processor(path):
     """Use pdftotext to check the validity of a PDF file as well as possible"""
     try:
-        result = subprocess.check_output(['pdftotext', path, os.devnull],
-                                         stderr=subprocess.STDOUT).strip()
+        result = subprocess.check_output(  # nosec
+            ['pdftotext', path, os.devnull],
+            stderr=subprocess.STDOUT).strip()
         if b'Error' in result:
             log.error("PDF file is not well-formed: %s", path)
             log.debug("...because:\n%s", result)
@@ -108,6 +119,7 @@ def pdf_processor(path):
         return
 
     log.info("PDF file is well-formed: %s", path)
+
 
 def pil_processor(path):
     """Verify the given path is a valid, uncorrupted image.
@@ -133,6 +145,7 @@ def pil_processor(path):
         log.error("Image file verification failed: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
         return False
+
 
 def py_processor(path):
     """Do a basic SyntaxError check on the given Python file"""
@@ -196,11 +209,12 @@ def tar_processor(path):
     try:
         with tarfile.open(path) as tobj:
             tobj.getmembers()
-    except Exception as err:
+    except Exception as err:  # pylint: disable=broad-except
         log.error("TAR verification failed: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
     else:
         log.info("TAR OK: %s", path)
+
 
 def make_compressed_processor(fmt_name, module):
     """Closure factory for module.open().read()-based verifiers"""
@@ -210,12 +224,13 @@ def make_compressed_processor(fmt_name, module):
             with module.open(path, mode='rb') as fobj:
                 for _block in read_chunked(fobj):
                     pass  # Make sure the decompressor has to CRC everything
-        except Exception as err:
+        except Exception as err:  # pylint: disable=broad-except
             log.error("%s verification failed: %s", fmt_name, path)
             log.debug("...because: %s: %s", err.__class__.__name__, err)
         else:
             log.info("%s OK: %s", fmt_name, path)
     return check
+
 
 def make_header_check(magic_num_str):
     """Closure factory for 'file has magic number' checks"""
@@ -256,6 +271,7 @@ def make_subproc_processor(fmt_name, argv_prefix, argv_suffix=None,
         log.info("%s OK: %s", fmt_name, path)
     return process
 
+
 def make_unverifiable(fmt_name):
     """Closure factory for formats with no internal integrity checks"""
     def process(path):
@@ -270,6 +286,7 @@ def make_unverifiable(fmt_name):
             log.warning("%s files cannot be verified: %s", fmt_name, path)
     return process
 
+
 def make_zip_processor(fmt_name):
     """Closure factory for formats which use Zip archives as containers"""
     def process(path):
@@ -280,7 +297,7 @@ def make_zip_processor(fmt_name):
                 if first_bad:
                     log.error("Error encountered in %r at %r", path, first_bad)
                     return
-        except Exception as err:
+        except Exception as err:  # pylint: disable=broad-except
             log.error("%s verification failed: %s", fmt_name, path)
             log.debug("...because: %s: %s", err.__class__.__name__, err)
             return
@@ -288,22 +305,24 @@ def make_zip_processor(fmt_name):
         log.info("%s OK: %s", fmt_name, path)
     return process
 
+
 def sqlite3_processor(path):
     """Run SQLite 3.x's integrity_check and foreign_key_check pragmas"""
     try:
-        db = sqlite3.connect(path)
-        db.execute('PRAGMA integrity_check')  # Raises exception
+        sdb = sqlite3.connect(path)
+        sdb.execute('PRAGMA integrity_check')  # Raises exception
 
-        broken_foreigns = db.execute('PRAGMA foreign_key_check').fetchone()
+        broken_foreigns = sdb.execute('PRAGMA foreign_key_check').fetchone()
         if broken_foreigns:
             raise Exception("Broken foreign key references detected: {!r}"
                             .format(broken_foreigns))
-    except Exception as err:
+    except Exception as err:  # pylint: disable=broad-except
         log.error("SQLite 3.x database verification failed: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
         return
 
     log.info("SQLite 3.x database passes integrity check: %s", path)
+
 
 def xml_processor(path):
     """Do a basic well-formedness check on the given XML file"""
@@ -316,7 +335,7 @@ def xml_processor(path):
             # We just want the side-effect of throwing an exception if the XML
             # couldn't be parsed
             sax_parse(fobj, SAX_ContentHandler())
-    except Exception as err:
+    except Exception as err:  # pylint: disable=broad-except
         log.error("XML is not well-formed: %s", path)
         log.debug("...because: %s: %s", err.__class__.__name__, err)
         return
