@@ -226,7 +226,9 @@ def make_header_check(magic_num_str):
 
     return check
 
-def make_subproc_processor(fmt_name, argv_prefix, argv_suffix=None):
+
+def make_subproc_processor(fmt_name, argv_prefix, argv_suffix=None,
+                           use_tmp=False):
     """Closure factory for formats verifiable by subprocess exit code"""
     argv_suffix = argv_suffix or []
 
@@ -237,10 +239,16 @@ def make_subproc_processor(fmt_name, argv_prefix, argv_suffix=None):
                         argv_prefix[0], fmt_name)
             return
 
+        argv = argv_prefix + [os.path.abspath(path)] + argv_suffix
         with open(os.devnull, 'w') as nul:
             try:
-                subprocess.check_call(argv_prefix + [path] + argv_suffix,
-                                      stdout=nul, stderr=nul)
+                if use_tmp:
+                    with tempfile.TemporaryDirectory(prefix='verify-') as tdir:
+                        subprocess.check_call(  # nosec
+                            argv, cwd=tdir, stdout=nul, stderr=nul)
+                else:
+                    subprocess.check_call(  # nosec
+                        argv, stdout=nul, stderr=nul)
             except subprocess.CalledProcessError:
                 log.error("%s verification failed: %s", fmt_name, path)
                 return
@@ -479,11 +487,17 @@ EXT_PROCESSORS = {
     '.xz': make_compressed_processor('.xz', lzma),
     '.zip': make_zip_processor('Zip archive'),
 
+    # Formats I may need to use my Amiga Forever license to generate test files
+    # for:
+    '.lzx': make_subproc_processor('LZX archive', ['unar'], use_tmp=True),
     # Formats where redistributable test files cannot be created without paying
     # a license fee:
     '.cbr': make_subproc_processor('Comic Book Archive (RAR)', ['unrar', 't']),
     '.rar': make_subproc_processor('RAR', ['unrar', 't']),
     '.rsn': make_subproc_processor('RSN', ['unrar', 't']),
+    # Formats which may be in the same boat:
+    '.sit': make_subproc_processor('Stuffit archive', ['unar'], use_tmp=True),
+    '.sea': make_subproc_processor('SEA archive', ['unar'], use_tmp=True),
 }
 
 # Callback-based identification with a defined fallback chain

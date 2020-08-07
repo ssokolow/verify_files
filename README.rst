@@ -49,6 +49,7 @@ Optional:
 - pdftotext_   (for checking PDFs)
 - Pillow_      (for checking images)
 - RPM_         (for checking RPM packages)
+- unar_        (for checking LZX and Stuffit archives)
 - unrar_       (for checking RAR/CBR/RSN files)
 
 .. _cabextract: https://www.cabextract.org.uk/
@@ -61,6 +62,7 @@ Optional:
 .. _Pillow: https://python-pillow.org/
 .. _Python: https://www.python.org/
 .. _RPM: http://rpm.org/
+.. _unar: https://packages.debian.org/stable/unar
 .. _unrar: https://www.rarlab.com/rar_add.htm
 
 
@@ -137,11 +139,11 @@ Extension-based Identification
 ------------------------------
 
 **Archives:**
-    ``.7z``, ``.arj``, ``.dmg``, ``.hqx``, ``.lha``, ``.lzh``, ``.msi``,
-    ``.rar``, ``.tar``, ``.tbz2``, ``.tgz``, ``.txz``, and ``.zip`` files will
-    be fed to the appropriate archive tool's test function. This will generally
-    perform a CRC check on the compressed data, but some files may also
-    contain more robust integrity information.
+    ``.7z``, ``.arj``, ``.dmg``, ``.hqx``, ``.lha``, ``.lzh``, ``.lzx``,
+    ``.msi``, ``.rar``, ``.sit``, ``.sea``, ``.tar``, ``.tbz2``, ``.tgz``,
+    ``.txz``, and ``.zip`` files will be fed to the appropriate archive tool's
+    test function. This will generally perform a CRC check on the compressed
+    data, but some files may also contain more robust integrity information.
 
     At present, unpacking archives to check the files inside for corruption
     introduced before the archive was created is not supported, but is planned.
