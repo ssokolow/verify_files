@@ -1,3 +1,18 @@
+TODO: Recognize git and Mercurial repositories and incorporate the information
+from whether files have uncommitted changes. (It's not an internal checksum,
+but it may catch funny business in files with no or incomplete internal
+checksums.)
+
+https://docs.python.org/3/library/uu.html
+
+Create a test RPM:
+https://www.golinuxcloud.com/how-to-create-rpm-package-in-linux/#Create_rpm_package_from_scratch
+https://stackoverflow.com/questions/880227/what-is-the-minimum-i-have-to-do-to-create-an-rpm-file
+https://tecadmin.net/create-rpm-of-your-own-script-in-centosredhat/
+
 Also support verifying:
 - Win32-compatible filenames
 - No missing subresources in HTML files
+- Probably not mojibake in media metadata supported by Mutagen tagging library
+
+TODO: Consider rewriting in Rust, using TOML to define the mappings with the default config file embedded with https://docs.rs/include-flate/0.1.3/include_flate/

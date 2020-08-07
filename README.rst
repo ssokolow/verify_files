@@ -363,6 +363,11 @@ Sorted by a rough approximation of the order I expect to tackle them.
 **Plaintext Files:**
     Maybe I can also check for use of ``FF`` bytes, since that's the other
     common fill byte for failed reads.
+**.ini, .rc, .desktop, and .conf Files:**
+    See what I can do to check these for well-formedness using the parsers in
+    Python's standard library.
+**Shell Scripts:**
+    Can bash do a basic syntax check on untrusted scripts safely?
 **git repositories:**
     Verify repositories using `git fsck` and figure out how
     to check the working tree against the repository.
