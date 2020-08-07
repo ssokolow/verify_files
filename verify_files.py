@@ -13,7 +13,8 @@ __version__ = "0.0pre0"
 __license__ = "GNU GPL 3.0 or later"
 
 import logging, os, re, tempfile
-import ast, binhex, bz2, codecs, gzip, json, lzma, sqlite3, tarfile, zipfile
+import ast, binhex, bz2, codecs, gzip, json, lzma, sqlite3, tarfile, uu
+import zipfile
 import subprocess  # nosec
 from distutils.spawn import find_executable as which
 
@@ -216,6 +217,19 @@ def tar_processor(path):
         log.info("TAR OK: %s", path)
 
 
+def uuencode_processor(path):
+    """Do a very minimal uuencode corruption check (format and line length)"""
+    try:
+        with tempfile.TemporaryDirectory(prefix='verify_files-') as tmpdir:
+            with open(path, 'rb') as fobj:
+                uu.decode(fobj, os.path.join(tmpdir, "out"))
+            return True
+    except Exception as err:  # pylint: disable=broad-except
+        log.error("UUDecode failed: %s", path)
+        log.debug("...because: %s: %s", err.__class__.__name__, err)
+        return False
+
+
 def make_compressed_processor(fmt_name, module):
     """Closure factory for module.open().read()-based verifiers"""
     def check(path):
@@ -359,6 +373,8 @@ EXT_PROCESSORS = {
     '.aif': make_subproc_processor('AIFF Audio', ffmpeg_cmd),
     '.aifc': make_subproc_processor('AIFF Audio (Compressed)', ffmpeg_cmd),
     '.aiff': make_subproc_processor('AIFF Audio', ffmpeg_cmd),
+    # TODO: See whether Python's stdlib aifc module can do a better job of
+    # complaining about corruption than ffmpeg.
     '.asf': make_subproc_processor('Microsoft ASF', ffmpeg_cmd),
     '.avi': make_subproc_processor('Microsoft AVI Video', ffmpeg_cmd),
     '.bin': bin_processor,
@@ -371,6 +387,8 @@ EXT_PROCESSORS = {
     '.cbz': make_zip_processor('Comic Book Archive (Zip)'),
     '.cbt': tar_processor,
     '.cur': pil_multi_processor,
+    # TODO: Explore how viable it is to do some kind of minimal corruption
+    # check (un-paired quotes?) on CSV/TSV files using Python's csv module.
     '.dashtoc': json_processor,
     '.dcx': pil_multi_processor,
     '.deb': make_subproc_processor('.deb', ['7z', 't']),  # TODO: Test file
@@ -413,6 +431,7 @@ EXT_PROCESSORS = {
     '.m4b': make_subproc_processor('MPEG-4 Part 14 Audiobook', ffmpeg_cmd),
     '.m4r': make_subproc_processor('MPEG-4 Part 14 Ringtone', ffmpeg_cmd),
     '.m4v': make_subproc_processor('MPEG-4 Part 14 Video', ffmpeg_cmd),
+    # TODO: Use .md5 files to verify adjacent files
     '.mk3d': make_subproc_processor('Matroska Video (3D)', ffmpeg_cmd),
     '.mka': make_subproc_processor('Matroska Audio', ffmpeg_cmd),
     '.mkv': make_subproc_processor('Matroska Video', ffmpeg_cmd),
@@ -421,6 +440,7 @@ EXT_PROCESSORS = {
     '.mp1': make_subproc_processor('MPEG Layer 1 Audio', ffmpeg_cmd),
     '.mp2': make_subproc_processor('MPEG Layer 2 Audio', ffmpeg_cmd),
     '.mp3': make_subproc_processor('MPEG Layer 3 Audio', ffmpeg_cmd),
+    # TODO: Compare ffmpeg to `mp3check` and `mp3check -e3STBEG`
     '.mp4': make_subproc_processor('MPEG-4 Part 14 Video', ffmpeg_cmd),
     '.mpc': make_subproc_processor('Musepack Audio', ffmpeg_cmd),
     '.mpe': make_subproc_processor('MPEG Video', ffmpeg_cmd),
@@ -490,6 +510,8 @@ EXT_PROCESSORS = {
     # NOTE: .war is handled by header detection because it could be a Java WAR
     #       (which is a Zip file) or a Konqueror WAR (which is a TAR file).
     '.txz': tar_processor,
+    '.uu': uuencode_processor,
+    '.uue': uuencode_processor,
     '.voc': make_subproc_processor('Soundblaster VOC Audio', ffmpeg_cmd),
     '.wav': make_subproc_processor('Microsoft Waveform Audio', ffmpeg_cmd),
     '.webm': make_subproc_processor('WebM Video', ffmpeg_cmd),

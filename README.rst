@@ -284,6 +284,13 @@ Extension-based Identification
 
     (Note that not all of the metadata in an RPM file is covered by the
     signatures in question.)
+**UUEncoded Files:**
+    UUEncode does not include any form of checksum, but this script can detect
+    truncated files and corruption in specific places that confuse the stream
+    decoder.
+
+    In the future, this script will gain the ability to validate the decoded
+    file to take advantage of any checksums built into it.
 **XML, RDF, RSS, and SVG Files:**
     Files with an ``.rdf``, ``.rss``, ``.svg``, or ``.xml`` extension will be
     parsed to verify that their markup is well-formed.
