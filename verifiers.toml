@@ -1,0 +1,810 @@
+[[filetype]]
+description = "MPEG-4 Part 12 Media (3GPP2)"
+handler = "ffmpeg"
+extension = ".3g2"
+
+[[filetype]]
+description = "MPEG-4 Part 12 Media (3GPP)"
+handler = "ffmpeg"
+extension = ".3gp"
+
+[[filetype]]
+description = "7-Zip archive"
+handler = "p7zip"
+id = "7zip"
+header = [ 55, 122, 188, 175, 39, 28 ]
+extension = ".7z"
+
+[[filetype]]
+description = "AAC (ADTS Stream)"
+handler = "ffmpeg"
+extension = ".aac"
+
+[[filetype]]
+description = "AIFF Audio"
+handler = "ffmpeg"
+extension = [ ".aif", ".aiff" ]
+
+[[filetype]]
+description = "AIFF Audio (Compressed)"
+handler = "ffmpeg"
+extension = ".aifc"
+
+[[filetype]]
+description = "Monkey's Audio"
+handler = "ffmpeg"
+extension = ".ape"
+
+[[filetype]]
+description = "ARJ archive"
+handler = "arj"
+extension = ".arj"
+
+[[filetype]]
+description = "Microsoft ASF"
+handler = "ffmpeg"
+id = "asf"
+header = [ 48, 38, 178, 117, 142, 102, 207, 17, 166, 217, 0, 170, 0, 98, 206, 108 ]
+extension = ".asf"
+
+[[filetype]]
+description = "Microsoft AVI Video"
+handler = "ffmpeg"
+extension = ".avi"
+
+[[filetype]]
+description = ".bin"
+handler = "bin"
+extension = ".bin"
+
+[[filetype]]
+description = "Microsoft Device-Independent Bitmap Image"
+handler = "pil"
+extension = [ ".bmp", ".dib" ]
+
+[[filetype]]
+description = "BZip2 compressed"
+handler = "bz2"
+id = "bzip2"
+header = [ 66, 90, 104 ]
+extension = ".bz2"
+
+[[filetype]]
+description = "Microsoft CAB"
+handler = "cabextract"
+extension = ".cab"
+
+[[filetype]]
+description = "Comic Book Archive (7-Zip)"
+handler = "p7zip"
+container = "7zip"
+extension = ".cb7"
+
+[[filetype]]
+description = "Comic Book Archive (RAR)"
+handler = "unrar"
+container = "rar"
+extension = ".cbr"
+
+[[filetype]]
+description = "Comic Book Archive (Tar)"
+handler = "tar"
+container = "tar"
+extension = ".cbt"
+
+[[filetype]]
+description = "Comic Book Archive (Zip)"
+handler = "zip"
+container = "zip"
+extension = ".cbz"
+
+[[filetype]]
+description = "Microsoft Cursor"
+handler = "pil"
+multipage = true
+extension = ".cur"
+
+[[filetype]]
+description = "Dash/Zeal Docset Table of Contents"
+handler = "json"
+extension = ".dashtoc"
+
+[[filetype]]
+description = "Multi-page ZSoft PC Paintbrush Image"
+handler = "pil"
+multipage = true
+extension = ".dcx"
+
+[[filetype]]
+description = "Debian Package"
+handler = "p7zip"
+extension = ".deb"
+
+[[filetype]]
+description = "Apple DMG Disk Image"
+handler = "p7zip"
+extension = ".dmg"
+
+[[filetype]]
+description = "Macro-enabled OOXML Document"
+handler = "zip"
+container = "zip"
+extension = ".docm"
+
+[[filetype]]
+description = "OOXML Document"
+handler = "zip"
+container = "zip"
+extension = ".docx"
+
+[[filetype]]
+description = "ePub e-book"
+handler = "zip"
+container = "zip"
+extension = ".epub"
+
+[[filetype]]
+description = "Inno Setup Installer"
+handler = "innoextract"
+extension = ".exe"
+
+[[filetype]]
+description = "FLV Audio"
+handler = "ffmpeg"
+extension = ".f4a"
+
+[[filetype]]
+description = "FLV Audiobook"
+handler = "ffmpeg"
+extension = ".f4b"
+
+[[filetype]]
+description = "FLV Video"
+handler = "ffmpeg"
+extension = ".f4v"
+
+[[filetype]]
+description = "FLAC Audio"
+handler = "flac"
+extension = ".flac"
+
+[[filetype]]
+description = "Autodesk FLIC Animation"
+handler = "pil"
+extension = [ ".fli", ".flc" ]
+
+[[filetype]]
+description = "Flash Video"
+handler = "ffmpeg"
+extension = ".flv"
+
+[[filetype]]
+description = "GIF Image"
+handler = "pil"
+header = [ [ 71, 73, 70, 56, 55, 97 ], [ 71, 73, 70, 56, 57, 97 ] ]
+extension = ".gif"
+
+[[filetype]]
+description = "GZip compressed"
+handler = "gzip"
+id = "gzip"
+header = [ 31, 139 ]
+extension = ".gz"
+
+[[filetype]]
+description = "BinHex4"
+handler = "binhex"
+extension = ".hqx"
+
+[[filetype]]
+description = "Microsoft Icon"
+handler = "pil"
+multipage = true
+extension = ".ico"
+
+[[filetype]]
+description = "JPEG 2000 Image"
+handler = "pil"
+extension = [ ".j2k", ".jp2", ".jpf", ".jpx" ]
+
+[[filetype]]
+description = "Java ARchive"
+handler = "zip"
+container = "zip"
+extension = ".jar"
+
+[[filetype]]
+description = "JPEG/JFIF Image"
+handler = "pil"
+header = [ 255, 216, 255 ]
+extension = [ ".jfi", ".jfif", ".jif", ".jpe", ".jpeg", ".jpg" ]
+
+[[filetype]]
+description = "JSON Data"
+handler = "json"
+extension = ".json"
+
+[[filetype]]
+description = "LHA archive"
+handler = "p7zip"
+extension = [ ".lha", ".lzh" ]
+
+[[filetype]]
+description = "Lzip compressed"
+handler = "lzip"
+header = [ 76, 90, 73, 80 ]
+extension = ".lz"
+
+[[filetype]]
+description = ".lzma"
+handler = "lzma"
+id = "lzma"
+extension = ".lzma"
+
+[[filetype]]
+description = "LZX archive"
+handler = "lsar"
+extension = ".lzx"
+
+[[filetype]]
+description = "MPEG-4 Part 14 Audio"
+handler = "ffmpeg"
+extension = ".m4a"
+
+[[filetype]]
+description = "MPEG-4 Part 14 Audiobook"
+handler = "ffmpeg"
+extension = ".m4b"
+
+[[filetype]]
+description = "MPEG-4 Part 14 Ringtone"
+handler = "ffmpeg"
+extension = ".m4r"
+
+[[filetype]]
+description = "MPEG-4 Part 14 Video"
+handler = "ffmpeg"
+extension = ".m4v"
+
+[[filetype]]
+description = "Matroska Video (3D)"
+handler = "ffmpeg"
+extension = ".mk3d"
+
+[[filetype]]
+description = "Matroska Audio"
+handler = "ffmpeg"
+extension = ".mka"
+
+[[filetype]]
+description = "Matroska Video"
+handler = "ffmpeg"
+extension = ".mkv"
+
+[[filetype]]
+description = "Quicktime Video"
+handler = "ffmpeg"
+extension = ".mov"
+
+[[filetype]]
+description = "Musepack Audio"
+handler = "ffmpeg"
+extension = [ ".mp+", ".mpc", ".mpp" ]
+
+[[filetype]]
+description = "MPEG Layer 1 Audio"
+handler = "ffmpeg"
+extension = ".mp1"
+
+[[filetype]]
+description = "MPEG Layer 2 Audio"
+handler = "ffmpeg"
+extension = ".mp2"
+
+[[filetype]]
+description = "MPEG Layer 3 Audio"
+handler = "ffmpeg"
+extension = ".mp3"
+
+[[filetype]]
+description = "MPEG-4 Part 14 Video"
+handler = "ffmpeg"
+extension = ".mp4"
+
+[[filetype]]
+description = "MPEG Video"
+handler = "ffmpeg"
+extension = [ ".mpe", ".mpeg", ".mpg" ]
+
+[[filetype]]
+description = "MSI Installer"
+handler = "p7zip"
+extension = ".msi"
+
+[[filetype]]
+description = "ODF Database"
+handler = "zip"
+container = "zip"
+extension = ".odb"
+
+[[filetype]]
+description = "ODF Chart"
+handler = "zip"
+container = "zip"
+extension = ".odc"
+
+[[filetype]]
+description = "ODF Formula"
+handler = "zip"
+container = "zip"
+extension = ".odf"
+
+[[filetype]]
+description = "ODF Drawing"
+handler = "zip"
+container = "zip"
+extension = ".odg"
+
+[[filetype]]
+description = "ODF Image"
+handler = "zip"
+container = "zip"
+extension = ".odi"
+
+[[filetype]]
+description = "ODF Master Document"
+handler = "zip"
+container = "zip"
+extension = ".odm"
+
+[[filetype]]
+description = "ODF Presentation"
+handler = "zip"
+container = "zip"
+extension = ".odp"
+
+[[filetype]]
+description = "ODF Spreadsheet"
+handler = "zip"
+container = "zip"
+extension = ".ods"
+
+[[filetype]]
+description = "ODF Text Document"
+handler = "zip"
+container = "zip"
+extension = ".odt"
+
+[[filetype]]
+description = "Ogg containing audio (.oga)"
+handler = "ffmpeg"
+extension = ".oga"
+
+[[filetype]]
+description = "Ogg Vorbis (.ogg)"
+handler = "ffmpeg"
+extension = ".ogg"
+
+[[filetype]]
+description = "OGM (Ogg, Unofficial)"
+handler = "ffmpeg"
+extension = ".ogm"
+
+[[filetype]]
+description = "Ogg containing video (.ogv)"
+handler = "ffmpeg"
+extension = ".ogv"
+
+[[filetype]]
+description = "Ogg (unspecified) (.ogx)"
+handler = "ffmpeg"
+extension = ".ogx"
+
+[[filetype]]
+description = "Opus Audio"
+handler = "ffmpeg"
+extension = ".opus"
+
+[[filetype]]
+description = "ODF Chart Template"
+handler = "zip"
+container = "zip"
+extension = ".otc"
+
+[[filetype]]
+description = "ODF Formula Template"
+handler = "zip"
+container = "zip"
+extension = ".otf"
+
+[[filetype]]
+description = "ODF Drawing Template"
+handler = "zip"
+container = "zip"
+extension = ".otg"
+
+[[filetype]]
+description = "ODF Web Page Template"
+handler = "zip"
+container = "zip"
+extension = ".oth"
+
+[[filetype]]
+description = "ODF Image Template"
+handler = "zip"
+container = "zip"
+extension = ".oti"
+
+[[filetype]]
+description = "ODF Presentation Template"
+handler = "zip"
+container = "zip"
+extension = ".otp"
+
+[[filetype]]
+description = "ODF Spreadsheet Template"
+handler = "zip"
+container = "zip"
+extension = ".ots"
+
+[[filetype]]
+description = "ODF Text Document Template"
+handler = "zip"
+container = "zip"
+extension = ".ott"
+
+[[filetype]]
+description = "NetPBM Portable Bitmap Image"
+handler = "pil"
+extension = ".pbm"
+
+[[filetype]]
+description = "ZSoft PC Paintbrush Image"
+handler = "pil"
+extension = ".pcx"
+
+[[filetype]]
+description = "PDF Document"
+handler = "pdftotext"
+header = [ 37, 80, 68, 70 ]
+extension = ".pdf"
+
+[[filetype]]
+description = "NetPBM Portable Graymap Image"
+handler = "pil"
+extension = ".pgm"
+
+[[filetype]]
+description = "PNG Image"
+handler = "pil"
+header = [ 137, 80, 78, 71, 13, 10, 26, 10 ]
+extension = ".png"
+
+[[filetype]]
+description = "Macro-enabled OOXML Presentation Template"
+handler = "zip"
+container = "zip"
+extension = ".potm"
+
+[[filetype]]
+description = "NetPBM Portable Pixmap Image"
+handler = "pil"
+extension = ".ppm"
+
+[[filetype]]
+description = "OOXML Presentation (Self-Starting)"
+handler = "zip"
+container = "zip"
+extension = ".ppsx"
+
+[[filetype]]
+description = "Macro-enabled OOXML Presentation"
+handler = "zip"
+container = "zip"
+extension = ".pptm"
+
+[[filetype]]
+description = "OOXML Presentation"
+handler = "zip"
+container = "zip"
+extension = ".pptx"
+
+[[filetype]]
+description = "Python Source Code"
+handler = "py"
+extension = ".py"
+
+[[filetype]]
+description = "Python Bytecode"
+handler = "ignore"
+extension = ".pyc"
+
+[[filetype]]
+description = "Python Bytecode (Optimized)"
+handler = "ignore"
+extension = ".pyo"
+
+[[filetype]]
+description = "RealAudio"
+handler = "ffmpeg"
+extension = ".ra"
+
+[[filetype]]
+description = "RAR"
+handler = "unrar"
+id = "rar"
+header = [ 82, 97, 114, 33, 26, 7 ]
+extension = ".rar"
+
+[[filetype]]
+description = "RDF Document"
+handler = "xml"
+extension = ".rdf"
+
+[[filetype]]
+description = "RealMedia Video"
+handler = "ffmpeg"
+extension = ".rm"
+
+[[filetype]]
+description = "RealMedia Video (VBR)"
+handler = "ffmpeg"
+extension = ".rmvb"
+
+[[filetype]]
+description = "RPM Package"
+handler = "rpm"
+extension = ".rpm"
+
+[[filetype]]
+description = "RSN"
+handler = "unrar"
+container = "rar"
+extension = ".rsn"
+
+[[filetype]]
+description = "RSS Feed"
+handler = "xml"
+extension = ".rss"
+
+[[filetype]]
+description = "RealVideo"
+handler = "ffmpeg"
+extension = ".rv"
+
+[[filetype]]
+description = "SEA archive"
+handler = "lsar"
+extension = ".sea"
+
+[[filetype]]
+description = "Shorten Audio"
+handler = "ffmpeg"
+extension = ".shn"
+
+[[filetype]]
+description = "Stuffit archive"
+handler = "lsar"
+extension = ".sit"
+
+[[filetype]]
+description = "Speex Audio"
+handler = "ffmpeg"
+extension = ".spx"
+
+[[filetype]]
+description = "SQLite3 Database"
+handler = "sqlite3"
+header = [ 83, 81, 76, 105, 116, 101, 32, 102, 111, 114, 109, 97, 116, 32, 51, 0 ]
+extension = ".sqlite3"
+
+[[filetype]]
+description = "SVG Image"
+handler = "xml"
+extension = ".svg"
+
+[[filetype]]
+description = "SVG Image (GZip compressed)"
+handler = "gzip"
+container = "gzip"
+extension = ".svgz"
+
+[[filetype]]
+description = "Tar Archive"
+handler = "tar"
+header_offset = 257
+id = "tar"
+header = [ [ 117, 115, 116, 97, 114, 0, 48, 48 ], [ 117, 115, 116, 97, 114, 32, 32, 0 ] ]
+extension = ".tar"
+
+[[filetype]]
+description = "Tar Archive (BZip2 compressed)"
+handler = "tar"
+container = "bzip2"
+extension = ".tbz2"
+
+[[filetype]]
+description = "Truevision TGA Image"
+handler = "pil"
+extension = ".tga"
+
+[[filetype]]
+description = "Tar Archive (GZip compressed)"
+handler = "tar"
+container = "gzip"
+extension = ".tgz"
+
+[[filetype]]
+description = "TIFF Image"
+handler = "pil"
+extension = [ ".tif", ".tiff" ]
+
+[[filetype]]
+description = "Tar Archive (.lzma compressed)"
+handler = "tar"
+container = "lzma"
+extension = ".tlz"
+
+[[filetype]]
+description = "MPEG Transport Stream"
+handler = "ffmpeg"
+extension = ".ts"
+
+[[filetype]]
+description = "MPEG Transport Stream Audio"
+handler = "ffmpeg"
+extension = ".tsa"
+
+[[filetype]]
+description = "MPEG Transport Stream Video"
+handler = "ffmpeg"
+extension = ".tsv"
+
+[[filetype]]
+description = "Plaintext"
+handler = "txt"
+extension = ".txt"
+
+[[filetype]]
+description = "Tar Archive (.xz compressed)"
+handler = "tar"
+container = "xz"
+extension = ".txz"
+
+[[filetype]]
+description = "UUEncoded"
+handler = "uuencode"
+extension = [ ".uu", ".uue" ]
+
+[[filetype]]
+description = "Soundblaster VOC Audio"
+handler = "ffmpeg"
+extension = ".voc"
+
+[[filetype]]
+description = "Microsoft Waveform Audio"
+handler = "ffmpeg"
+extension = ".wav"
+
+[[filetype]]
+description = "WebM Video"
+handler = "ffmpeg"
+extension = ".webm"
+
+[[filetype]]
+description = "WebP Image"
+handler = "pil"
+extension = ".webp"
+
+[[filetype]]
+description = "Windows Media Audio"
+handler = "ffmpeg"
+container = "asf"
+extension = ".wma"
+
+[[filetype]]
+description = "Windows Media Video"
+handler = "ffmpeg"
+container = "asf"
+extension = ".wmv"
+
+[[filetype]]
+description = "WavPack Audio"
+handler = "ffmpeg"
+extension = ".wv"
+
+[[filetype]]
+description = "X BitMap Image"
+handler = "pil"
+extension = ".xbm"
+
+[[filetype]]
+description = "Macro-enabled OOXML Workbook"
+handler = "zip"
+container = "zip"
+extension = ".xlsm"
+
+[[filetype]]
+description = "OOXML Workbook"
+handler = "zip"
+container = "zip"
+extension = ".xlsx"
+
+[[filetype]]
+description = "XML Data"
+handler = "xml"
+header = [ 60, 63, 120, 109, 108, 32 ]
+extension = ".xml"
+
+[[filetype]]
+description = "Mozilla XPI"
+handler = "zip"
+container = "zip"
+extension = ".xpi"
+
+[[filetype]]
+description = "X PixMap Image"
+handler = "pil"
+extension = ".xpm"
+
+[[filetype]]
+description = ".xz compressed"
+handler = "lzma"
+id = "xz"
+header = [ 253, 55, 122, 88, 90, 0 ]
+extension = ".xz"
+
+[[filetype]]
+description = "Zip archive"
+handler = "zip"
+id = "zip"
+header = [ [ 80, 75, 3, 4 ], [ 80, 75, 5, 6 ], [ 80, 75, 7, 8 ] ]
+extension = ".zip"
+
+[[filetype]]
+description = "Sun Audio (with header)"
+handler = "ffmpeg"
+header = [ 46, 115, 110, 100 ]
+
+[[override]]
+path = "*/hts-cache/new.zip"
+type = "ignore"
+message = "Skipping intentionally broken HTTrack Zip file"
+
+[[override]]
+path = "*/.git"
+recurse = false
+
+[handler.arj]
+argv = [ "arj", "t" ]
+
+[handler.cabextract]
+argv = [ "cabextract", "-t" ]
+
+[handler.ffmpeg]
+argv = [ "ffmpeg", "-f", "null", "-", "-i" ]
+
+[handler.flac]
+argv = [ "flac", "-t" ]
+
+[handler.innoextract]
+argv = [ "innoextract", "-t", "-g" ]
+
+[handler.lsar]
+argv = [ "lsar", "-t" ]
+
+[handler.lzip]
+argv = [ "lzip", "-t" ]
+
+[handler.p7zip]
+argv = [ "7z", "t" ]
+
+[handler.pdftotext]
+fail_if_stderr = "Error"
+argv = [ "pdftotext", "{path}", "{devnull}" ]
+
+[handler.rpm]
+argv = [ "rpm", "--checksig" ]
+
+[handler.unrar]
+argv = [ "unrar", "t" ]

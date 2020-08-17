@@ -49,7 +49,7 @@ Optional:
 - pdftotext_   (for checking PDFs)
 - Pillow_      (for checking images)
 - RPM_         (for checking RPM packages)
-- unar_        (for checking LZX and Stuffit archives)
+- lsar_        (for checking LZX and Stuffit archives)
 - unrar_       (for checking RAR/CBR/RSN files)
 
 .. _cabextract: https://www.cabextract.org.uk/
@@ -62,7 +62,7 @@ Optional:
 .. _Pillow: https://python-pillow.org/
 .. _Python: https://www.python.org/
 .. _RPM: http://rpm.org/
-.. _unar: https://packages.debian.org/stable/unar
+.. _lsar: https://packages.debian.org/stable/unar
 .. _unrar: https://www.rarlab.com/rar_add.htm
 
 
