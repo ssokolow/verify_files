@@ -10,6 +10,8 @@ stderrlog = "0.4"
 structopt = "0.3"
 anyhow = "1.0.31"
 faccess = "0.2.3"
+serde = "1.0.117"
+toml = "0.5.7"
 
 [profile.release]
 lto = true
