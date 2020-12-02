@@ -1,0 +1,36 @@
+# Version 0.1
+
+# Always nice to have a way to gather TODOs and FIXMEs quickly
+report_todo = "Always"
+report_fixme = "Always"
+
+# I was one of the proponents in the RFC discussion
+use_try_shorthand = true
+
+# Try to wrestle rustfmt as close as possible to the style I habitually use
+# and rigorously enforce by using `git gui` to only commit rustfmt changes
+# I approve of.
+brace_style = "PreferSameLine"
+comment_width = 100
+enum_discrim_align_threshold = 10
+format_strings = true
+fn_args_density = "Compressed"
+fn_single_line = true
+imports_indent = "Visual"
+match_block_trailing_comma = true
+normalize_doc_attributes = true
+overflow_delimited_expr = true
+reorder_impl_items = true
+struct_field_align_threshold = 10
+use_field_init_shorthand = true
+use_small_heuristics = "Max"
+where_single_line = true
+wrap_comments = false
+
+# I happen to like /* this */ for multi-line comments, thank you very much
+normalize_comments = false
+
+# -----------------------------------------------------------------------------
+
+# Used for debugging rustfmt configurations
+#write_mode = "Diff"
