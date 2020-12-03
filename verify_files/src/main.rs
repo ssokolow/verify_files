@@ -9,6 +9,7 @@ This file provided by [rust-cli-boilerplate](https://github.com/ssokolow/rust-cl
 #![warn(warnings, rust_2018_idioms)]
 #![warn(clippy::all, clippy::pedantic, clippy::restriction)]
 #![allow(clippy::float_arithmetic, clippy::implicit_return, clippy::needless_return)]
+#![allow(clippy::blanket_clippy_restriction_lints)]
 #![forbid(unsafe_code)] // Enforce my policy of only allowing it in my own code as a last resort
 
 // stdlib imports
@@ -50,7 +51,7 @@ fn main() -> Result<()> {
     // If requested, generate shell completions and then exit with status of "success"
     if let Some(shell) = opts.boilerplate.dump_completions {
         app::CliOpts::clap().gen_completions_to(
-            app::CliOpts::clap().get_bin_name().unwrap_or_else(|| clap::crate_name!()),
+            app::CliOpts::clap().get_bin_name().unwrap_or(clap::crate_name!()),
             shell,
             &mut io::stdout(),
         );

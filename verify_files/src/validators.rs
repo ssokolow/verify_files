@@ -309,7 +309,7 @@ pub fn filename_valid_portable<P: AsRef<Path> + ?Sized>(value: &P) -> Result<(),
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::wildcard_imports, clippy::panic, clippy::result_expect_used)] // OK for tests
+    #![allow(clippy::wildcard_imports, clippy::panic, clippy::expect_used)] // OK for tests
 
     use super::*;
     use std::ffi::OsStr;
