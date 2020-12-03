@@ -21,6 +21,7 @@ use structopt::{clap, StructOpt};
 
 // Local imports
 mod app;
+mod config;
 mod helpers;
 mod validators;
 

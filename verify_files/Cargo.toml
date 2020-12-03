@@ -12,6 +12,7 @@ anyhow = "1.0.31"
 faccess = "0.2.3"
 serde = "1.0.117"
 toml = "0.5.7"
+serde_derive = "1.0.117"
 
 [profile.release]
 lto = true

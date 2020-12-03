@@ -18,6 +18,7 @@ use structopt::StructOpt;
 use log::{debug, error, info, trace, warn};
 
 // Local Imports
+use crate::config;
 use crate::helpers::{BoilerplateOpts, HELP_TEMPLATE};
 use crate::validators::path_readable_file;
 
