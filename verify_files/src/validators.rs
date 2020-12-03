@@ -34,7 +34,7 @@ pub const RESERVED_DOS_FILENAMES: &[&str] = &["AUX", "CON", "NUL", "PRN",
 ///
 /// ## Relevant Conventions:
 ///  * Use `-o` to specify the output path if doing so is optional. Less commonly, `-d` is also
-///    used. [[1]](http://www.catb.org/esr/writings/taoup/html/ch10s05.html)
+///    used. <a href="http://www.catb.org/esr/writings/taoup/html/ch10s05.html">\[1\]</a>
 ///
 /// ## Cautions:
 ///  * Never assume a directory's permissions will remain unchanged between the time you check them
@@ -66,7 +66,7 @@ pub fn path_output_dir<P: AsRef<Path> + ?Sized>(value: &P) -> Result<(), OsStrin
 ///
 /// ## Relevant Conventions:
 ///  * If specifying an input file via an option flag, use `-f` as the name of the flag.
-///    [[1]](http://www.catb.org/esr/writings/taoup/html/ch10s05.html)
+///    <a href="http://www.catb.org/esr/writings/taoup/html/ch10s05.html">\[1\]</a>
 ///  * Prefer taking input paths as positional arguments and, if feasible, allow an arbitrary
 ///    number of input arguments. This allows easy use of shell globs.
 ///
@@ -101,10 +101,10 @@ pub fn path_readable_file_or_stdin<P: AsRef<Path> + ?Sized>(value: &P)
 ///  * Input file paths
 ///
 /// ## Relevant Conventions:
-///  * **Prefer [`path_readable_file_or_stdin`](fn.path_readable_file_or_stdin.html).**
+///  * **Prefer [`path_readable_file_or_stdin`](path_readable_file_or_stdin()).**
 ///    Commands should support taking input via `stdin` whenever feasible.
 ///  * If specifying an input file via an option flag, use `-f` as the name of the flag.
-///    [[1]](http://www.catb.org/esr/writings/taoup/html/ch10s05.html)
+///    <a href="http://www.catb.org/esr/writings/taoup/html/ch10s05.html">\[1\]</a>
 ///  * Prefer taking input paths as positional arguments and, if feasible, allow an arbitrary
 ///    number of input arguments. This allows easy use of shell globs.
 ///
@@ -136,14 +136,14 @@ pub fn path_readable_file<P: AsRef<Path> + ?Sized>(value: &P)
 ///
 /// ## Use For:
 ///  * Output file or directory paths that will be created if missing
-///    (See also [`path_output_dir`](fn.path_output_dir.html).)
+///    (See also [`path_output_dir`](path_output_dir()).)
 ///
 /// ## Relevant Conventions:
 ///  * Use `-o` to specify the output path if doing so is optional.
-///    [[1]](http://www.catb.org/esr/writings/taoup/html/ch10s05.html)
-///    [[2]](http://tldp.org/LDP/abs/html/standard-options.html)
+///    <a href="http://www.catb.org/esr/writings/taoup/html/ch10s05.html">\[1\]</a>
+///    <a href="http://tldp.org/LDP/abs/html/standard-options.html">\[2\]</a>
 ///  * Interpret a value of `-` to mean "Write output to stdout".
-///    [[3]](http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html)
+///    <a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html">\[3\]</a>
 ///  * Because `-o` does not inherently indicate whether it expects a file or a directory, consider
 ///    also providing a GNU-style long version with a name like `--outfile` to allow scripts which
 ///    depend on your tool to be more self-documenting.
@@ -161,11 +161,12 @@ pub fn path_readable_file<P: AsRef<Path> + ?Sized>(value: &P)
 /// ## Design Considerations:
 ///  * Many popular Linux filesystems impose no total length limit.
 ///  * This function imposes a 32,760-character limit for compatibility with flash drives formatted
-///    FAT32 or exFAT. [[4]](https://en.wikipedia.org/wiki/Comparison_of_file_systems#Limits)
+///    FAT32 or exFAT. <a
+///    href="https://en.wikipedia.org/wiki/Comparison_of_file_systems#Limits">\[4\]</a>
 ///  * Some POSIX API functions, such as `getcwd()` and `realpath()` rely on the `PATH_MAX`
 ///    constant, which typically specifies a length of 4096 bytes including terminal `NUL`, but
 ///    this is not enforced by the filesystem itself.
-///    [[5]](https://insanecoding.blogspot.com/2007/11/pathmax-simply-isnt.html)
+///    <a href="https://insanecoding.blogspot.com/2007/11/pathmax-simply-isnt.html">\[5\]</a>
 ///
 ///    Programs which rely on libc for this functionality but do not attempt to canonicalize paths
 ///    will usually work if you change the working directory and use relative paths.
@@ -173,11 +174,12 @@ pub fn path_readable_file<P: AsRef<Path> + ?Sized>(value: &P)
 ///    * The UDF filesystem used on DVDs imposes a 1023-byte length limit on paths.
 ///    * When not using the `\\?\` prefix to disable legacy compatibility, Windows paths  are
 ///      limited to 260 characters, which was arrived at as `A:\MAX_FILENAME_LENGTH<NULL>`.
-///      [[6]](https://stackoverflow.com/a/1880453/435253)
+///      <a href="https://stackoverflow.com/a/1880453/435253">\[6\]</a>
 ///    * ISO 9660 without Joliet or Rock Ridge extensions does not permit periods in directory
 ///      names, directory trees more than 8 levels deep, or filenames longer than 32 characters.
-///      [[7]](https://www.boost.org/doc/libs/1_36_0/libs/filesystem/doc/portability_guide.htm)
-///  * See [`filename_valid_portable`](fn.filename_valid_portable.html) for design considerations
+///      <a href="https://www.boost.org/doc/libs/1_36_0/libs/filesystem/doc/portability_guide.htm">
+///      \[7\]</a>
+///  * See [`filename_valid_portable`](filename_valid_portable()) for design considerations
 ///      relating to individual path components.
 ///
 ///  **TODO:** Write another function for enforcing the limits imposed by targeting optical media.
@@ -223,13 +225,14 @@ pub fn path_valid_portable<P: AsRef<Path> + ?Sized>(value: &P) -> Result<(), OsS
 /// ## Design Considerations:
 ///  * In the interest of not inconveniencing users in the most common case, this validator imposes
 ///    a 255-character length limit.
-///    [[1]](https://en.wikipedia.org/wiki/Comparison_of_file_systems#Limits)
+///    <a href="https://en.wikipedia.org/wiki/Comparison_of_file_systems#Limits">\[1\]</a>
 ///  * The eCryptFS home directory encryption offered by Ubuntu Linux imposes a 143-character
 ///    length limit when filename encryption is enabled.
-///    [[2]](https://bugs.launchpad.net/ecryptfs/+bug/344878)
+///    <a href="https://bugs.launchpad.net/ecryptfs/+bug/344878">\[2\]</a>
 ///  * the Joliet extensions for ISO 9660 are specified to support only 64-character filenames and
 ///    tested to support either 103 or 110 characters depending whether you ask the mkisofs
-///    developers or Microsoft. [[3]](https://en.wikipedia.org/wiki/Joliet_(file_system))
+///    developers or Microsoft. <a href="https://en.wikipedia.org/wiki/Joliet_(file_system)">\[3\]
+///    </a>
 ///  * The [POSIX Portable Filename Character Set
 ///    ](http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_282)
 ///    is too restrictive to be baked into a general-purpose validator.
