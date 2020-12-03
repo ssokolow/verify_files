@@ -23,7 +23,7 @@ use crate::helpers::{BoilerplateOpts, HELP_TEMPLATE};
 use crate::validators::path_readable_file;
 
 /// The verbosity level when no `-q` or `-v` arguments are given, with `0` being `-q`
-pub const DEFAULT_VERBOSITY: u64 = 1;
+pub const DEFAULT_VERBOSITY: u64 = 2;
 
 /// Command-line argument schema
 ///
