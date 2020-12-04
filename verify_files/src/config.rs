@@ -1,4 +1,6 @@
 //! Definitions for the `verifiers.toml` configuration file.
+//!
+//! Invoke this machinery via the [`parse`] function.
 
 // Standard library imports
 use std::collections::HashMap;
@@ -10,8 +12,7 @@ use anyhow::{anyhow, Context, Result}; // It's an internal API, so no need for t
 use serde_derive::{Serialize, Deserialize};
 use validator::{Validate, ValidationError, ValidationErrors};
 
-/// Helper to reverse Serde's usual behaviour for a `bool` with `default`
-fn bool_true_default() -> bool { true }
+// ----==== Helpers for Schema ====----
 
 /// Wrapper to compact the repeated boilerplate of attaching messages to a custom
 /// validation failure
@@ -23,9 +24,21 @@ macro_rules! fail_valid {
     }
 }
 
-/// Validator to verify structural correctness of extension definitions
+/// Helper to reverse Serde's usual behaviour for a `bool` with `default`
+fn bool_true_default() -> bool { true }
+
+/// Validator: `argv[0]` doesn't contain a substitution token (as a safety net)
+fn validate_argv(argv: &[String]) -> ::std::result::Result<(), ValidationError> {
+    if let Some(argv0) = argv.get(0) {
+        if argv0.contains('{') {
+            fail_valid!("argv0_subst", "argv[0] cannot contain substitution tokens");
+        }
+    }
+    Ok(())
+}
+
+/// Validator: verify structural correctness of extension definitions
 fn validate_exts(input: &OneOrList<String>) -> ::std::result::Result<(), ValidationError> {
-    // TODO: Report this false lint triggering as a bug
     if match *input {
         One(ref x) => x.is_empty(),
         List(ref x) => x.is_empty() || x.iter().any(String::is_empty),
@@ -46,7 +59,7 @@ fn validate_exts(input: &OneOrList<String>) -> ::std::result::Result<(), Validat
     Ok(())
 }
 
-/// Validator to verify that no header definitions are empty strings
+/// Validator: no header definitions are empty strings
 fn validate_headers(input: &OneOrList<Vec<u8>>) -> ::std::result::Result<(), ValidationError> {
     if match *input {
         One(ref x) => x.is_empty(),
@@ -58,9 +71,9 @@ fn validate_headers(input: &OneOrList<Vec<u8>>) -> ::std::result::Result<(), Val
     Ok(())
 }
 
-/// Validate that every filetype definition has a way to autodetect it
+/// Validator: every filetype definition includes a way to autodetect it
 ///
-/// XXX: Allow an exception to this if "overrides" contains a glob that matches it?
+/// **XXX:** Allow an exception to this if "overrides" contains a glob that matches it?
 fn validate_filetype_raw(input: &FiletypeRaw) -> ::std::result::Result<(), ValidationError> {
     if input.extension.is_none() && input.header.is_none() {
         fail_valid!("no_autodetect", "Neither extension nor header set for filetype");
@@ -68,12 +81,38 @@ fn validate_filetype_raw(input: &FiletypeRaw) -> ::std::result::Result<(), Valid
     Ok(())
 }
 
-/// Validate that no overrides are no-ops
+/// Validator: no overrides are no-ops
 fn validate_override_raw(input: &OverrideRaw) -> ::std::result::Result<(), ValidationError> {
-    if input.path.is_empty() && input.recurse {
-        fail_valid!("noop_override", "Override has no effect");
+    // Disabling recursion is a non-default effect
+    if !input.recurse {
+        return Ok(());
     }
-    Ok(())
+
+    // Forcing a handler is a non-default effect
+    if let Some(ref handler) = input.handler {
+        if !handler.is_empty() {
+            return Ok(());
+        }
+    }
+    fail_valid!("noop_override", "Override has no effect");
+}
+
+/// Helper to add support for using `#[validate]` nesting to `HashMap`
+///
+/// (Works by exploiting how validator is implemented using macros and, as such, can duck-type its
+/// method resolution.)
+///
+/// Thanks to [@Kaiser1989](https://github.com/Keats/validator/issues/83#issuecomment-732006938)
+/// for this trick.
+pub trait ValidateExtensions {
+    /// See [`Validate::validate`]
+    fn validate(&self) -> Result<(), ValidationErrors>;
+}
+impl<K, V: Validate> ValidateExtensions for HashMap<K, V> {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        for value in self.values() { value.validate()? }
+        Ok(())
+    }
 }
 
 /// Helper for fields which can contain one entry or a list of entries to keep the configuration
@@ -91,19 +130,23 @@ pub enum OneOrList<T> {
 }
 use OneOrList::{One, List};
 
+// ----==== Configuration Schema ====----
+
 /// Definition of `[[filetype]]` tables.
 #[derive(Debug, Deserialize, Validate)]
 #[validate(schema(function = "validate_filetype_raw"))]
 pub struct FiletypeRaw {
     /// An identifier that can be referenced by `container`
     ///
-    /// **TODO:** Validate this is unique
+    /// **TODO:** Validate this is unique (without rejiggering the TOML to make it mandatory).
+    /// Maybe by putting a validator on the root struct so we can access the full list of types.
     #[validate(length(min = 1, message = "'id' must not be an empty string if present"))]
     pub id: Option<String>,
     /// The `id` of another filetype that this is a specialization of.
     /// (eg. OpenDocument and CBZ are specialized forms of Zip files.)
     ///
-    /// **TODO:** Validate this references a valid `id`
+    /// **TODO:** Validate this references a valid `id` ...but at a layer which allows merging
+    ///           default data with user-customizable data.
     #[validate(length(min = 1, message = "'container' must not be an empty string if present"))]
     pub container: Option<String>,
     /// A human-readable description for use in status messages
@@ -122,7 +165,7 @@ pub struct FiletypeRaw {
     /// **TODO:** Decide whether to support negative values to indicate trailers/footers.
     #[serde(default)]
     pub header_offset: usize,
-    /// An identifier for a built-in handler or `[[handler.*]]` entry.
+    /// An identifier for a built-in handler or `[handler.*]` entry.
     #[validate(length(min = 1, message="'handler' must be non-empty"))]
     pub handler: String,
     /// A special case for the image verifier
@@ -158,7 +201,7 @@ pub struct OverrideRaw {
     pub recurse: bool,
 }
 
-/// Definition of `[[handler.*]]` tables.
+/// Definition of `[handler.*]` tables.
 #[derive(Debug, Deserialize, Validate)]
 pub struct HandlerRaw {
     /// A template for the command to invoke via `[std::process::Command]`.
@@ -171,9 +214,7 @@ pub struct HandlerRaw {
     ///
     /// To simplify the common case, `{path}` will be appended to the end of the `Vec` if no
     /// entries contain substitution tokens.
-    ///
-    /// **TODO:** Validate that argv[0] does not contain a substitution token
-    #[validate(length(min = 1, message = "'argv' must not be empty"))]
+    #[validate(length(min = 1, message = "'argv' must not be empty"), custom = "validate_argv")]
     pub argv: Vec<String>,
     /// If present and non-empty, the command will be considered to have failed if its output to
     /// `stderr` contains the given string, even if it returns an exit code that indicates success.
@@ -191,32 +232,36 @@ pub struct HandlerRaw {
 pub struct RootRaw {
     /// A list of filetype definitions, including mappings to handlers.
     #[validate]
-    #[serde(rename="filetype")]
+    #[serde(rename="filetype", default)]
     pub filetypes: Vec<FiletypeRaw>,
+
     /// A list of rules for overriding `filetypes` or excluding folder for specific globs.
     #[validate]
-    #[serde(rename="override")]
+    #[serde(rename="override", default)]
     pub overrides: Vec<OverrideRaw>,
+
     /// A list of *external* handler definitions to be used by `filetypes` and `overrides`.
     /// (This list includes only subprocesses, not built-in handlers)
-    ///
-    /// * TODO: Validate that there exists no "empty string" key
-    /// * TODO: Work around #[validate] not being implemented for hashmaps
-    #[serde(rename="handler")]
+    #[validate]
+    #[serde(rename="handler", default)]
     pub handlers: HashMap<String, HandlerRaw>,
 }
 
-/// Reformat the errors from the validator crate for display to the user
+// ----==== Parsing Functions ====----
+
+/// Reformat [`ValidationErrors`] for display to the user
+///
+/// (Because the default [`Display`](std::fmt::Display) implementation just aliases it
+/// to [`Debug`])
 ///
 /// **TODO:** Tidy up this hacky code
 pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
     #![allow(clippy::let_underscore_must_use)]
-    use validator::ValidationErrorsKind::{List, Field};
+    use validator::ValidationErrorsKind::{Field, List, Struct};
 
     let mut out_str = String::with_capacity(80);
     let _ = writeln!(&mut out_str, "Errors found in the configuration file:");
     for (section, sec_errors) in errors.into_errors() {
-        #[allow(clippy::wildcard_enum_match_arm)]
         match sec_errors {
             List(map) => {
                 for (idx, record_errors) in map {
@@ -230,37 +275,31 @@ pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
                                         err.message.as_ref().unwrap_or(&err.code));
                                 }
                             }
-                            x => { let _ = writeln!(&mut out_str, "{:#?}", x); },
+                            x @ Struct(..) | x @ List(..) => {
+                                let _ = writeln!(&mut out_str, "{:#?}", x);
+                            },
                         }
                     }
                 }
             },
-            x => { let _ = writeln!(&mut out_str, "{:#?}", x); },
-        }
-    }
-    anyhow!(out_str)
-}
-
-/// Temporary hack for reformatting errors from handler validation
-///
-/// **TODO:** Replace this with a proper nested validation implementation
-pub fn format_handler_validation_errors(errors: ValidationErrors) -> anyhow::Error {
-    #![allow(clippy::let_underscore_must_use)]
-    use validator::ValidationErrorsKind::Field;
-
-    let mut out_str = String::with_capacity(80);
-    let _ = writeln!(&mut out_str, "Errors found in the configuration file:");
-    for (field, record_errors) in errors.into_errors() {
-        #[allow(clippy::wildcard_enum_match_arm)]
-        match record_errors {
-            Field(x) => {
-                for err in x {
-                    let _ = writeln!(&mut out_str,
-                        "  handler entry, {:>10} field: {}",
-                        field, err.message.as_ref().unwrap_or(&err.code));
+            Struct(record_errors) => {
+                for (field, error) in record_errors.into_errors() {
+                    match error {
+                        Field(x) => {
+                            for err in x {
+                                let _ = writeln!(&mut out_str,
+                                    "  {} entry, {:>10} field: {}",
+                                    section, field,
+                                    err.message.as_ref().unwrap_or(&err.code));
+                            }
+                        }
+                        x @ Struct(..) | x @ List(..) => {
+                            let _ = writeln!(&mut out_str, "{:#?}", x);
+                        },
+                    }
                 }
-            }
-            x => { let _ = writeln!(&mut out_str, "{:#?}", x); },
+            },
+            x @ Field(..) => { let _ = writeln!(&mut out_str, "{:#?}", x); },
         }
     }
     anyhow!(out_str)
@@ -268,18 +307,11 @@ pub fn format_handler_validation_errors(errors: ValidationErrors) -> anyhow::Err
 
 /// Parse and validate the given `verifiers.toml` text
 pub fn parse(toml_str: &str) -> Result<RootRaw> {
+    // Parse and perform all validation where the outcome couldn't change as a result of a fallback
+    // chain injecting new values.
     let parsed: RootRaw = toml::from_str(toml_str)
         .with_context(|| "Error parsing configuration file")?;
     parsed.validate().map_err(format_validation_errors)?;
-
-    // Check all [handler.*] tables for empty argv fields
-    #[allow(clippy::explicit_iter_loop)]
-    for (key, handler) in parsed.handlers.iter() {
-        if key == "" {
-            warn!("Handler ID is empty string");
-        }
-        handler.validate().map_err(format_handler_validation_errors)?;
-    }
     // TODO: Use a Result for all other failures too, instead of `warn!`.
 
     // Check for typos in handler fields
@@ -304,20 +336,132 @@ pub fn parse(toml_str: &str) -> Result<RootRaw> {
     Ok(parsed)
 }
 
-// Tests go below the code where they'll be out of the way when not the target of attention
+// ----==== Tests ====----
+
 #[cfg(test)]
 mod tests {
-    use super::CliOpts;
+    use super::*;
 
-    // TODO: Nested validation being opt-in via #[validate] is a footgun (you could have everything
-    //       set up, but forget or comment out that one line and it'd still look like it should
-    //       work), so write some unit tests to ensure nested validation is happening.
+    /// Quick helper to deduplicate basic assertions
+    ///
+    /// **TODO:** Assert more
+    fn assert_validation_result(toml_str: &str, section: &str) {
+        let result = do_validate(toml_str).expect_err("Validation should error out").into_errors();
+        result.get(section).expect("Get expected section name from error response");
+    }
 
-    // TODO: Unit test that struct-level validators are getting called properly.
+    fn do_validate(toml_str: &str) -> std::result::Result<(), ValidationErrors> {
+        let parsed: RootRaw = toml::from_str(toml_str).unwrap();
+        parsed.validate()
+    }
 
+    /// Verify that nested validation is occurring
+    ///
+    /// (Because it's so easy to accidentally drop a `#[validate]` and not notice)
     #[test]
-    /// Verify that
-    fn test_something() {
-        // TODO: Test something
+    fn test_nested_validation() {
+        // Filetype with an invalid description to trigger nested validation failure
+        assert_validation_result(r#"
+                [[filetype]]
+                description = ""
+                handler = "foo"
+                extension = ".foo"
+            "#, "filetype");
+
+        // Override with an invalid description to trigger nested validation failure
+        assert_validation_result(r#"
+                [[override]]
+                path = ""
+            "#, "override");
+
+        // Handler with an invalid argv to trigger nested validation failure
+        assert_validation_result(r#"
+                [handler.foo]
+                argv = []
+            "#, "handler");
+    }
+
+    /// Verify that the struct-level validators are running correctly
+    #[test]
+    fn test_struct_validation() {
+        // Filetype with no way to autodetect it
+        assert_validation_result(r#"
+                [[filetype]]
+                description = "Test description"
+                handler = "foo"
+            "#, "filetype");
+
+        // Override that does nothing
+        assert_validation_result(r#"
+                [[override]]
+                path = "quux"
+            "#, "override");
+    }
+
+    /// Verify that all sections are optional
+    /// (It's not the low-level parser's job to know whether there's a fallback chain)
+    #[test]
+    fn test_optional_sections() {
+        // The parser shouldn't assume there's no fallback chain
+        do_validate(r#""#).expect("Empty config files should parse just fine");
+
+        do_validate(r#"
+                [[filetype]]
+                description = "Test description"
+                handler = "foo"
+                extension = ".foo"
+            "#).expect("The parser should accept a filetype that may rely only on builtins");
+
+        do_validate(r#"
+                [[override]]
+                path = "bar"
+                recurse = false
+            "#).expect("The parser should assume a lone override relies on a fallback chain");
+
+        do_validate(r#"
+                [handler.baz]
+                argv = [ "baz" ]
+            "#).expect("The parser should assume a lone handler is referenced outside its sight");
+    }
+
+    /// Ensure the continued presence of a behaviour I'm not sure how I achieved
+    #[test]
+    fn test_rejects_empty_handler_id() {
+        let parsed: Result<RootRaw, _> = toml::from_str(r#"[handler.""]"#);
+        parsed.expect_err("Empty table names should be rejected");
+    }
+
+    /// Ensure the `argv[0]` subsitution rejection doesn't break
+    #[test]
+    fn test_rejects_substition_in_argv0() {
+        do_validate(r#"
+                [handler.foobar]
+                argv = [ "{foobar}" ]
+            "#).expect_err("argv[0] should reject substitution tokens (1)");
+        do_validate(r#"
+                [handler.foobar]
+                argv = [ "foo{bar}" ]
+            "#).expect_err("argv[0] should reject substitution tokens (2)");
+        do_validate(r#"
+                [handler.foobar]
+                argv = [ "foo{bar}baz" ]
+            "#).expect_err("argv[0] should reject substitution tokens (3)");
+    }
+
+    /// Ensure that `recurse=true` being default for `[[override]]` doesn't accidentally changed
+    #[test]
+    fn test_overrideraw_recurse_default() {
+        let parsed: RootRaw = toml::from_str(r#"
+            [[override]]
+            path = "foo"
+            type = "bar"
+        "#).unwrap();
+        let entry = parsed.overrides.iter().next().unwrap();
+
+        // Control checks
+        assert_eq!(&entry.path, "foo");
+        assert_eq!(entry.handler.as_deref(), Some("bar"));
+        // Actual test
+        assert_eq!(entry.recurse, true);
     }
 }
