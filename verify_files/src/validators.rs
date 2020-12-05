@@ -261,7 +261,7 @@ pub fn filename_valid_portable<P: AsRef<Path> + ?Sized>(value: &P) -> Result<(),
         Some(string) => string,
         None => {
             return Err("File/folder names containing non-UTF8 characters aren't portable".into())
-        }
+        },
     };
     let last_char = match lossy_str.chars().last() {
         Some(chr) => chr,

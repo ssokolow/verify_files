@@ -7,9 +7,9 @@ use std::collections::HashMap;
 use std::fmt::Write;
 
 // 3rd-party crate imports
-use log::warn;
 use anyhow::{anyhow, Context, Result}; // It's an internal API, so no need for thiserror yet.
-use serde_derive::{Serialize, Deserialize};
+use log::warn;
+use serde_derive::{Deserialize, Serialize};
 use validator::{Validate, ValidationError, ValidationErrors};
 
 // ----==== Helpers for Schema ====----
@@ -21,7 +21,7 @@ macro_rules! fail_valid {
         let mut err = ValidationError::new($code);
         err.message = Some($msg.into());
         return Err(err);
-    }
+    };
 }
 
 /// Helper to reverse Serde's usual behaviour for a `bool` with `default`
@@ -54,7 +54,6 @@ fn validate_exts(input: &OneOrList<String>) -> ::std::result::Result<(), Validat
     } {
         fail_valid!("no_period_ext", "Extensions must start with a period");
     }
-
 
     Ok(())
 }
@@ -129,7 +128,9 @@ pub trait ValidateExtensions {
 }
 impl<K, V: Validate> ValidateExtensions for HashMap<K, V> {
     fn validate(&self) -> Result<(), ValidationErrors> {
-        for value in self.values() { value.validate()? }
+        for value in self.values() {
+            value.validate()?
+        }
         Ok(())
     }
 }
@@ -147,7 +148,7 @@ pub enum OneOrList<T> {
     /// Allow more than one `T` in the TOML
     List(Vec<T>),
 }
-use OneOrList::{One, List};
+use OneOrList::{List, One};
 
 // ----==== Configuration Schema ====----
 
@@ -163,7 +164,7 @@ pub struct FiletypeRaw {
     #[validate(length(min = 1, message = "'container' must not be an empty string if present"))]
     pub container: Option<String>,
     /// A human-readable description for use in status messages
-    #[validate(length(min = 1, message= "'description' must not be an empty string if present"))]
+    #[validate(length(min = 1, message = "'description' must not be an empty string if present"))]
     pub description: String,
     /// One or more extensions to identify the file by
     #[validate(custom = "validate_exts")]
@@ -181,7 +182,7 @@ pub struct FiletypeRaw {
     /// An identifier for a built-in handler or `[handler.*]` entry.
     ///
     /// **TODO:** Turn this into a `OneOrList<String>` to allow fallback chains for .exe/.bin/etc.
-    #[validate(length(min = 1, message="'handler' must be non-empty"))]
+    #[validate(length(min = 1, message = "'handler' must be non-empty"))]
     pub handler: String,
     /// A special case for the image verifier
     ///
@@ -197,7 +198,7 @@ pub struct FiletypeRaw {
 pub struct OverrideRaw {
     /// A globbing pattern for files this rule should match
     #[validate(length(min = 1, message = "Globbing pattern must not be empty"))]
-    pub path: String,
+    pub path:    String,
     /// The status message to display if this override matches a path.
     /// May be omitted to avoid displaying a message.
     #[validate(length(min = 1, message = "If provided, 'message' must not be empty"))]
@@ -208,7 +209,7 @@ pub struct OverrideRaw {
     ///
     /// **TODO:** Rename the TOML field to `handler` for consistency once I no longer need to
     ///           maintain compatibility with unchanged Python code.
-    #[serde(rename="type")]
+    #[serde(rename = "type")]
     #[validate(length(min = 1, message = "An empty string is not a valid handler ID"))]
     pub handler: Option<String>,
     /// If `false` and `path` matches a directory, do not descend into it.
@@ -230,7 +231,7 @@ pub struct HandlerRaw {
     /// To simplify the common case, `{path}` will be appended to the end of the `Vec` if no
     /// entries contain substitution tokens.
     #[validate(length(min = 1, message = "'argv' must not be empty"), custom = "validate_argv")]
-    pub argv: Vec<String>,
+    pub argv:           Vec<String>,
     /// If present and non-empty, the command will be considered to have failed if its output to
     /// `stderr` contains the given string, even if it returns an exit code that indicates success.
     ///
@@ -248,18 +249,18 @@ pub struct HandlerRaw {
 pub struct RootRaw {
     /// A list of filetype definitions, including mappings to handlers.
     #[validate]
-    #[serde(rename="filetype", default)]
+    #[serde(rename = "filetype", default)]
     pub filetypes: Vec<FiletypeRaw>,
 
     /// A list of rules for overriding `filetypes` or excluding folder for specific globs.
     #[validate]
-    #[serde(rename="override", default)]
+    #[serde(rename = "override", default)]
     pub overrides: Vec<OverrideRaw>,
 
     /// A list of *external* handler definitions to be used by `filetypes` and `overrides`.
     /// (This list includes only subprocesses, not built-in handlers)
     #[validate]
-    #[serde(rename="handler", default)]
+    #[serde(rename = "handler", default)]
     pub handlers: HashMap<String, HandlerRaw>,
 }
 
@@ -273,6 +274,7 @@ pub struct RootRaw {
 /// **TODO:** Tidy up this hacky code
 ///
 /// **TODO:** Special-case `__all__` entry name to make certain errors clearer
+#[rustfmt::skip]
 pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
     #![allow(clippy::let_underscore_must_use)]
     use validator::ValidationErrorsKind::{Field, List, Struct};
@@ -292,7 +294,7 @@ pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
                                         section, idx, field,
                                         err.message.as_ref().unwrap_or(&err.code));
                                 }
-                            }
+                            },
                             x @ Struct(..) | x @ List(..) => {
                                 let _ = writeln!(&mut out_str, "{:#?}", x);
                             },
@@ -310,7 +312,7 @@ pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
                                     section, field,
                                     err.message.as_ref().unwrap_or(&err.code));
                             }
-                        }
+                        },
                         x @ Struct(..) | x @ List(..) => {
                             let _ = writeln!(&mut out_str, "{:#?}", x);
                         },
@@ -332,8 +334,8 @@ pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
 pub fn parse(toml_str: &str) -> Result<RootRaw> {
     // Parse and perform all validation where the outcome couldn't change as a result of a fallback
     // chain injecting new values.
-    let parsed: RootRaw = toml::from_str(toml_str)
-        .with_context(|| "Error parsing configuration file")?;
+    let parsed: RootRaw =
+        toml::from_str(toml_str).with_context(|| "Error parsing configuration file")?;
     parsed.validate().map_err(format_validation_errors)?;
     // TODO: Use a Result for all other failures too, instead of `warn!`.
 
@@ -351,8 +353,7 @@ pub fn parse(toml_str: &str) -> Result<RootRaw> {
     }
 
     // Check for typos in handler fields
-    for filetype in parsed.filetypes.iter()
-            .filter(|x| !parsed.handlers.contains_key(&x.handler)) {
+    for filetype in parsed.filetypes.iter().filter(|x| !parsed.handlers.contains_key(&x.handler)) {
         warn!("Unrecognized handler for {}: {}", filetype.description, filetype.handler);
     }
 
@@ -362,10 +363,8 @@ pub fn parse(toml_str: &str) -> Result<RootRaw> {
         // Check for typos in handler fields
         if let Some(handler) = override_.handler.as_deref() {
             if !parsed.handlers.contains_key(handler) {
-                warn!("Unrecognized handler for override {:#?}: {}",
-                    override_.path, handler);
+                warn!("Unrecognized handler for override {:#?}: {}", override_.path, handler);
             }
-
         }
     }
 
@@ -395,6 +394,7 @@ mod tests {
 
     /// Ensure that duplicate filetype IDs get caught
     #[test]
+    #[rustfmt::skip]
     fn test_rootraw_duplicate_id() {
         assert_validation_result(r#"
             [[filetype]]
@@ -415,6 +415,7 @@ mod tests {
     ///
     /// (Because it's so easy to accidentally drop a `#[validate]` and not notice)
     #[test]
+    #[rustfmt::skip]
     fn test_nested_validation() {
         // Filetype with an invalid description to trigger nested validation failure
         assert_validation_result(r#"
@@ -439,6 +440,7 @@ mod tests {
 
     /// Verify that the struct-level validators are running correctly
     #[test]
+    #[rustfmt::skip]
     fn test_struct_validation() {
         // Filetype with no way to autodetect it
         assert_validation_result(r#"
@@ -457,6 +459,7 @@ mod tests {
     /// Verify that all sections are optional
     /// (It's not the low-level parser's job to know whether there's a fallback chain)
     #[test]
+    #[rustfmt::skip]
     fn test_optional_sections() {
         // The parser shouldn't assume there's no fallback chain
         do_validate(r#""#).expect("Empty config files should parse just fine");
@@ -489,6 +492,7 @@ mod tests {
 
     /// Ensure the `argv[0]` subsitution rejection doesn't break
     #[test]
+    #[rustfmt::skip]
     fn test_rejects_substition_in_argv0() {
         do_validate(r#"
                 [handler.foobar]
@@ -506,6 +510,7 @@ mod tests {
 
     /// Ensure that `recurse=true` being default for `[[override]]` doesn't accidentally changed
     #[test]
+    #[rustfmt::skip]
     fn test_overrideraw_recurse_default() {
         let parsed: RootRaw = toml::from_str(r#"
             [[override]]
