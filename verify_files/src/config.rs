@@ -31,7 +31,8 @@ fn bool_true_default() -> bool { true }
 fn validate_argv(argv: &[String]) -> ::std::result::Result<(), ValidationError> {
     if let Some(argv0) = argv.get(0) {
         if argv0.contains('{') {
-            fail_valid!("argv0_subst", "argv[0] cannot contain substitution tokens");
+            fail_valid!("argv0_subst", format!(
+                    "argv[0] cannot contain substitution tokens: {:?}", argv0));
         }
     }
     Ok(())
@@ -52,7 +53,8 @@ fn validate_exts(input: &OneOrList<String>) -> ::std::result::Result<(), Validat
         One(ref x) => !x.starts_with('.'),
         List(ref x) => !x.iter().all(|y| y.starts_with('.')),
     } {
-        fail_valid!("no_period_ext", "Extensions must start with a period");
+        fail_valid!("no_period_ext",
+            format!("Extensions must start with a period: {:?}", input));
     }
 
     Ok(())
@@ -75,7 +77,9 @@ fn validate_headers(input: &OneOrList<Vec<u8>>) -> ::std::result::Result<(), Val
 /// **XXX:** Allow an exception to this if "overrides" contains a glob that matches it?
 fn validate_filetype_raw(input: &FiletypeRaw) -> ::std::result::Result<(), ValidationError> {
     if input.extension.is_none() && input.header.is_none() {
-        fail_valid!("no_autodetect", "Neither extension nor header set for filetype");
+        fail_valid!("no_autodetect",
+            format!("Neither extension nor header set for filetype: {}", input.description));
+    }
     }
     Ok(())
 }
@@ -93,7 +97,7 @@ fn validate_override_raw(input: &OverrideRaw) -> ::std::result::Result<(), Valid
             return Ok(());
         }
     }
-    fail_valid!("noop_override", "Override has no effect");
+    fail_valid!("noop_override", format!("Override has no effect: {}", input.path));
 }
 
 /// Validator: filetype IDs are unique
@@ -273,7 +277,7 @@ pub struct RootRaw {
 ///
 /// **TODO:** Tidy up this hacky code
 ///
-/// **TODO:** Special-case `__all__` entry name to make certain errors clearer
+/// **TODO:** Special-case `__all__` field name to make certain errors clearer
 #[rustfmt::skip]
 pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
     #![allow(clippy::let_underscore_must_use)]
@@ -396,6 +400,7 @@ mod tests {
     #[test]
     #[rustfmt::skip]
     fn test_rootraw_duplicate_id() {
+        // Duplicate `id` to trigger failure
         assert_validation_result(r#"
             [[filetype]]
             id = "foo"
