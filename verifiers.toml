@@ -74,6 +74,8 @@ description = "Microsoft CAB"
 handler = "cabextract"
 extension = ".cab"
 
+# TODO: Remove `handler` lines which just duplicate what's inherited from
+#       `container` once I no longer need to support the Python version.
 [[filetype]]
 description = "Comic Book Archive (7-Zip)"
 handler = "p7zip"

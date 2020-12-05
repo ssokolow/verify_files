@@ -72,7 +72,7 @@ fn validate_headers(input: &OneOrList<Vec<u8>>) -> ::std::result::Result<(), Val
     Ok(())
 }
 
-/// Validator: every filetype definition includes a way to autodetect it
+/// Validator: every filetype definition maps an autodetection method to a handler
 ///
 /// **XXX:** Allow an exception to this if "overrides" contains a glob that matches it?
 fn validate_filetype_raw(input: &FiletypeRaw) -> ::std::result::Result<(), ValidationError> {
@@ -80,6 +80,9 @@ fn validate_filetype_raw(input: &FiletypeRaw) -> ::std::result::Result<(), Valid
         fail_valid!("no_autodetect",
             format!("Neither extension nor header set for filetype: {}", input.description));
     }
+    if input.handler.is_none() && input.container.is_none() {
+        fail_valid!("no_handler",
+            format!("Neither handler nor container set for filetype: {}", input.description));
     }
     Ok(())
 }
@@ -186,8 +189,8 @@ pub struct FiletypeRaw {
     /// An identifier for a built-in handler or `[handler.*]` entry.
     ///
     /// **TODO:** Turn this into a `OneOrList<String>` to allow fallback chains for .exe/.bin/etc.
-    #[validate(length(min = 1, message = "'handler' must be non-empty"))]
-    pub handler: String,
+    #[validate(length(min = 1, message = "'handler' must not be an empty string if present"))]
+    pub handler: Option<String>,
     /// A special case for the image verifier
     ///
     /// **TODO:** Refactor to either remove this or turn it into a HashMap for arbitrary keys
@@ -357,8 +360,14 @@ pub fn parse(toml_str: &str) -> Result<RootRaw> {
     }
 
     // Check for typos in handler fields
-    for filetype in parsed.filetypes.iter().filter(|x| !parsed.handlers.contains_key(&x.handler)) {
-        warn!("Unrecognized handler for {}: {}", filetype.description, filetype.handler);
+    // TODO: Report this allow() as a bug (The iter() is necessary to avoid a partial move error)
+    #[allow(clippy::explicit_iter_loop)]
+    for filetype in parsed.filetypes.iter() {
+        if let Some(ref handler) = filetype.handler {
+            if !parsed.handlers.contains_key(handler) {
+                warn!("Unrecognized handler for {}: {}", filetype.description, handler);
+            }
+        }
     }
 
     // TODO: Report this allow() as a bug (The iter() is necessary to avoid a partial move error)
