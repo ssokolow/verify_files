@@ -97,6 +97,25 @@ fn validate_override_raw(input: &OverrideRaw) -> ::std::result::Result<(), Valid
     fail_valid!("noop_override", "Override has no effect");
 }
 
+/// Validator: filetype IDs are unique
+fn validate_root_raw(input: &RootRaw) -> ::std::result::Result<(), ValidationError> {
+    let mut seen = Vec::with_capacity(input.filetypes.len());
+    let mut dupes = Vec::with_capacity(4);
+
+    for record in &input.filetypes {
+        if let Some(ref id) = record.id {
+            if seen.contains(&id) {
+                dupes.push(id);
+            }
+            seen.push(id);
+        }
+    }
+    if !dupes.is_empty() {
+        fail_valid!("dupe_filetype_id", format!("Duplicate filetype IDs: {:?}", dupes));
+    }
+    Ok(())
+}
+
 /// Helper to add support for using `#[validate]` nesting to `HashMap`
 ///
 /// (Works by exploiting how validator is implemented using macros and, as such, can duck-type its
@@ -137,9 +156,6 @@ use OneOrList::{One, List};
 #[validate(schema(function = "validate_filetype_raw"))]
 pub struct FiletypeRaw {
     /// An identifier that can be referenced by `container`
-    ///
-    /// **TODO:** Validate this is unique (without rejiggering the TOML to make it mandatory).
-    /// Maybe by putting a validator on the root struct so we can access the full list of types.
     #[validate(length(min = 1, message = "'id' must not be an empty string if present"))]
     pub id: Option<String>,
     /// The `id` of another filetype that this is a specialization of.
@@ -166,6 +182,8 @@ pub struct FiletypeRaw {
     #[serde(default)]
     pub header_offset: usize,
     /// An identifier for a built-in handler or `[handler.*]` entry.
+    ///
+    /// **TODO:** Turn this into a `OneOrList<String>` to allow fallback chains for .exe/.bin/etc.
     #[validate(length(min = 1, message="'handler' must be non-empty"))]
     pub handler: String,
     /// A special case for the image verifier
@@ -229,6 +247,7 @@ pub struct HandlerRaw {
 /// Root of the configuration schema
 ///
 #[derive(Debug, Deserialize, Validate)]
+#[validate(schema(function = "validate_root_raw"))]
 pub struct RootRaw {
     /// A list of filetype definitions, including mappings to handlers.
     #[validate]
@@ -255,6 +274,8 @@ pub struct RootRaw {
 /// to [`Debug`])
 ///
 /// **TODO:** Tidy up this hacky code
+///
+/// **TODO:** Special-case `__all__` entry name to make certain errors clearer
 pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
     #![allow(clippy::let_underscore_must_use)]
     use validator::ValidationErrorsKind::{Field, List, Struct};
@@ -299,7 +320,12 @@ pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
                     }
                 }
             },
-            x @ Field(..) => { let _ = writeln!(&mut out_str, "{:#?}", x); },
+            Field(field_error) => {
+                for err in field_error {
+                    let _ = writeln!(&mut out_str, "  {} entry: {}",
+                        section, err.message.as_ref().unwrap_or(&err.code));
+                }
+            },
         }
     }
     anyhow!(out_str)
@@ -347,12 +373,30 @@ mod tests {
     /// **TODO:** Assert more
     fn assert_validation_result(toml_str: &str, section: &str) {
         let result = do_validate(toml_str).expect_err("Validation should error out").into_errors();
-        result.get(section).expect("Get expected section name from error response");
+        result.get(section).expect(&format!("Get section {} from error response", section));
     }
 
     fn do_validate(toml_str: &str) -> std::result::Result<(), ValidationErrors> {
         let parsed: RootRaw = toml::from_str(toml_str).unwrap();
         parsed.validate()
+    }
+
+    /// Ensure that duplicate filetype IDs get caught
+    #[test]
+    fn test_rootraw_duplicate_id() {
+        assert_validation_result(r#"
+            [[filetype]]
+            id = "foo"
+            description = "Test description 1"
+            handler = "foo"
+            extension = ".foo"
+
+            [[filetype]]
+            id = "foo"
+            description = "Test description 2"
+            handler = "bar"
+            extension = ".bar"
+        "#, "__all__");
     }
 
     /// Verify that nested validation is occurring
