@@ -160,9 +160,6 @@ pub struct FiletypeRaw {
     pub id: Option<String>,
     /// The `id` of another filetype that this is a specialization of.
     /// (eg. OpenDocument and CBZ are specialized forms of Zip files.)
-    ///
-    /// **TODO:** Validate this references a valid `id` ...but at a layer which allows merging
-    ///           default data with user-customizable data.
     #[validate(length(min = 1, message = "'container' must not be an empty string if present"))]
     pub container: Option<String>,
     /// A human-readable description for use in status messages
@@ -340,6 +337,19 @@ pub fn parse(toml_str: &str) -> Result<RootRaw> {
     parsed.validate().map_err(format_validation_errors)?;
     // TODO: Use a Result for all other failures too, instead of `warn!`.
 
+    // Check for `container` values that don't match any filetype IDs
+    // TODO: Refactor this when I'm not about to fall asleep
+    let seen_ids: Vec<&str> = parsed.filetypes.iter().filter_map(|x| x.id.as_deref()).collect();
+    // TODO: Report this allow() as a bug (The iter() is necessary to avoid a partial move error)
+    #[allow(clippy::explicit_iter_loop)]
+    for filetype in parsed.filetypes.iter() {
+        if let Some(ref container) = filetype.container {
+            if !seen_ids.contains(&container.as_str()) {
+                warn!("Invalid container ID for {}: {}", filetype.description, container);
+            }
+        }
+    }
+
     // Check for typos in handler fields
     for filetype in parsed.filetypes.iter()
             .filter(|x| !parsed.handlers.contains_key(&x.handler)) {
@@ -380,6 +390,8 @@ mod tests {
         let parsed: RootRaw = toml::from_str(toml_str).unwrap();
         parsed.validate()
     }
+
+    // TODO: Unit test for the checks that currently `warn!`
 
     /// Ensure that duplicate filetype IDs get caught
     #[test]
