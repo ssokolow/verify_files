@@ -20,7 +20,7 @@ use log::{debug, error, info, trace, warn};
 // Local Imports
 use crate::config;
 use crate::helpers::{BoilerplateOpts, HELP_TEMPLATE};
-use crate::validators::path_readable_file;
+use crate::validators::path_input_file;
 
 /// The verbosity level when no `-q` or `-v` arguments are given, with `0` being `-q`
 pub const DEFAULT_VERBOSITY: u64 = 2;
@@ -63,8 +63,7 @@ pub struct CliOpts {
     ///
     /// **TODO:** Figure out if there's a way to only enforce constraints on this when not asking
     ///           to dump completions.
-    #[structopt(parse(from_os_str),
-                validator_os = path_readable_file)]
+    #[structopt(parse(from_os_str), validator_os = path_input_file)]
     inpath: Vec<PathBuf>,
 }
 
