@@ -1,10 +1,4 @@
-/*! Application-specific logic lives here
-
-    **TODO:** Look into moving the argument definition into a
-    [build.rs](https://doc.rust-lang.org/cargo/reference/build-scripts.html) like in the
-    [clap_generate](https://docs.rs/clap_generate/3.0.0-beta.1/clap_generate/fn.generate_to.html)
-    examples so I don't have build the completion generation code into the output binary.
-*/
+/*! Application-specific logic lives here */
 
 // Parts Copyright 2017-2020, Stephan Sokolow
 
@@ -20,39 +14,15 @@ use log::{debug, error, info, trace, warn};
 // Local Imports
 use crate::config;
 use crate::helpers::{BoilerplateOpts, HELP_TEMPLATE};
-use crate::validators::path_input_file;
+use crate::validators::path_input_file_or_dir;
 
 /// The verbosity level when no `-q` or `-v` arguments are given, with `0` being `-q`
 pub const DEFAULT_VERBOSITY: u64 = 2;
 
 /// Command-line argument schema
-///
-/// ## Relevant Conventions:
-///
-///  * Make sure that there is a blank space between the `<name>` `<version>` line and the
-///    description text or the `--help` output won't comply with the platform conventions that
-///    `help2man` depends on to generate your manpage. (Specifically, it will mistake the `<name>
-///    <version>` line for part of the description.)
-///  * `StructOpt`'s default behaviour of including the author name in the `--help` output is an
-///    oddity among Linux commands and, if you don't disable it, you run the risk of people
-///    unfamiliar with `StructOpt` assuming that you are an egotistical person who made a conscious
-///    choice to add it.
-///
-///    The proper standardized location for author information is the `AUTHOR` section which you
-///    can read about by typing `man help2man`.
-///
-/// ## Cautions:
-///  * Subcommands do not inherit `template` and it must be re-specified for each one.
-///    ([clap-rs/clap#1184](https://github.com/clap-rs/clap/issues/1184))
-///  * Double-check that your choice of `about` or `long_about` is actually overriding this
-///    doc comment. The precedence has some bugs such as
-///    [TeXitoi/structopt#391](https://github.com/TeXitoi/structopt/issues/391) and
-///    [TeXitoi/structopt#333](https://github.com/TeXitoi/structopt/issues/333).
-///  * Do not begin the description text for subcommands with `\n`. It will break the formatting in
-///    the top-level help output's list of subcommands.
 #[derive(StructOpt, Debug)]
 #[structopt(template = HELP_TEMPLATE,
-            about = "TODO: Replace me with the description text for the command",
+            about = "A simple tool to recursively walk a set of paths and report corrupted files.",
             global_setting = structopt::clap::AppSettings::ColoredHelp)]
 pub struct CliOpts {
     #[allow(clippy::missing_docs_in_private_items)] // StructOpt compile-time errors if we doc this
@@ -60,11 +30,12 @@ pub struct CliOpts {
     pub boilerplate: BoilerplateOpts,
 
     /// File(s) to use as input
-    ///
-    /// **TODO:** Figure out if there's a way to only enforce constraints on this when not asking
-    ///           to dump completions.
-    #[structopt(parse(from_os_str), validator_os = path_input_file)]
+    #[structopt(parse(from_os_str), validator_os = path_input_file_or_dir)]
     inpath: Vec<PathBuf>,
+
+    /// Just quickly identify files that have no checker registered
+    #[structopt(long)]
+    list_unrecognized: bool,
 }
 
 /// The actual `main()`
