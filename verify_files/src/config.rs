@@ -47,11 +47,9 @@ fn validate_exts(input: &OneOrList<String>) -> ::std::result::Result<(), Validat
         fail_valid!("empty_ext", "Extensions may not be empty strings");
     }
 
-    // TODO: Once I no longer need to be cross-compatible with Python, omit the period from the
-    // file, since Rust handles extension splitting differently.
     if match *input {
-        One(ref x) => !x.starts_with('.'),
-        List(ref x) => !x.iter().all(|y| y.starts_with('.')),
+        One(ref x) => x.starts_with('.'),
+        List(ref x) => x.iter().all(|y| y.starts_with('.')),
     } {
         fail_valid!("no_period_ext",
             format!("Extensions must start with a period: {:?}", input));
@@ -164,6 +162,9 @@ use OneOrList::{List, One};
 #[validate(schema(function = "validate_filetype_raw"))]
 pub struct FiletypeRaw {
     /// An identifier that can be referenced by `container`
+    ///
+    /// **TODO:** Consider switching from `[[filetype]]` to `[filetype.*]` to avoid needing this
+    /// and to ensure uniqueness at the Serde layer.
     #[validate(length(min = 1, message = "'id' must not be an empty string if present"))]
     pub id: Option<String>,
     /// The `id` of another filetype that this is a specialization of.
@@ -182,8 +183,6 @@ pub struct FiletypeRaw {
     /// The number of bytes to skip before attempting to match the header
     ///
     /// Assumed to be zero if omitted.
-    ///
-    /// **TODO:** Decide whether to support negative values to indicate trailers/footers.
     #[serde(default)]
     pub header_offset: usize,
     /// An identifier for a built-in handler or `[handler.*]` entry.
@@ -213,13 +212,12 @@ pub struct OverrideRaw {
     /// If specified, a `handler` to apply to the path instead of relying on autodetection.
     ///
     /// **TODO:** Decide how this should interact with directories.
-    ///
-    /// **TODO:** Rename the TOML field to `handler` for consistency once I no longer need to
-    ///           maintain compatibility with unchanged Python code.
-    #[serde(rename = "type")]
     #[validate(length(min = 1, message = "An empty string is not a valid handler ID"))]
     pub handler: Option<String>,
     /// If `false` and `path` matches a directory, do not descend into it.
+    ///
+    /// **TODO:** Check if I need to do something special for the `ignore` crate so this only
+    /// applies to directories.
     #[serde(default = "bool_true_default")]
     pub recurse: bool,
 }
@@ -229,7 +227,7 @@ pub struct OverrideRaw {
 pub struct HandlerRaw {
     /// A template for the command to invoke via `[std::process::Command]`.
     ///
-    /// The following subtitution tokens are available:
+    /// The following substitution tokens are available:
     ///
     /// * `{path}`: The path to the file to be validated.
     /// * `{devnull}`: The path to `/dev/null` or equivalent, suitable for subprocesses which
@@ -379,7 +377,15 @@ pub fn parse(toml_str: &str) -> Result<RootRaw> {
                 warn!("Unrecognized handler for override {:#?}: {}", override_.path, handler);
             }
         }
+
+        // TODO: Raise a warning if an override is set for "*" or "*.*" but *DON'T* error out.
     }
+
+    // TODO: At a higher level (not config file parsing), decide how to implement checking for
+    //       nonexistent argv0 in handlers without annoying people who don't need support for all
+    //       formats installed. (Maybe a config key that you set after installation to silent
+    //       pre-flight checks for formats you only want to be warned about when it encounters one
+    //       it can't check?)
 
     Ok(parsed)
 }
@@ -403,7 +409,7 @@ mod tests {
         parsed.validate()
     }
 
-    // TODO: Unit test for the checks that currently `warn!`
+    // TODO: Unit tests for the checks that currently `warn!`
 
     /// Ensure that duplicate filetype IDs get caught
     #[test]
