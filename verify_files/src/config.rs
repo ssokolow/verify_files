@@ -49,7 +49,7 @@ fn validate_exts(input: &OneOrList<String>) -> ::std::result::Result<(), Validat
         fail_valid!("empty_ext", "Extensions may not be empty strings");
     }
 
-    let exts: Vec<_> = input.iter().map(|x| x.as_str()).filter(|x| x.starts_with('.')).collect();
+    let exts: Vec<_> = input.iter().map(String::as_str).filter(|x| x.starts_with('.')).collect();
     if !exts.is_empty() {
         fail_valid!("no_period_ext",
             format!("Extensions must not start with a period: {}", exts.join(", ")));
@@ -166,9 +166,9 @@ impl<T> ::std::ops::Deref for OneOrList<T> {
     type Target = [T];
 
     fn deref(&self) -> &[T] {
-        match self {
-            One(x) => std::slice::from_ref(x),
-            List(x) => x.as_slice(),
+        match *self {
+            One(ref x) => std::slice::from_ref(x),
+            List(ref x) => x.as_slice(),
         }
     }
 }

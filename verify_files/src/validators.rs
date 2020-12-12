@@ -1,5 +1,5 @@
 //! Validator functions suitable for use with [clap](https://lib.rs/crates/clap) and
-//! [StructOpt](https://lib.rs/crates/structopt).
+//! [structopt](https://lib.rs/crates/structopt).
 
 // Copyright 2017-2020, Stephan Sokolow
 
