@@ -108,25 +108,6 @@ fn validate_override_raw(input: &OverrideRaw) -> ::std::result::Result<(), Valid
     fail_valid!("noop_override", format!("Override has no effect: {}", input.path));
 }
 
-/// Validator: filetype IDs are unique
-fn validate_root_raw(input: &RootRaw) -> ::std::result::Result<(), ValidationError> {
-    let mut seen = Vec::with_capacity(input.filetypes.len());
-    let mut dupes = Vec::with_capacity(4);
-
-    for record in &input.filetypes {
-        if let Some(ref id) = record.id {
-            if seen.contains(&id) {
-                dupes.push(id.as_str());
-            }
-            seen.push(id);
-        }
-    }
-    if !dupes.is_empty() {
-        fail_valid!("dupe_filetype_id", format!("Duplicate filetype IDs: {}", dupes.join(", ")));
-    }
-    Ok(())
-}
-
 /// Helper to add support for using `#[validate]` nesting to `HashMap`
 ///
 /// (Works by exploiting how validator is implemented using macros and, as such, can duck-type its
@@ -179,12 +160,6 @@ impl<T> ::std::ops::Deref for OneOrList<T> {
 #[derive(Debug, Deserialize, Validate)]
 #[validate(schema(function = "validate_filetype_raw"))]
 pub struct FiletypeRaw {
-    /// An identifier that can be referenced by `container`
-    ///
-    /// **TODO:** Consider switching from `[[filetype]]` to `[filetype.*]` to avoid needing this
-    /// and to ensure uniqueness at the Serde layer.
-    #[validate(length(min = 1, message = "'id' must not be an empty string if present"))]
-    pub id: Option<String>,
     /// The `id` of another filetype that this is a specialization of.
     /// (eg. OpenDocument and CBZ are specialized forms of Zip files.)
     #[validate(length(min = 1, message = "'container' must not be an empty string if present"))]
@@ -236,8 +211,8 @@ pub struct OverrideRaw {
     /// If specified, a `handler` to apply to the path instead of relying on autodetection.
     ///
     /// **TODO:** Decide how this should interact with directories.
-    #[validate(length(min = 1, message = "An empty string is not a valid handler ID"))]
-    pub handler: Option<String>,
+    #[validate(custom="validate_handlers")]
+    pub handler: Option<OneOrList<String>>,
     /// If `false` and `path` matches a directory, do not descend into it.
     ///
     /// **TODO:** Decide whether to rename this to `ignore` and allow it to also apply to files
@@ -277,12 +252,11 @@ pub struct HandlerRaw {
 /// Root of the configuration schema
 ///
 #[derive(Debug, Deserialize, Validate)]
-#[validate(schema(function = "validate_root_raw"))]
 pub struct RootRaw {
     /// A list of filetype definitions, including mappings to handlers.
     #[validate]
     #[serde(rename = "filetype", default)]
-    pub filetypes: Vec<FiletypeRaw>,
+    pub filetypes: HashMap<String, FiletypeRaw>,
 
     /// A list of rules for overriding `filetypes` or excluding folder for specific globs.
     #[validate]
@@ -372,35 +346,28 @@ pub fn parse(toml_str: &str) -> Result<RootRaw> {
     // TODO: Use a Result for all other failures too, instead of `warn!`.
 
     // Check for `container` values that don't match any filetype IDs
-    // TODO: Refactor this when I'm not about to fall asleep
-    let seen_ids: Vec<&str> = parsed.filetypes.iter().filter_map(|x| x.id.as_deref()).collect();
-    // TODO: Report this allow() as a bug (The iter() is necessary to avoid a partial move error)
-    #[allow(clippy::explicit_iter_loop)]
-    for filetype in parsed.filetypes.iter() {
+    for (id, filetype) in &parsed.filetypes {
         if let Some(ref container) = filetype.container {
-            if !seen_ids.contains(&container.as_str()) {
-                warn!("Invalid container ID for {}: {}", filetype.description, container);
+            if !parsed.filetypes.contains_key(container.as_str()) {
+                warn!("Invalid container ID for filetype {}: {}", id, container);
             }
         }
     }
 
-    // Check for typos in handler fields
-    // TODO: Report this allow() as a bug (The iter() is necessary to avoid a partial move error)
-    #[allow(clippy::explicit_iter_loop)]
-    for filetype in parsed.filetypes.iter() {
+    // Check for typos in filetype handler fields
+    for (id, filetype) in &parsed.filetypes {
         if let Some(ref handler) = filetype.handler {
             for handler in handler.iter().filter(|y| !parsed.handlers.contains_key(*y)) {
-                warn!("Unrecognized handler for {}: {}", filetype.description, handler);
+                warn!("Unrecognized handler for filetype {}: {}", id, handler);
             }
         }
     }
 
-    // TODO: Report this allow() as a bug (The iter() is necessary to avoid a partial move error)
-    #[allow(clippy::explicit_iter_loop)]
-    for override_ in parsed.overrides.iter() {
+    // Check for typos in override handler fields
+    for override_ in &parsed.overrides {
         // Check for typos in handler fields
         if let Some(handler) = override_.handler.as_deref() {
-            if !parsed.handlers.contains_key(handler) {
+            for handler in handler.iter().filter(|y| !parsed.handlers.contains_key(*y)) {
                 warn!("Unrecognized handler for override {:#?}: {}", override_.path, handler);
             }
         }
@@ -413,9 +380,10 @@ pub fn parse(toml_str: &str) -> Result<RootRaw> {
 
     // TODO: At a higher level (not config file parsing), decide how to implement checking for
     //       nonexistent argv0 in handlers without annoying people who don't need support for all
-    //       formats installed. (Maybe a config key that you set after installation to silent
+    //       formats installed. (Maybe a config key that you set after installation to silence
     //       pre-flight checks for formats you only want to be warned about when it encounters one
-    //       it can't check?)
+    //       it can't check? ...or maybe a command-line argument which causes it to output a report
+    //       on what formats are supported but not possible and what to install to enable them.)
 
     Ok(parsed)
 }
@@ -441,26 +409,6 @@ mod tests {
 
     // TODO: Unit tests for the checks that currently `warn!`
 
-    /// Ensure that duplicate filetype IDs get caught
-    #[test]
-    #[rustfmt::skip]
-    fn test_rootraw_duplicate_id() {
-        // Duplicate `id` to trigger failure
-        assert_validation_result(r#"
-            [[filetype]]
-            id = "foo"
-            description = "Test description 1"
-            handler = "foo"
-            extension = "foo"
-
-            [[filetype]]
-            id = "foo"
-            description = "Test description 2"
-            handler = "bar"
-            extension = "bar"
-        "#, "__all__");
-    }
-
     /// Verify that nested validation is occurring
     ///
     /// (Because it's so easy to accidentally drop a `#[validate]` and not notice)
@@ -469,7 +417,7 @@ mod tests {
     fn test_nested_validation() {
         // Filetype with an invalid description to trigger nested validation failure
         assert_validation_result(r#"
-                [[filetype]]
+                [filetype.foo]
                 description = ""
                 handler = "foo"
                 extension = "foo"
@@ -494,7 +442,7 @@ mod tests {
     fn test_struct_validation() {
         // Filetype with no way to autodetect it
         assert_validation_result(r#"
-                [[filetype]]
+                [filetype.foo]
                 description = "Test description"
                 handler = "foo"
             "#, "filetype");
@@ -515,7 +463,7 @@ mod tests {
         do_validate(r#""#).expect("Empty config files should parse just fine");
 
         do_validate(r#"
-                [[filetype]]
+                [filetype.foo]
                 description = "Test description"
                 handler = "foo"
                 extension = "foo"
@@ -531,6 +479,13 @@ mod tests {
                 [handler.baz]
                 argv = [ "baz" ]
             "#).expect("The parser should assume a lone handler is referenced outside its sight");
+    }
+
+    /// Ensure the continued presence of a behaviour I'm not sure how I achieved
+    #[test]
+    fn test_rejects_empty_filetype_id() {
+        let parsed: Result<RootRaw, _> = toml::from_str(r#"[filetype.""]"#);
+        parsed.expect_err("Empty table names should be rejected");
     }
 
     /// Ensure the continued presence of a behaviour I'm not sure how I achieved
@@ -571,7 +526,7 @@ mod tests {
 
         // Control checks
         assert_eq!(&entry.path, "foo");
-        assert_eq!(entry.handler.as_deref(), Some("bar"));
+        assert_eq!(entry.handler.as_deref(), Some(vec!["bar".into()].as_slice()));
         // Actual test
         assert_eq!(entry.recurse, true);
     }
