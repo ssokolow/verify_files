@@ -40,17 +40,11 @@ fn validate_argv(argv: &[String]) -> ::std::result::Result<(), ValidationError> 
 
 /// Validator: verify structural correctness of extension definitions
 fn validate_exts(input: &OneOrList<String>) -> ::std::result::Result<(), ValidationError> {
-    if match *input {
-        One(ref x) => x.is_empty(),
-        List(ref x) => x.is_empty() || x.iter().any(String::is_empty),
-    } {
+    if input.is_empty() || input.iter().any(String::is_empty) {
         fail_valid!("empty_ext", "Extensions may not be empty strings");
     }
 
-    if match *input {
-        One(ref x) => x.starts_with('.'),
-        List(ref x) => x.iter().all(|y| y.starts_with('.')),
-    } {
+    if input.iter().all(|y| y.starts_with('.')) {
         fail_valid!("no_period_ext",
             format!("Extensions must start with a period: {:?}", input));
     }
@@ -60,10 +54,7 @@ fn validate_exts(input: &OneOrList<String>) -> ::std::result::Result<(), Validat
 
 /// Validator: no header definitions are empty strings
 fn validate_headers(input: &OneOrList<Vec<u8>>) -> ::std::result::Result<(), ValidationError> {
-    if match *input {
-        One(ref x) => x.is_empty(),
-        List(ref x) => x.is_empty() || x.iter().any(Vec::is_empty),
-    } {
+    if input.is_empty() || input.iter().any(Vec::is_empty) {
         fail_valid!("empty_header", "Header patterns must not be empty sequences");
     }
 
@@ -154,6 +145,17 @@ pub enum OneOrList<T> {
     List(Vec<T>),
 }
 use OneOrList::{List, One};
+
+impl<T> ::std::ops::Deref for OneOrList<T> {
+    type Target = [T];
+
+    fn deref(&self) -> &[T] {
+        match self {
+            One(x) => std::slice::from_ref(x),
+            List(x) => x.as_slice(),
+        }
+    }
+}
 
 // ----==== Configuration Schema ====----
 
