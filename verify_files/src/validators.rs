@@ -1,4 +1,6 @@
-/*! Validator functions suitable for use with `Clap` and `StructOpt` */
+//! Validator functions suitable for use with [clap](https://lib.rs/crates/clap) and
+//! [StructOpt](https://lib.rs/crates/structopt).
+
 // Copyright 2017-2020, Stephan Sokolow
 
 use std::ffi::OsString;
@@ -48,7 +50,7 @@ pub const RESERVED_DOS_FILENAMES: &[&str] = &["AUX", "CON", "NUL", "PRN", "CLOCK
 ///
 /// ## Relevant Conventions:
 ///  * Use `-r` or `-R` to request recursive traversal when it is not the default.
-///    <a href="http://www.catb.org/esr/writings/taoup/html/ch10s05.html">\[1\]</a>
+///    [\[1\]](http://www.catb.org/esr/writings/taoup/html/ch10s05.html)
 ///
 /// ## Cautions:
 ///  * Never assume a file or directory's permissions will remain unchanged between the time you
@@ -76,7 +78,7 @@ pub fn path_input_any<P: AsRef<Path> + ?Sized>(value: &P) -> Result<(), OsString
 ///  * **Prefer [`path_input_any`].**
 ///    Commands should support taking input via `stdin` whenever feasible.
 ///  * Use `-r` or `-R` to request recursive traversal when it is not the default.
-///    <a href="http://www.catb.org/esr/writings/taoup/html/ch10s05.html">\[1\]</a>
+///    [\[1\]](http://www.catb.org/esr/writings/taoup/html/ch10s05.html)
 ///
 /// ## Cautions:
 ///  * Never assume a file or directory's permissions will remain unchanged between the time you
@@ -101,7 +103,7 @@ pub fn path_input_file_or_dir<P: AsRef<Path> + ?Sized>(value: &P) -> Result<(), 
 ///    Commands which traverse directories to find files should support paths pointing directly at
 ///    files where feasible.
 ///  * Use `-r` or `-R` to request recursive traversal when it is not the default.
-///    <a href="http://www.catb.org/esr/writings/taoup/html/ch10s05.html">\[1\]</a>
+///    [\[1\]](http://www.catb.org/esr/writings/taoup/html/ch10s05.html)
 ///
 /// ## Cautions:
 ///  * Never assume a directory's permissions will remain unchanged between the time you check them
@@ -128,7 +130,7 @@ pub fn path_input_dir<P: AsRef<Path> + ?Sized>(value: &P) -> Result<(), OsString
 ///
 /// ## Relevant Conventions:
 ///  * Use `-o` to specify the output path if doing so is optional. Less commonly, `-d` is also
-///    used. <a href="http://www.catb.org/esr/writings/taoup/html/ch10s05.html">\[1\]</a>
+///    used. [\[1\]](http://www.catb.org/esr/writings/taoup/html/ch10s05.html)
 ///
 /// ## Cautions:
 ///  * Never assume a directory's permissions will remain unchanged between the time you check them
@@ -159,7 +161,7 @@ pub fn path_output_dir<P: AsRef<Path> + ?Sized>(value: &P) -> Result<(), OsStrin
 ///
 /// ## Relevant Conventions:
 ///  * If specifying an input file via an option flag, use `-f` as the name of the flag.
-///    <a href="http://www.catb.org/esr/writings/taoup/html/ch10s05.html">\[1\]</a>
+///    [\[1\]](http://www.catb.org/esr/writings/taoup/html/ch10s05.html)
 ///  * Prefer taking input paths as positional arguments and, if feasible, allow an arbitrary
 ///    number of input arguments. This allows easy use of shell globs.
 ///
@@ -195,7 +197,7 @@ pub fn path_input_file_or_stdin<P: AsRef<Path> + ?Sized>(value: &P)
 ///  * **Prefer [`path_input_file_or_stdin`].**
 ///    Commands should support taking input via `stdin` whenever feasible.
 ///  * If specifying an input file via an option flag, use `-f` as the name of the flag.
-///    <a href="http://www.catb.org/esr/writings/taoup/html/ch10s05.html">\[1\]</a>
+///    [\[1\]](http://www.catb.org/esr/writings/taoup/html/ch10s05.html)
 ///  * Prefer taking input paths as positional arguments and, if feasible, allow an arbitrary
 ///    number of input arguments. This allows easy use of shell globs.
 ///
@@ -230,10 +232,10 @@ pub fn path_input_file<P: AsRef<Path> + ?Sized>(value: &P)
 ///
 /// ## Relevant Conventions:
 ///  * Use `-o` to specify the output path if doing so is optional.
-///    <a href="http://www.catb.org/esr/writings/taoup/html/ch10s05.html">\[1\]</a>
-///    <a href="http://tldp.org/LDP/abs/html/standard-options.html">\[2\]</a>
+///    [\[1\]](http://www.catb.org/esr/writings/taoup/html/ch10s05.html)
+///    [\[2\]](http://tldp.org/LDP/abs/html/standard-options.html)
 ///  * Interpret a value of `-` to mean "Write output to stdout".
-///    <a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html">\[3\]</a>
+///    [\[3\]](http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html)
 ///  * Because `-o` does not inherently indicate whether it expects a file or a directory, consider
 ///    also providing a GNU-style long version with a name like `--outfile` to allow scripts which
 ///    depend on your tool to be more self-documenting.
@@ -251,12 +253,11 @@ pub fn path_input_file<P: AsRef<Path> + ?Sized>(value: &P)
 /// ## Design Considerations:
 ///  * Many popular Linux filesystems impose no total length limit.
 ///  * This function imposes a 32,760-character limit for compatibility with flash drives formatted
-///    FAT32 or exFAT. <a
-///    href="https://en.wikipedia.org/wiki/Comparison_of_file_systems#Limits">\[4\]</a>
+///    FAT32 or exFAT. [\[4\]](https://en.wikipedia.org/wiki/Comparison_of_file_systems#Limits)
 ///  * Some POSIX API functions, such as `getcwd()` and `realpath()` rely on the `PATH_MAX`
 ///    constant, which typically specifies a length of 4096 bytes including terminal `NUL`, but
 ///    this is not enforced by the filesystem itself.
-///    <a href="https://insanecoding.blogspot.com/2007/11/pathmax-simply-isnt.html">\[5\]</a>
+///    [\[5\]](https://insanecoding.blogspot.com/2007/11/pathmax-simply-isnt.html)
 ///
 ///    Programs which rely on libc for this functionality but do not attempt to canonicalize paths
 ///    will usually work if you change the working directory and use relative paths.
@@ -264,11 +265,10 @@ pub fn path_input_file<P: AsRef<Path> + ?Sized>(value: &P)
 ///    * The UDF filesystem used on DVDs imposes a 1023-byte length limit on paths.
 ///    * When not using the `\\?\` prefix to disable legacy compatibility, Windows paths  are
 ///      limited to 260 characters, which was arrived at as `A:\MAX_FILENAME_LENGTH<NULL>`.
-///      <a href="https://stackoverflow.com/a/1880453/435253">\[6\]</a>
+///      [\[6\]](https://stackoverflow.com/a/1880453/435253)
 ///    * ISO 9660 without Joliet or Rock Ridge extensions does not permit periods in directory
 ///      names, directory trees more than 8 levels deep, or filenames longer than 32 characters.
-///      <a href="https://www.boost.org/doc/libs/1_36_0/libs/filesystem/doc/portability_guide.htm">
-///      \[7\]</a>
+///      [\[7\]](https://www.boost.org/doc/libs/1_36_0/libs/filesystem/doc/portability_guide.htm)
 ///  * See [`filename_valid_portable`] for design considerations relating to individual
 ///    path components.
 ///
@@ -315,19 +315,18 @@ pub fn path_valid_portable<P: AsRef<Path> + ?Sized>(value: &P) -> Result<(), OsS
 /// ## Design Considerations:
 ///  * In the interest of not inconveniencing users in the most common case, this validator imposes
 ///    a 255-character length limit.
-///    <a href="https://en.wikipedia.org/wiki/Comparison_of_file_systems#Limits">\[1\]</a>
+///    [\[1\]](https://en.wikipedia.org/wiki/Comparison_of_file_systems#Limits)
 ///  * The eCryptFS home directory encryption offered by Ubuntu Linux imposes a 143-character
 ///    length limit when filename encryption is enabled.
-///    <a href="https://bugs.launchpad.net/ecryptfs/+bug/344878">\[2\]</a>
+///    [\[2\]](https://bugs.launchpad.net/ecryptfs/+bug/344878)
 ///  * the Joliet extensions for ISO 9660 are specified to support only 64-character filenames and
 ///    tested to support either 103 or 110 characters depending whether you ask the mkisofs
-///    developers or Microsoft. <a href="https://en.wikipedia.org/wiki/Joliet_(file_system)">\[3\]
-///    </a>
+///    developers or Microsoft. [\[3\]](https://en.wikipedia.org/wiki/Joliet_(file_system))
 ///  * The [POSIX Portable Filename Character Set
 ///    ](http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_282)
 ///    is too restrictive to be baked into a general-purpose validator.
 ///  * The Windows shell and UI don't support component names ending in periods or spaces
-///    <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file">\[4\]</a>
+///    [\[4\]](https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file)
 ///
 /// **TODO:** Consider converting this to a private function that just exists as a helper for the
 /// path validator in favour of more specialized validators for filename patterns, prefixes, and/or
