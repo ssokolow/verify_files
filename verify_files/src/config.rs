@@ -405,7 +405,10 @@ pub fn parse(toml_str: &str) -> Result<RootRaw> {
             }
         }
 
-        // TODO: Raise a warning if an override is set for "*" or "*.*" but *DON'T* error out.
+        match override_.path.as_str() {
+            "*" | "*.*" => warn!("Override with too-broad `path` glob: {}", override_.path),
+            _ => {},
+        }
     }
 
     // TODO: At a higher level (not config file parsing), decide how to implement checking for
