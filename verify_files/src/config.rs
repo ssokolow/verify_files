@@ -52,6 +52,16 @@ fn validate_exts(input: &OneOrList<String>) -> ::std::result::Result<(), Validat
     Ok(())
 }
 
+
+/// Validator: no handler definitions are empty strings
+fn validate_handlers(input: &OneOrList<String>) -> ::std::result::Result<(), ValidationError> {
+    if input.is_empty() || input.iter().any(String::is_empty) {
+        fail_valid!("empty_handler", "Handler names must not be empty sequences");
+    }
+
+    Ok(())
+}
+
 /// Validator: no header definitions are empty strings
 fn validate_headers(input: &OneOrList<Vec<u8>>) -> ::std::result::Result<(), ValidationError> {
     if input.is_empty() || input.iter().any(Vec::is_empty) {
@@ -189,9 +199,15 @@ pub struct FiletypeRaw {
     pub header_offset: usize,
     /// An identifier for a built-in handler or `[handler.*]` entry.
     ///
-    /// **TODO:** Turn this into a `OneOrList<String>` to allow fallback chains for .exe/.bin/etc.
-    #[validate(length(min = 1, message = "'handler' must not be an empty string if present"))]
-    pub handler: Option<String>,
+    /// If specified as a list, it indicates a fallback chain from more desirable/thorough
+    /// validators to less desirable/thorough validators **for the same file type**.
+    ///
+    /// (Specify multiple `[[filetype]]` sections with the same autodetection parameters to
+    /// indicate a situation like "`.bin` and `.exe` could be one of several things and we can't
+    /// tell just from the header or extension" where fallback should be performed as part of
+    /// identifying the format.)
+    #[validate(custom="validate_handlers")]
+    pub handler: Option<OneOrList<String>>,
     /// A special case for the image verifier
     ///
     /// **TODO:** Refactor to either remove this or turn it into a HashMap for arbitrary keys
@@ -218,8 +234,11 @@ pub struct OverrideRaw {
     pub handler: Option<String>,
     /// If `false` and `path` matches a directory, do not descend into it.
     ///
-    /// **TODO:** Check if I need to do something special for the `ignore` crate so this only
-    /// applies to directories.
+    /// **TODO:** Decide whether to rename this to `ignore` and allow it to also apply to files
+    /// or bypass most of the `ignore` crate's functionality by turning off most filtering and
+    /// implementing the rest as a [`filter_entry`
+    /// ](https://docs.rs/ignore/0.4.17/ignore/struct.WalkBuilder.html#method.filter_entry)
+    /// handler.
     #[serde(default = "bool_true_default")]
     pub recurse: bool,
 }
