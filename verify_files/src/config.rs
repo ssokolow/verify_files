@@ -1,6 +1,11 @@
 //! Definitions for the `verifiers.toml` configuration file.
 //!
 //! Invoke this machinery via the [`parse`] function.
+//!
+//! **TODO:** Consider using the [`types`
+//! module](https://docs.rs/ignore/0.4.17/ignore/types/index.html) from the `ignore` crate and
+//! enabling its default type definitions so error messages can give a slightly more human-friendly
+//! name for various "no handler registered for this type" situations.
 
 // Standard library imports
 use std::collections::HashMap;
@@ -32,7 +37,7 @@ fn validate_argv(argv: &[String]) -> ::std::result::Result<(), ValidationError> 
     if let Some(argv0) = argv.get(0) {
         if argv0.contains('{') {
             fail_valid!("argv0_subst", format!(
-                    "argv[0] cannot contain substitution tokens: {:?}", argv0));
+                    "argv[0] cannot contain substitution tokens: {}", argv0));
         }
     }
     Ok(())
@@ -44,9 +49,10 @@ fn validate_exts(input: &OneOrList<String>) -> ::std::result::Result<(), Validat
         fail_valid!("empty_ext", "Extensions may not be empty strings");
     }
 
-    if input.iter().all(|y| y.starts_with('.')) {
+    let exts: Vec<_> = input.iter().map(|x| x.as_str()).filter(|x| x.starts_with('.')).collect();
+    if !exts.is_empty() {
         fail_valid!("no_period_ext",
-            format!("Extensions must start with a period: {:?}", input));
+            format!("Extensions must not start with a period: {}", exts.join(", ")));
     }
 
     Ok(())
@@ -110,13 +116,13 @@ fn validate_root_raw(input: &RootRaw) -> ::std::result::Result<(), ValidationErr
     for record in &input.filetypes {
         if let Some(ref id) = record.id {
             if seen.contains(&id) {
-                dupes.push(id);
+                dupes.push(id.as_str());
             }
             seen.push(id);
         }
     }
     if !dupes.is_empty() {
-        fail_valid!("dupe_filetype_id", format!("Duplicate filetype IDs: {:?}", dupes));
+        fail_valid!("dupe_filetype_id", format!("Duplicate filetype IDs: {}", dupes.join(", ")));
     }
     Ok(())
 }
@@ -383,7 +389,7 @@ pub fn parse(toml_str: &str) -> Result<RootRaw> {
     #[allow(clippy::explicit_iter_loop)]
     for filetype in parsed.filetypes.iter() {
         if let Some(ref handler) = filetype.handler {
-            if !parsed.handlers.contains_key(handler) {
+            for handler in handler.iter().filter(|y| !parsed.handlers.contains_key(*y)) {
                 warn!("Unrecognized handler for {}: {}", filetype.description, handler);
             }
         }
@@ -442,13 +448,13 @@ mod tests {
             id = "foo"
             description = "Test description 1"
             handler = "foo"
-            extension = ".foo"
+            extension = "foo"
 
             [[filetype]]
             id = "foo"
             description = "Test description 2"
             handler = "bar"
-            extension = ".bar"
+            extension = "bar"
         "#, "__all__");
     }
 
@@ -463,7 +469,7 @@ mod tests {
                 [[filetype]]
                 description = ""
                 handler = "foo"
-                extension = ".foo"
+                extension = "foo"
             "#, "filetype");
 
         // Override with an invalid description to trigger nested validation failure
@@ -509,7 +515,7 @@ mod tests {
                 [[filetype]]
                 description = "Test description"
                 handler = "foo"
-                extension = ".foo"
+                extension = "foo"
             "#).expect("The parser should accept a filetype that may rely only on builtins");
 
         do_validate(r#"
@@ -556,7 +562,7 @@ mod tests {
         let parsed: RootRaw = toml::from_str(r#"
             [[override]]
             path = "foo"
-            type = "bar"
+            handler = "bar"
         "#).unwrap();
         let entry = parsed.overrides.iter().next().unwrap();
 
