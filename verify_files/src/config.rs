@@ -29,9 +29,6 @@ macro_rules! fail_valid {
     };
 }
 
-/// Helper to reverse Serde's usual behaviour for a `bool` with `default`
-fn bool_true_default() -> bool { true }
-
 /// Validator: `argv[0]` doesn't contain a substitution token (as a safety net)
 fn validate_argv(argv: &[String]) -> ::std::result::Result<(), ValidationError> {
     if let Some(argv0) = argv.get(0) {
@@ -94,8 +91,8 @@ fn validate_filetype_raw(input: &FiletypeRaw) -> ::std::result::Result<(), Valid
 
 /// Validator: no overrides are no-ops
 fn validate_override_raw(input: &OverrideRaw) -> ::std::result::Result<(), ValidationError> {
-    // Disabling recursion is a non-default effect
-    if !input.recurse {
+    // Ignoring is a non-default effect
+    if input.ignore {
         return Ok(());
     }
 
@@ -208,20 +205,20 @@ pub struct OverrideRaw {
     /// May be omitted to avoid displaying a message.
     #[validate(length(min = 1, message = "If provided, 'message' must not be empty"))]
     pub message: Option<String>,
-    /// If specified, a `handler` to apply to the path instead of relying on autodetection.
+
+    /// If specified, a file `handler` to apply to the path instead of relying on autodetection.
     ///
-    /// **TODO:** Decide how this should interact with directories.
+    /// Has no effect when the glob matches a directory.
+    ///
+    /// **XXX:** At some point, I may need to extend the design to also supporting handlers that
+    /// take a *directory* path as input without risking feeding directories with file-like names
+    /// to handlers that only expect files.
     #[validate(custom="validate_handlers")]
     pub handler: Option<OneOrList<String>>,
-    /// If `false` and `path` matches a directory, do not descend into it.
-    ///
-    /// **TODO:** Decide whether to rename this to `ignore` and allow it to also apply to files
-    /// or bypass most of the `ignore` crate's functionality by turning off most filtering and
-    /// implementing the rest as a [`filter_entry`
-    /// ](https://docs.rs/ignore/0.4.17/ignore/struct.WalkBuilder.html#method.filter_entry)
-    /// handler.
-    #[serde(default = "bool_true_default")]
-    pub recurse: bool,
+
+    /// If `true`, don't process files or descend into directories matching the given glob.
+    #[serde(default)]
+    pub ignore: bool,
 }
 
 /// Definition of `[handler.*]` tables.
@@ -472,7 +469,7 @@ mod tests {
         do_validate(r#"
                 [[override]]
                 path = "bar"
-                recurse = false
+                ignore = true
             "#).expect("The parser should assume a lone override relies on a fallback chain");
 
         do_validate(r#"
@@ -511,23 +508,5 @@ mod tests {
                 [handler.foobar]
                 argv = [ "foo{bar}baz" ]
             "#).expect_err("argv[0] should reject substitution tokens (3)");
-    }
-
-    /// Ensure that `recurse=true` being default for `[[override]]` doesn't accidentally changed
-    #[test]
-    #[rustfmt::skip]
-    fn test_overrideraw_recurse_default() {
-        let parsed: RootRaw = toml::from_str(r#"
-            [[override]]
-            path = "foo"
-            handler = "bar"
-        "#).unwrap();
-        let entry = parsed.overrides.iter().next().unwrap();
-
-        // Control checks
-        assert_eq!(&entry.path, "foo");
-        assert_eq!(entry.handler.as_deref(), Some(vec!["bar".into()].as_slice()));
-        // Actual test
-        assert_eq!(entry.recurse, true);
     }
 }

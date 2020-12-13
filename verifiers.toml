@@ -783,12 +783,12 @@ header = [ 46, 115, 110, 100 ]
 
 [[override]]
 path = "*/hts-cache/new.zip"
-handler = "ignore"
+ignore = true
 message = "Skipping intentionally broken HTTrack Zip file"
 
 [[override]]
 path = "*/.git"
-recurse = false
+ignore = true
 
 # TODO: Decide how to indicate how thorough a handler is so something like
 # "unpack the Zip container" isn't treated as equivalent to "unpack the Zip
