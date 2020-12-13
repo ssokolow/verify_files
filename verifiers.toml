@@ -1,775 +1,768 @@
-# TODO: Make it clear in the documentation that a "bin/exe may be any of
-# multiple formats" fallback chain is implemented by having multiple filetypes
-# with the same extension/header, not specifying a list of handlers in a single
-# filetype. (That latter one is for making it easier to satisfy the system
-# requirements by allowing users to install whatever's easiest.)
-#
-# (Do I need something more than `container` for ensuring correct precedence
-# in real-world situations when more than one filetype matches something and
-# both handlers can process the type? Is such a situation a big enough hazard
-# to worry about it?)
-
+# TODO: Do I need something more than `container` for ensuring correct
+# precedence in real-world situations when more than one filetype matches
+# something and both handlers can process the type? Is such a situation a big
+# enough hazard to worry about it?)
 
 [filetype.3gpp]
 description = "MPEG-4 Part 12 Media (3GPP)"
-handler = "ffmpeg"
 extension = "3gp"
+handler = "ffmpeg"
 
 [filetype.3gpp2]
 description = "MPEG-4 Part 12 Media (3GPP2)"
-handler = "ffmpeg"
 extension = "3g2"
+handler = "ffmpeg"
 
 [filetype.7zip]
 description = "7-Zip archive"
-handler = "p7zip"
-header = [ 55, 122, 188, 175, 39, 28 ]
 extension = "7z"
+handler = "p7zip"
+header = [55, 122, 188, 175, 39, 28]
 
 [filetype.aac]
 description = "AAC (ADTS Stream)"
-handler = "ffmpeg"
 extension = "aac"
+handler = "ffmpeg"
 
 [filetype.aifc]
 description = "AIFF Audio (Compressed)"
-handler = "ffmpeg"
 extension = "aifc"
+handler = "ffmpeg"
 
 [filetype.aiff]
 description = "AIFF Audio"
+extension = ["aif", "aiff"]
 handler = "ffmpeg"
-extension = [ "aif", "aiff" ]
 
 [filetype.ape]
 description = "Monkey's Audio"
-handler = "ffmpeg"
 extension = "ape"
+handler = "ffmpeg"
 
 [filetype.arj]
 description = "ARJ archive"
-handler = "arj"
 extension = "arj"
+handler = "arj"
 
 [filetype.asf]
 description = "Microsoft ASF"
-handler = "ffmpeg"
-header = [ 48, 38, 178, 117, 142, 102, 207, 17, 166, 217, 0, 170, 0, 98, 206, 108 ]
 extension = "asf"
+handler = "ffmpeg"
+header = [48, 38, 178, 117, 142, 102, 207, 17, 166, 217, 0, 170, 0, 98, 206, 108]
 
 [filetype.avi]
 description = "Microsoft AVI Video"
-handler = "ffmpeg"
 extension = "avi"
+handler = "ffmpeg"
 
 [filetype.bin]
 description = ".bin"
-handler = "bin"
 extension = "bin"
+handler = "bin"
 
 [filetype.binhex4]
 description = "BinHex4"
-handler = "binhex"
 extension = "hqx"
+handler = "binhex"
 
 [filetype.bmp]
 description = "Microsoft Device-Independent Bitmap Image"
+extension = ["bmp", "dib"]
 handler = "pil"
-extension = [ "bmp", "dib" ]
 
 [filetype.bzip2]
 description = "BZip2 compressed"
-handler = "bz2"
-header = [ 66, 90, 104 ]
 extension = "bz2"
+handler = "bz2"
+header = [66, 90, 104]
 
 # TODO: Remove `handler` lines which just duplicate what's inherited from
 #       `container` once I no longer need to support the Python version.
 [filetype.cb7]
-description = "Comic Book Archive (7-Zip)"
-handler = "p7zip"
 container = "7zip"
+description = "Comic Book Archive (7-Zip)"
 extension = "cb7"
+handler = "p7zip"
 
 [filetype.cbr]
-description = "Comic Book Archive (RAR)"
-handler = "unrar"
 container = "rar"
+description = "Comic Book Archive (RAR)"
 extension = "cbr"
+handler = "unrar"
 
 [filetype.cbt]
-description = "Comic Book Archive (Tar)"
-handler = "tar"
 container = "tar"
+description = "Comic Book Archive (Tar)"
 extension = "cbt"
+handler = "tar"
 
 [filetype.cbz]
-description = "Comic Book Archive (Zip)"
-handler = "zip"
 container = "zip"
+description = "Comic Book Archive (Zip)"
 extension = "cbz"
+handler = "zip"
 
 [filetype.dashtoc]
 description = "Dash/Zeal Docset Table of Contents"
-handler = "json"
 extension = "dashtoc"
+handler = "json"
 
 [filetype.dcx]
 description = "Multi-page ZSoft PC Paintbrush Image"
+extension = "dcx"
 handler = "pil"
 multipage = true
-extension = "dcx"
 
 [filetype.deb]
 description = "Debian Package"
-handler = "p7zip"
 extension = "deb"
+handler = "p7zip"
 
 [filetype.dmg]
 description = "Apple DMG Disk Image"
-handler = "p7zip"
 extension = "dmg"
+handler = "p7zip"
 
 [filetype.docm]
-description = "Macro-enabled OOXML Document"
-handler = "zip"
 container = "zip"
+description = "Macro-enabled OOXML Document"
 extension = "docm"
+handler = "zip"
 
 [filetype.docx]
-description = "OOXML Document"
-handler = "zip"
 container = "zip"
+description = "OOXML Document"
 extension = "docx"
+handler = "zip"
 
 [filetype.epub]
-description = "ePub e-book"
-handler = "zip"
 container = "zip"
+description = "ePub e-book"
 extension = "epub"
+handler = "zip"
 
 [filetype.f4a]
 description = "FLV Audio"
-handler = "ffmpeg"
 extension = "f4a"
+handler = "ffmpeg"
 
 [filetype.f4b]
 description = "FLV Audiobook"
-handler = "ffmpeg"
 extension = "f4b"
+handler = "ffmpeg"
 
 [filetype.f4v]
 description = "FLV Video"
-handler = "ffmpeg"
 extension = "f4v"
+handler = "ffmpeg"
 
 [filetype.flac]
 description = "FLAC Audio"
-handler = "flac"
 extension = "flac"
+handler = "flac"
 
 [filetype.flic]
 description = "Autodesk FLIC Animation"
+extension = ["fli", "flc"]
 handler = "pil"
-extension = [ "fli", "flc" ]
 
 [filetype.flv]
 description = "Flash Video"
-handler = "ffmpeg"
 extension = "flv"
+handler = "ffmpeg"
 
 [filetype.gif]
 description = "GIF Image"
-handler = "pil"
-header = [ [ 71, 73, 70, 56, 55, 97 ], [ 71, 73, 70, 56, 57, 97 ] ]
 extension = "gif"
+handler = "pil"
+header = [[71, 73, 70, 56, 55, 97], [71, 73, 70, 56, 57, 97]]
 
 [filetype.gzip]
 description = "GZip compressed"
-handler = "gzip"
-header = [ 31, 139 ]
 extension = "gz"
+handler = "gzip"
+header = [31, 139]
 
 [filetype.innosetup_exe]
 description = "Inno Setup Installer"
-handler = "innoextract"
 extension = "exe"
+handler = "innoextract"
 
 [filetype.jar]
-description = "Java ARchive"
-handler = "zip"
 container = "zip"
+description = "Java ARchive"
 extension = "jar"
+handler = "zip"
 
 [filetype.jpeg]
 description = "JPEG/JFIF Image"
+extension = ["jfi", "jfif", "jif", "jpe", "jpeg", "jpg"]
 handler = "pil"
-header = [ 255, 216, 255 ]
-extension = [ "jfi", "jfif", "jif", "jpe", "jpeg", "jpg" ]
+header = [255, 216, 255]
 
 [filetype.jpeg2k]
 description = "JPEG 2000 Image"
+extension = ["j2k", "jp2", "jpf", "jpx"]
 handler = "pil"
-extension = [ "j2k", "jp2", "jpf", "jpx" ]
 
 [filetype.json]
 description = "JSON Data"
-handler = "json"
 extension = "json"
+handler = "json"
 
 [filetype.lha]
 description = "LHA archive"
+extension = ["lha", "lzh"]
 handler = "p7zip"
-extension = [ "lha", "lzh" ]
 
 [filetype.lzip]
 description = "Lzip compressed"
-handler = "lzip"
-header = [ 76, 90, 73, 80 ]
 extension = "lz"
+handler = "lzip"
+header = [76, 90, 73, 80]
 
 [filetype.lzma]
 description = ".lzma"
-handler = "lzma"
 extension = "lzma"
+handler = "lzma"
 
 [filetype.lzx]
 description = "LZX archive"
-handler = "lsar"
 extension = "lzx"
+handler = "lsar"
 
 [filetype.m4a]
 description = "MPEG-4 Part 14 Audio"
-handler = "ffmpeg"
 extension = "m4a"
+handler = "ffmpeg"
 
 [filetype.m4b]
 description = "MPEG-4 Part 14 Audiobook"
-handler = "ffmpeg"
 extension = "m4b"
+handler = "ffmpeg"
 
 [filetype.m4r]
 description = "MPEG-4 Part 14 Ringtone"
-handler = "ffmpeg"
 extension = "m4r"
+handler = "ffmpeg"
 
 [filetype.m4v]
 description = "MPEG-4 Part 14 Video"
-handler = "ffmpeg"
 extension = "m4v"
+handler = "ffmpeg"
 
 [filetype.mk3d]
 description = "Matroska Video (3D)"
-handler = "ffmpeg"
 extension = "mk3d"
+handler = "ffmpeg"
 
 [filetype.mka]
 description = "Matroska Audio"
-handler = "ffmpeg"
 extension = "mka"
+handler = "ffmpeg"
 
 [filetype.mkv]
 description = "Matroska Video"
-handler = "ffmpeg"
 extension = "mkv"
-
-[filetype.mpeg_ts]
-description = "MPEG Transport Stream"
 handler = "ffmpeg"
-extension = "ts"
-
-[filetype.mpeg_tsa]
-description = "MPEG Transport Stream Audio"
-handler = "ffmpeg"
-extension = "tsa"
-
-[filetype.mpeg_tsv]
-description = "MPEG Transport Stream Video"
-handler = "ffmpeg"
-extension = "tsv"
-
-[filetype.ms_cab]
-description = "Microsoft CAB"
-handler = "cabextract"
-extension = "cab"
-
-[filetype.ms_cursor]
-description = "Microsoft Cursor"
-handler = "pil"
-multipage = true
-extension = "cur"
-
-[filetype.ms_ico]
-description = "Microsoft Icon"
-handler = "pil"
-multipage = true
-extension = "ico"
 
 [filetype.mov]
 description = "Quicktime Video"
-handler = "ffmpeg"
 extension = "mov"
+handler = "ffmpeg"
 
 [filetype.mp1]
 description = "MPEG Layer 1 Audio"
-handler = "ffmpeg"
 extension = "mp1"
+handler = "ffmpeg"
 
 [filetype.mp2]
 description = "MPEG Layer 2 Audio"
-handler = "ffmpeg"
 extension = "mp2"
+handler = "ffmpeg"
 
 [filetype.mp3]
 description = "MPEG Layer 3 Audio"
-handler = "ffmpeg"
 extension = "mp3"
+handler = "ffmpeg"
 
 [filetype.mp4]
 description = "MPEG-4 Part 14 Video"
-handler = "ffmpeg"
 extension = "mp4"
+handler = "ffmpeg"
 
 [filetype.mpeg]
 description = "MPEG Video"
+extension = ["mpe", "mpeg", "mpg"]
 handler = "ffmpeg"
-extension = [ "mpe", "mpeg", "mpg" ]
+
+[filetype.mpeg_ts]
+description = "MPEG Transport Stream"
+extension = "ts"
+handler = "ffmpeg"
+
+[filetype.mpeg_tsa]
+description = "MPEG Transport Stream Audio"
+extension = "tsa"
+handler = "ffmpeg"
+
+[filetype.mpeg_tsv]
+description = "MPEG Transport Stream Video"
+extension = "tsv"
+handler = "ffmpeg"
+
+[filetype.ms_cab]
+description = "Microsoft CAB"
+extension = "cab"
+handler = "cabextract"
+
+[filetype.ms_cursor]
+description = "Microsoft Cursor"
+extension = "cur"
+handler = "pil"
+multipage = true
+
+[filetype.ms_ico]
+description = "Microsoft Icon"
+extension = "ico"
+handler = "pil"
+multipage = true
 
 [filetype.msi]
 description = "MSI Installer"
-handler = "p7zip"
 extension = "msi"
+handler = "p7zip"
 
 [filetype.musepack]
 description = "Musepack Audio"
+extension = ["mp+", "mpc", "mpp"]
 handler = "ffmpeg"
-extension = [ "mp+", "mpc", "mpp" ]
 
 [filetype.odb]
-description = "ODF Database"
-handler = "zip"
 container = "zip"
+description = "ODF Database"
 extension = "odb"
+handler = "zip"
 
 [filetype.odc]
-description = "ODF Chart"
-handler = "zip"
 container = "zip"
+description = "ODF Chart"
 extension = "odc"
+handler = "zip"
 
 [filetype.odf]
-description = "ODF Formula"
-handler = "zip"
 container = "zip"
+description = "ODF Formula"
 extension = "odf"
+handler = "zip"
 
 [filetype.odg]
-description = "ODF Drawing"
-handler = "zip"
 container = "zip"
+description = "ODF Drawing"
 extension = "odg"
+handler = "zip"
 
 [filetype.odi]
-description = "ODF Image"
-handler = "zip"
 container = "zip"
+description = "ODF Image"
 extension = "odi"
+handler = "zip"
 
 [filetype.odm]
-description = "ODF Master Document"
-handler = "zip"
 container = "zip"
+description = "ODF Master Document"
 extension = "odm"
+handler = "zip"
 
 [filetype.odp]
-description = "ODF Presentation"
-handler = "zip"
 container = "zip"
+description = "ODF Presentation"
 extension = "odp"
+handler = "zip"
 
 [filetype.ods]
-description = "ODF Spreadsheet"
-handler = "zip"
 container = "zip"
+description = "ODF Spreadsheet"
 extension = "ods"
+handler = "zip"
 
 [filetype.odt]
-description = "ODF Text Document"
-handler = "zip"
 container = "zip"
+description = "ODF Text Document"
 extension = "odt"
+handler = "zip"
 
 [filetype.oga]
 description = "Ogg containing audio (.oga)"
-handler = "ffmpeg"
 extension = "oga"
+handler = "ffmpeg"
 
 [filetype.ogg]
 description = "Ogg Vorbis (.ogg)"
-handler = "ffmpeg"
 extension = "ogg"
+handler = "ffmpeg"
 
 [filetype.ogm]
 description = "OGM (Ogg, Unofficial)"
-handler = "ffmpeg"
 extension = "ogm"
+handler = "ffmpeg"
 
 [filetype.ogv]
 description = "Ogg containing video (.ogv)"
-handler = "ffmpeg"
 extension = "ogv"
+handler = "ffmpeg"
 
 [filetype.ogx]
 description = "Ogg (unspecified) (.ogx)"
-handler = "ffmpeg"
 extension = "ogx"
+handler = "ffmpeg"
 
 [filetype.opus]
 description = "Opus Audio"
-handler = "ffmpeg"
 extension = "opus"
+handler = "ffmpeg"
 
 [filetype.otc]
-description = "ODF Chart Template"
-handler = "zip"
 container = "zip"
+description = "ODF Chart Template"
 extension = "otc"
+handler = "zip"
 
 [filetype.otf]
-description = "ODF Formula Template"
-handler = "zip"
 container = "zip"
+description = "ODF Formula Template"
 extension = "otf"
+handler = "zip"
 
 [filetype.otg]
-description = "ODF Drawing Template"
-handler = "zip"
 container = "zip"
+description = "ODF Drawing Template"
 extension = "otg"
+handler = "zip"
 
 [filetype.oth]
-description = "ODF Web Page Template"
-handler = "zip"
 container = "zip"
+description = "ODF Web Page Template"
 extension = "oth"
+handler = "zip"
 
 [filetype.oti]
-description = "ODF Image Template"
-handler = "zip"
 container = "zip"
+description = "ODF Image Template"
 extension = "oti"
+handler = "zip"
 
 [filetype.otp]
-description = "ODF Presentation Template"
-handler = "zip"
 container = "zip"
+description = "ODF Presentation Template"
 extension = "otp"
+handler = "zip"
 
 [filetype.ots]
-description = "ODF Spreadsheet Template"
-handler = "zip"
 container = "zip"
+description = "ODF Spreadsheet Template"
 extension = "ots"
+handler = "zip"
 
 [filetype.ott]
-description = "ODF Text Document Template"
-handler = "zip"
 container = "zip"
+description = "ODF Text Document Template"
 extension = "ott"
+handler = "zip"
 
 [filetype.pbm]
 description = "NetPBM Portable Bitmap Image"
-handler = "pil"
 extension = "pbm"
+handler = "pil"
 
 [filetype.pcx]
 description = "ZSoft PC Paintbrush Image"
-handler = "pil"
 extension = "pcx"
+handler = "pil"
 
 [filetype.pdf]
 description = "PDF Document"
-handler = "pdftotext"
-header = [ 37, 80, 68, 70 ]
 extension = "pdf"
+handler = "pdftotext"
+header = [37, 80, 68, 70]
 
 [filetype.pgm]
 description = "NetPBM Portable Graymap Image"
-handler = "pil"
 extension = "pgm"
+handler = "pil"
 
 [filetype.png]
 description = "PNG Image"
-handler = "pil"
-header = [ 137, 80, 78, 71, 13, 10, 26, 10 ]
 extension = "png"
+handler = "pil"
+header = [137, 80, 78, 71, 13, 10, 26, 10]
 
 [filetype.potm]
-description = "Macro-enabled OOXML Presentation Template"
-handler = "zip"
 container = "zip"
+description = "Macro-enabled OOXML Presentation Template"
 extension = "potm"
+handler = "zip"
 
 [filetype.ppm]
 description = "NetPBM Portable Pixmap Image"
-handler = "pil"
 extension = "ppm"
+handler = "pil"
 
 [filetype.ppsx]
-description = "OOXML Presentation (Self-Starting)"
-handler = "zip"
 container = "zip"
+description = "OOXML Presentation (Self-Starting)"
 extension = "ppsx"
+handler = "zip"
 
 [filetype.pptm]
-description = "Macro-enabled OOXML Presentation"
-handler = "zip"
 container = "zip"
+description = "Macro-enabled OOXML Presentation"
 extension = "pptm"
+handler = "zip"
 
 [filetype.pptx]
-description = "OOXML Presentation"
-handler = "zip"
 container = "zip"
+description = "OOXML Presentation"
 extension = "pptx"
+handler = "zip"
 
 [filetype.py]
 description = "Python Source Code"
-handler = "py"
 extension = "py"
+handler = "py"
 
 [filetype.pyc]
 description = "Python Bytecode"
-handler = "ignore"
 extension = "pyc"
+handler = "ignore"
 
 [filetype.pyo]
 description = "Python Bytecode (Optimized)"
-handler = "ignore"
 extension = "pyo"
+handler = "ignore"
 
 [filetype.ra]
 description = "RealAudio"
-handler = "ffmpeg"
 extension = "ra"
+handler = "ffmpeg"
 
 [filetype.rar]
 description = "RAR"
-handler = "unrar"
-header = [ 82, 97, 114, 33, 26, 7 ]
 extension = "rar"
+handler = "unrar"
+header = [82, 97, 114, 33, 26, 7]
 
 [filetype.rdf]
 description = "RDF Document"
-handler = "xml"
 extension = "rdf"
+handler = "xml"
 
 [filetype.rm]
 description = "RealMedia Video"
-handler = "ffmpeg"
 extension = "rm"
+handler = "ffmpeg"
 
 [filetype.rmvb]
 description = "RealMedia Video (VBR)"
-handler = "ffmpeg"
 extension = "rmvb"
+handler = "ffmpeg"
 
 [filetype.rpm]
 description = "RPM Package"
-handler = "rpm"
 extension = "rpm"
+handler = "rpm"
 
 [filetype.rsn]
-description = "RSN"
-handler = "unrar"
 container = "rar"
+description = "RSN"
 extension = "rsn"
+handler = "unrar"
 
 [filetype.rss]
 description = "RSS Feed"
-handler = "xml"
 extension = "rss"
+handler = "xml"
 
 [filetype.rv]
 description = "RealVideo"
-handler = "ffmpeg"
 extension = "rv"
+handler = "ffmpeg"
 
 [filetype.sea]
 description = "SEA archive"
-handler = "lsar"
 extension = "sea"
+handler = "lsar"
 
 [filetype.shorten]
 description = "Shorten Audio"
-handler = "ffmpeg"
 extension = "shn"
+handler = "ffmpeg"
 
 [filetype.sit]
 description = "Stuffit archive"
-handler = "lsar"
 extension = "sit"
+handler = "lsar"
 
 [filetype.speex]
 description = "Speex Audio"
-handler = "ffmpeg"
 extension = "spx"
+handler = "ffmpeg"
 
 [filetype.sqlite3]
 description = "SQLite3 Database"
-handler = "sqlite3"
-header = [ 83, 81, 76, 105, 116, 101, 32, 102, 111, 114, 109, 97, 116, 32, 51, 0 ]
 extension = "sqlite3"
+handler = "sqlite3"
+header = [83, 81, 76, 105, 116, 101, 32, 102, 111, 114, 109, 97, 116, 32, 51, 0]
 
 [filetype.sun_au]
 description = "Sun Audio (with header)"
 handler = "ffmpeg"
-header = [ 46, 115, 110, 100 ]
+header = [46, 115, 110, 100]
 
 [filetype.svg]
 description = "SVG Image"
-handler = "xml"
 extension = "svg"
+handler = "xml"
 
 [filetype.svgz]
-description = "SVG Image (GZip compressed)"
-handler = "gzip"
 container = "gzip"
+description = "SVG Image (GZip compressed)"
 extension = "svgz"
+handler = "gzip"
 
 [filetype.tar]
 description = "Tar Archive"
-handler = "tar"
-header_offset = 257
-header = [ [ 117, 115, 116, 97, 114, 0, 48, 48 ], [ 117, 115, 116, 97, 114, 32, 32, 0 ] ]
 extension = "tar"
+handler = "tar"
+header = [[117, 115, 116, 97, 114, 0, 48, 48], [117, 115, 116, 97, 114, 32, 32, 0]]
+header_offset = 257
 
 [filetype.targa]
 description = "Truevision TGA Image"
-handler = "pil"
 extension = "tga"
+handler = "pil"
 
 [filetype.tbz2]
-description = "Tar Archive (BZip2 compressed)"
-handler = "tar"
 container = "bzip2"
+description = "Tar Archive (BZip2 compressed)"
 extension = "tbz2"
+handler = "tar"
 
 [filetype.tgz]
-description = "Tar Archive (GZip compressed)"
-handler = "tar"
 container = "gzip"
+description = "Tar Archive (GZip compressed)"
 extension = "tgz"
+handler = "tar"
 
 [filetype.tiff]
 description = "TIFF Image"
+extension = ["tif", "tiff"]
 handler = "pil"
-extension = [ "tif", "tiff" ]
 
 [filetype.tlz]
-description = "Tar Archive (.lzma compressed)"
-handler = "tar"
 container = "lzma"
+description = "Tar Archive (.lzma compressed)"
 extension = "tlz"
+handler = "tar"
 
 [filetype.txt]
 description = "Plaintext"
-handler = "txt"
 extension = "txt"
+handler = "txt"
 
 [filetype.txz]
-description = "Tar Archive (.xz compressed)"
-handler = "tar"
 container = "xz"
+description = "Tar Archive (.xz compressed)"
 extension = "txz"
+handler = "tar"
 
 [filetype.uu]
 description = "UUEncoded"
+extension = ["uu", "uue"]
 handler = "uuencode"
-extension = [ "uu", "uue" ]
 
 [filetype.voc]
 description = "Soundblaster VOC Audio"
-handler = "ffmpeg"
 extension = "voc"
+handler = "ffmpeg"
 
 [filetype.wave]
 description = "Microsoft Waveform Audio"
-handler = "ffmpeg"
 extension = "wav"
+handler = "ffmpeg"
 
 [filetype.wavpack]
 description = "WavPack Audio"
-handler = "ffmpeg"
 extension = "wv"
+handler = "ffmpeg"
 
 [filetype.webm]
 description = "WebM Video"
-handler = "ffmpeg"
 extension = "webm"
+handler = "ffmpeg"
 
 [filetype.webp]
 description = "WebP Image"
-handler = "pil"
 extension = "webp"
+handler = "pil"
 
 [filetype.wma]
-description = "Windows Media Audio"
-handler = "ffmpeg"
 container = "asf"
+description = "Windows Media Audio"
 extension = "wma"
+handler = "ffmpeg"
 
 [filetype.wmv]
-description = "Windows Media Video"
-handler = "ffmpeg"
 container = "asf"
+description = "Windows Media Video"
 extension = "wmv"
+handler = "ffmpeg"
 
 [filetype.xbm]
 description = "X BitMap Image"
-handler = "pil"
 extension = "xbm"
+handler = "pil"
 
 [filetype.xlsm]
-description = "Macro-enabled OOXML Workbook"
-handler = "zip"
 container = "zip"
+description = "Macro-enabled OOXML Workbook"
 extension = "xlsm"
+handler = "zip"
 
 [filetype.xlsx]
-description = "OOXML Workbook"
-handler = "zip"
 container = "zip"
+description = "OOXML Workbook"
 extension = "xlsx"
+handler = "zip"
 
 [filetype.xml]
 description = "XML Data"
-handler = "xml"
-header = [ 60, 63, 120, 109, 108, 32 ]
 extension = "xml"
+handler = "xml"
+header = [60, 63, 120, 109, 108, 32]
 
 [filetype.xpi]
-description = "Mozilla XPI"
-handler = "zip"
 container = "zip"
+description = "Mozilla XPI"
 extension = "xpi"
+handler = "zip"
 
 [filetype.xpm]
 description = "X PixMap Image"
-handler = "pil"
 extension = "xpm"
+handler = "pil"
 
 [filetype.xz]
 description = ".xz compressed"
-handler = "lzma"
-header = [ 253, 55, 122, 88, 90, 0 ]
 extension = "xz"
+handler = "lzma"
+header = [253, 55, 122, 88, 90, 0]
 
 [filetype.zip]
 description = "Zip archive"
-handler = "zip"
-header = [ [ 80, 75, 3, 4 ], [ 80, 75, 5, 6 ], [ 80, 75, 7, 8 ] ]
 extension = "zip"
+handler = "zip"
+header = [[80, 75, 3, 4], [80, 75, 5, 6], [80, 75, 7, 8]]
 
 [[override]]
 path = "*/hts-cache/new.zip"
@@ -785,40 +778,40 @@ ignore = true
 # container and check the images inside the CBZ for corruption".
 
 [handler.arj]
-argv = [ "arj", "t" ]
+argv = ["arj", "t"]
 
 [handler.cabextract]
-argv = [ "cabextract", "-t" ]
+argv = ["cabextract", "-t"]
 
 # TODO: FFmpeg ignores too many errors. Find stricter options and better
 #       verifiers for as many different formats as possible.
 [handler.ffmpeg]
-argv = [ "ffmpeg", "-f", "null", "-", "-i" ]
+argv = ["ffmpeg", "-f", "null", "-", "-i"]
 
 [handler.flac]
-argv = [ "flac", "-t" ]
+argv = ["flac", "-t"]
 
 [handler.innoextract]
-argv = [ "innoextract", "-t", "-g" ]
+argv = ["innoextract", "-t", "-g"]
 
 [handler.lsar]
-argv = [ "lsar", "-t" ]
+argv = ["lsar", "-t"]
 
 [handler.lzip]
-argv = [ "lzip", "-t" ]
+argv = ["lzip", "-t"]
 
 [handler.p7zip]
-argv = [ "7z", "t" ]
+argv = ["7z", "t"]
 
 [handler.pdftotext]
+argv = ["pdftotext", "{path}", "{devnull}"]
 fail_if_stderr = "Error"
-argv = [ "pdftotext", "{path}", "{devnull}" ]
 
 [handler.rpm]
-argv = [ "rpm", "--checksig" ]
+argv = ["rpm", "--checksig"]
 
 [handler.unrar]
-argv = [ "unrar", "t" ]
+argv = ["unrar", "t"]
 
 # TODO: Write a test suite to verify that validators are catching every readily
 #       detectable way this config file could be malformed.
