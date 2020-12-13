@@ -20,15 +20,15 @@
 # if more than one format has the same name, do not hesitate to use underscores
 # to avoid ambiguity. (eg. ms_cab)
 
-[filetype.3gpp2]
-description = "MPEG-4 Part 12 Media (3GPP2)"
-handler = "ffmpeg"
-extension = "3g2"
-
 [filetype.3gpp]
 description = "MPEG-4 Part 12 Media (3GPP)"
 handler = "ffmpeg"
 extension = "3gp"
+
+[filetype.3gpp2]
+description = "MPEG-4 Part 12 Media (3GPP2)"
+handler = "ffmpeg"
+extension = "3g2"
 
 [filetype.7zip]
 description = "7-Zip archive"
@@ -41,15 +41,15 @@ description = "AAC (ADTS Stream)"
 handler = "ffmpeg"
 extension = "aac"
 
-[filetype.aiff]
-description = "AIFF Audio"
-handler = "ffmpeg"
-extension = [ "aif", "aiff" ]
-
 [filetype.aifc]
 description = "AIFF Audio (Compressed)"
 handler = "ffmpeg"
 extension = "aifc"
+
+[filetype.aiff]
+description = "AIFF Audio"
+handler = "ffmpeg"
+extension = [ "aif", "aiff" ]
 
 [filetype.ape]
 description = "Monkey's Audio"
@@ -77,6 +77,11 @@ description = ".bin"
 handler = "bin"
 extension = "bin"
 
+[filetype.binhex4]
+description = "BinHex4"
+handler = "binhex"
+extension = "hqx"
+
 [filetype.bmp]
 description = "Microsoft Device-Independent Bitmap Image"
 handler = "pil"
@@ -87,11 +92,6 @@ description = "BZip2 compressed"
 handler = "bz2"
 header = [ 66, 90, 104 ]
 extension = "bz2"
-
-[filetype.ms_cab]
-description = "Microsoft CAB"
-handler = "cabextract"
-extension = "cab"
 
 # TODO: Remove `handler` lines which just duplicate what's inherited from
 #       `container` once I no longer need to support the Python version.
@@ -118,12 +118,6 @@ description = "Comic Book Archive (Zip)"
 handler = "zip"
 container = "zip"
 extension = "cbz"
-
-[filetype.ms_cursor]
-description = "Microsoft Cursor"
-handler = "pil"
-multipage = true
-extension = "cur"
 
 [filetype.dashtoc]
 description = "Dash/Zeal Docset Table of Contents"
@@ -163,11 +157,6 @@ description = "ePub e-book"
 handler = "zip"
 container = "zip"
 extension = "epub"
-
-[filetype.innosetup_exe]
-description = "Inno Setup Installer"
-handler = "innoextract"
-extension = "exe"
 
 [filetype.f4a]
 description = "FLV Audio"
@@ -211,21 +200,10 @@ handler = "gzip"
 header = [ 31, 139 ]
 extension = "gz"
 
-[filetype.binhex4]
-description = "BinHex4"
-handler = "binhex"
-extension = "hqx"
-
-[filetype.ms_ico]
-description = "Microsoft Icon"
-handler = "pil"
-multipage = true
-extension = "ico"
-
-[filetype.jpeg2k]
-description = "JPEG 2000 Image"
-handler = "pil"
-extension = [ "j2k", "jp2", "jpf", "jpx" ]
+[filetype.innosetup_exe]
+description = "Inno Setup Installer"
+handler = "innoextract"
+extension = "exe"
 
 [filetype.jar]
 description = "Java ARchive"
@@ -238,6 +216,11 @@ description = "JPEG/JFIF Image"
 handler = "pil"
 header = [ 255, 216, 255 ]
 extension = [ "jfi", "jfif", "jif", "jpe", "jpeg", "jpg" ]
+
+[filetype.jpeg2k]
+description = "JPEG 2000 Image"
+handler = "pil"
+extension = [ "j2k", "jp2", "jpf", "jpx" ]
 
 [filetype.json]
 description = "JSON Data"
@@ -300,15 +283,42 @@ description = "Matroska Video"
 handler = "ffmpeg"
 extension = "mkv"
 
+[filetype.mpeg_ts]
+description = "MPEG Transport Stream"
+handler = "ffmpeg"
+extension = "ts"
+
+[filetype.mpeg_tsa]
+description = "MPEG Transport Stream Audio"
+handler = "ffmpeg"
+extension = "tsa"
+
+[filetype.mpeg_tsv]
+description = "MPEG Transport Stream Video"
+handler = "ffmpeg"
+extension = "tsv"
+
+[filetype.ms_cab]
+description = "Microsoft CAB"
+handler = "cabextract"
+extension = "cab"
+
+[filetype.ms_cursor]
+description = "Microsoft Cursor"
+handler = "pil"
+multipage = true
+extension = "cur"
+
+[filetype.ms_ico]
+description = "Microsoft Icon"
+handler = "pil"
+multipage = true
+extension = "ico"
+
 [filetype.mov]
 description = "Quicktime Video"
 handler = "ffmpeg"
 extension = "mov"
-
-[filetype.musepack]
-description = "Musepack Audio"
-handler = "ffmpeg"
-extension = [ "mp+", "mpc", "mpp" ]
 
 [filetype.mp1]
 description = "MPEG Layer 1 Audio"
@@ -339,6 +349,11 @@ extension = [ "mpe", "mpeg", "mpg" ]
 description = "MSI Installer"
 handler = "p7zip"
 extension = "msi"
+
+[filetype.musepack]
+description = "Musepack Audio"
+handler = "ffmpeg"
+extension = [ "mp+", "mpc", "mpp" ]
 
 [filetype.odb]
 description = "ODF Database"
@@ -616,6 +631,11 @@ handler = "sqlite3"
 header = [ 83, 81, 76, 105, 116, 101, 32, 102, 111, 114, 109, 97, 116, 32, 51, 0 ]
 extension = "sqlite3"
 
+[filetype.sun_au]
+description = "Sun Audio (with header)"
+handler = "ffmpeg"
+header = [ 46, 115, 110, 100 ]
+
 [filetype.svg]
 description = "SVG Image"
 handler = "xml"
@@ -634,16 +654,16 @@ header_offset = 257
 header = [ [ 117, 115, 116, 97, 114, 0, 48, 48 ], [ 117, 115, 116, 97, 114, 32, 32, 0 ] ]
 extension = "tar"
 
+[filetype.targa]
+description = "Truevision TGA Image"
+handler = "pil"
+extension = "tga"
+
 [filetype.tbz2]
 description = "Tar Archive (BZip2 compressed)"
 handler = "tar"
 container = "bzip2"
 extension = "tbz2"
-
-[filetype.targa]
-description = "Truevision TGA Image"
-handler = "pil"
-extension = "tga"
 
 [filetype.tgz]
 description = "Tar Archive (GZip compressed)"
@@ -661,21 +681,6 @@ description = "Tar Archive (.lzma compressed)"
 handler = "tar"
 container = "lzma"
 extension = "tlz"
-
-[filetype.mpeg_ts]
-description = "MPEG Transport Stream"
-handler = "ffmpeg"
-extension = "ts"
-
-[filetype.mpeg_tsa]
-description = "MPEG Transport Stream Audio"
-handler = "ffmpeg"
-extension = "tsa"
-
-[filetype.mpeg_tsv]
-description = "MPEG Transport Stream Video"
-handler = "ffmpeg"
-extension = "tsv"
 
 [filetype.txt]
 description = "Plaintext"
@@ -703,6 +708,11 @@ description = "Microsoft Waveform Audio"
 handler = "ffmpeg"
 extension = "wav"
 
+[filetype.wavpack]
+description = "WavPack Audio"
+handler = "ffmpeg"
+extension = "wv"
+
 [filetype.webm]
 description = "WebM Video"
 handler = "ffmpeg"
@@ -724,11 +734,6 @@ description = "Windows Media Video"
 handler = "ffmpeg"
 container = "asf"
 extension = "wmv"
-
-[filetype.wavpack]
-description = "WavPack Audio"
-handler = "ffmpeg"
-extension = "wv"
 
 [filetype.xbm]
 description = "X BitMap Image"
@@ -775,11 +780,6 @@ description = "Zip archive"
 handler = "zip"
 header = [ [ 80, 75, 3, 4 ], [ 80, 75, 5, 6 ], [ 80, 75, 7, 8 ] ]
 extension = "zip"
-
-[filetype.sun_au]
-description = "Sun Audio (with header)"
-handler = "ffmpeg"
-header = [ 46, 115, 110, 100 ]
 
 [[override]]
 path = "*/hts-cache/new.zip"
