@@ -2,14 +2,18 @@
 //!
 //! Invoke this machinery via the [`parse`] function.
 //!
+//! **NOTE:** Uses `BTreeMap` instead of `HashMap` to ensure the data will serialize to TOML in
+//! sorted order.
+//!
 //! **TODO:** Consider using the [`types`
 //! module](https://docs.rs/ignore/0.4.17/ignore/types/index.html) from the `ignore` crate and
 //! enabling its default type definitions so error messages can give a slightly more human-friendly
 //! name for various "no handler registered for this type" situations.
 
 // Standard library imports
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fmt::Write;
+use std::ops::Not;
 use std::result::Result as StdResult;
 
 // 3rd-party crate imports
@@ -29,6 +33,10 @@ macro_rules! fail_valid {
         return Err(err);
     };
 }
+
+/// Helper for Serde's `skip_serializing_if`
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn is_zero(int: &usize) -> bool { *int == 0 }
 
 /// Validator: `argv[0]` doesn't contain any substitution tokens (as a safety net)
 fn validate_argv(argv: &[String]) -> StdResult<(), ValidationError> {
@@ -114,7 +122,7 @@ fn validate_override_raw(input: &OverrideRaw) -> StdResult<(), ValidationError> 
     fail_valid!("noop_override", format!("Override has no effect: {}", input.path));
 }
 
-/// Helper to add support for using `#[validate]` nesting to `HashMap`
+/// Helper to add support for using `#[validate]` nesting to `BTreeMap`
 ///
 /// (As I understand it, this works by exploiting how validator is implemented using macros and,
 /// as such, can duck-type its method resolution.)
@@ -125,7 +133,7 @@ pub trait ValidateExtensions {
     /// See [`Validate::validate`]
     fn validate(&self) -> Result<(), ValidationErrors>;
 }
-impl<K, V: Validate> ValidateExtensions for HashMap<K, V> {
+impl<K, V: Validate> ValidateExtensions for BTreeMap<K, V> {
     fn validate(&self) -> Result<(), ValidationErrors> {
         for value in self.values() {
             value.validate()?
@@ -139,7 +147,7 @@ impl<K, V: Validate> ValidateExtensions for HashMap<K, V> {
 ///
 /// **TODO:** Custom ser/de impl to round-trip a bare `T` in TOML as `vec![T]` so both the file and
 /// the code which consumes the config can be clean.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum OneOrList<T> {
     /// Allow `T` as shorthand for `[T]` in the TOML
@@ -163,11 +171,12 @@ impl<T> ::std::ops::Deref for OneOrList<T> {
 // ----==== Configuration Schema ====----
 
 /// Definition of `[[filetype]]` tables.
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Serialize, Validate)]
 #[validate(schema(function = "validate_filetype_raw"))]
 pub struct FiletypeRaw {
     /// The id of another filetype that this is a specialization of.
     /// (eg. OpenDocument and CBZ are specialized forms of Zip files.)
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[validate(length(min = 1, message = "'container' must not be an empty string if present"))]
     pub container: Option<String>,
 
@@ -176,18 +185,9 @@ pub struct FiletypeRaw {
     pub description: String,
 
     /// One or more extensions to identify the file by
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[validate(custom = "validate_exts")]
     pub extension: Option<OneOrList<String>>,
-
-    /// One or more headers to identify the file type by
-    #[validate(custom = "validate_headers")]
-    pub header: Option<OneOrList<Vec<u8>>>,
-
-    /// The number of bytes to skip before attempting to match the header
-    ///
-    /// Assumed to be zero if omitted.
-    #[serde(default)]
-    pub header_offset: usize,
 
     /// An identifier for a built-in handler or `[handler.*]` entry.
     ///
@@ -201,29 +201,36 @@ pub struct FiletypeRaw {
     /// and/or header (eg. `.exe` possibly being multiple different kinds of self-extracting
     /// archives), then specify multiple `[filetype.*]` sections with the same or overlapping
     /// `extension` and `header` content.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[validate(custom = "validate_handlers")]
     pub handler: Option<OneOrList<String>>,
 
+    /// One or more headers to identify the file type by
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[validate(custom = "validate_headers")]
+    pub header: Option<OneOrList<Vec<u8>>>,
+
+    /// The number of bytes to skip before attempting to match the header
+    ///
+    /// Assumed to be zero if omitted.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub header_offset: usize,
+
     /// A special case for the image verifier
     ///
-    /// **TODO:** Refactor to either remove this or turn it into a HashMap for arbitrary keys
+    /// **TODO:** Refactor to either remove this or turn it into a BTreeMap for arbitrary keys
     /// passed to builtin handlers and exposed to the argv string substitution.
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Not::not")]
     pub multipage: bool,
 }
 
 /// Definition of `[[override]]` tables.
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Serialize, Validate)]
 #[validate(schema(function = "validate_override_raw"))]
 pub struct OverrideRaw {
     /// A globbing pattern for files this rule should match
     #[validate(length(min = 1, message = "Globbing pattern must not be empty"))]
     pub path: String,
-
-    /// The status message to display if this override matches a path.
-    /// May be omitted to avoid displaying a message.
-    #[validate(length(min = 1, message = "If provided, 'message' must not be empty"))]
-    pub message: Option<String>,
 
     /// If specified, a file `handler` to apply to the path instead of relying on autodetection.
     ///
@@ -232,16 +239,23 @@ pub struct OverrideRaw {
     /// **NOTE:** At some point, I may need to extend the design to also support handlers that
     /// take a *directory* path as input without risking feeding directories with file-like names
     /// to handlers that only expect files.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[validate(custom = "validate_handlers")]
     pub handler: Option<OneOrList<String>>,
 
     /// If `true`, don't process files or descend into directories matching the given glob.
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Not::not")]
     pub ignore: bool,
+
+    /// The status message to display if this override matches a path.
+    /// May be omitted to avoid displaying a message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[validate(length(min = 1, message = "If provided, 'message' must not be empty"))]
+    pub message: Option<String>,
 }
 
 /// Definition of `[handler.*]` tables.
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Serialize, Validate)]
 pub struct HandlerRaw {
     /// A template for the command to invoke via `[std::process::Command]`.
     ///
@@ -261,19 +275,31 @@ pub struct HandlerRaw {
     ///
     /// Being present but empty is considered an error to avoid allowing an "unintended state that
     /// matches everything" bug slipping in.
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     #[validate(length(min = 1, message = "If provided, 'fail_if_stderr' must not be empty"))]
     pub fail_if_stderr: Option<String>,
 }
 
 /// Root of the configuration schema
 ///
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Serialize, Validate)]
 pub struct RootRaw {
     /// A list of filetype definitions, including mappings to handlers.
+    ///
+    /// It is represented as a hashmap to ensure that each filetype has a unique identifer. This
+    /// is for two reasons:
+    ///
+    /// 1. It allows the TOML parser to handle preventing duplicate IDs.
+    /// 2. It ensures that later validation stages which may not have easy access to
+    ///    line numbers will have something to use in error messages.
+    ///
+    /// By convention, the identifier is the most natural single-word name for the
+    /// file format, in lowercase alphanumeric form (eg. jpeg, mp3, 7zip, etc.) but,
+    /// if more than one format has the same name, do not hesitate to use underscores
+    /// to avoid ambiguity. (eg. ms_cab)
     #[validate]
-    #[serde(rename = "filetype", default)]
-    pub filetypes: HashMap<String, FiletypeRaw>,
+    #[serde(rename = "filetype", default, serialize_with = "toml::ser::tables_last")]
+    pub filetypes: BTreeMap<String, FiletypeRaw>,
 
     /// A list of rules for overriding `filetypes` or excluding folder for specific globs.
     #[validate]
@@ -283,8 +309,8 @@ pub struct RootRaw {
     /// A list of *external* handler definitions to be used by `filetypes` and `overrides`.
     /// (This list includes only subprocesses, not built-in handlers)
     #[validate]
-    #[serde(rename = "handler", default)]
-    pub handlers: HashMap<String, HandlerRaw>,
+    #[serde(rename = "handler", default, serialize_with = "toml::ser::tables_last")]
+    pub handlers: BTreeMap<String, HandlerRaw>,
 }
 
 // ----==== Parsing Functions ====----

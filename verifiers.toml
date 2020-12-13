@@ -9,16 +9,6 @@
 # both handlers can process the type? Is such a situation a big enough hazard
 # to worry about it?)
 
-# Each filetype must have a unique identifer for two reasons:
-#
-# 1. It allows the TOML parser to handle for preventing duplicate  IDs.
-# 2. It ensures that later validation stages which may not have easy access to
-#    line numbers will have something to use in error messages.
-#
-# By convention, the identifier is the most natural single-word name for the
-# file format, in lowercase alphanumeric form (eg. jpeg, mp3, 7zip, etc.) but,
-# if more than one format has the same name, do not hesitate to use underscores
-# to avoid ambiguity. (eg. ms_cab)
 
 [filetype.3gpp]
 description = "MPEG-4 Part 12 Media (3GPP)"
