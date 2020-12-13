@@ -161,20 +161,25 @@ pub struct FiletypeRaw {
     /// (eg. OpenDocument and CBZ are specialized forms of Zip files.)
     #[validate(length(min = 1, message = "'container' must not be an empty string if present"))]
     pub container: Option<String>,
+
     /// A human-readable description for use in status messages
     #[validate(length(min = 1, message = "'description' must not be an empty string if present"))]
     pub description: String,
+
     /// One or more extensions to identify the file by
     #[validate(custom = "validate_exts")]
     pub extension: Option<OneOrList<String>>,
+
     /// One or more headers to identify the file type by
     #[validate(custom = "validate_headers")]
     pub header: Option<OneOrList<Vec<u8>>>,
+
     /// The number of bytes to skip before attempting to match the header
     ///
     /// Assumed to be zero if omitted.
     #[serde(default)]
     pub header_offset: usize,
+
     /// An identifier for a built-in handler or `[handler.*]` entry.
     ///
     /// If specified as a list, it indicates a fallback chain from more desirable/thorough
@@ -186,6 +191,7 @@ pub struct FiletypeRaw {
     /// identifying the format.)
     #[validate(custom="validate_handlers")]
     pub handler: Option<OneOrList<String>>,
+
     /// A special case for the image verifier
     ///
     /// **TODO:** Refactor to either remove this or turn it into a HashMap for arbitrary keys
@@ -201,6 +207,7 @@ pub struct OverrideRaw {
     /// A globbing pattern for files this rule should match
     #[validate(length(min = 1, message = "Globbing pattern must not be empty"))]
     pub path:    String,
+
     /// The status message to display if this override matches a path.
     /// May be omitted to avoid displaying a message.
     #[validate(length(min = 1, message = "If provided, 'message' must not be empty"))]
@@ -236,6 +243,7 @@ pub struct HandlerRaw {
     /// entries contain substitution tokens.
     #[validate(length(min = 1, message = "'argv' must not be empty"), custom = "validate_argv")]
     pub argv:           Vec<String>,
+
     /// If present and non-empty, the command will be considered to have failed if its output to
     /// `stderr` contains the given string, even if it returns an exit code that indicates success.
     ///
