@@ -119,8 +119,8 @@ pub fn path_input_dir<P: AsRef<Path> + ?Sized>(value: &P) -> Result<(), OsString
         return Ok(());
     }
 
-    Err(format!("Would be unable to read and traverse destination directory: {}",
-            path.display()).into())
+    Err(format!("Would be unable to read and traverse destination directory: {}", path.display())
+        .into())
 }
 
 /// Test that the given path is a directory that *should* be writable

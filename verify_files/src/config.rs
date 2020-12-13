@@ -33,8 +33,10 @@ macro_rules! fail_valid {
 fn validate_argv(argv: &[String]) -> ::std::result::Result<(), ValidationError> {
     if let Some(argv0) = argv.get(0) {
         if argv0.contains('{') {
-            fail_valid!("argv0_subst", format!(
-                    "argv[0] cannot contain substitution tokens: {}", argv0));
+            fail_valid!(
+                "argv0_subst",
+                format!("argv[0] cannot contain substitution tokens: {}", argv0)
+            );
         }
     }
     Ok(())
@@ -48,13 +50,14 @@ fn validate_exts(input: &OneOrList<String>) -> ::std::result::Result<(), Validat
 
     let exts: Vec<_> = input.iter().map(String::as_str).filter(|x| x.starts_with('.')).collect();
     if !exts.is_empty() {
-        fail_valid!("no_period_ext",
-            format!("Extensions must not start with a period: {}", exts.join(", ")));
+        fail_valid!(
+            "no_period_ext",
+            format!("Extensions must not start with a period: {}", exts.join(", "))
+        );
     }
 
     Ok(())
 }
-
 
 /// Validator: no handler definitions are empty strings
 fn validate_handlers(input: &OneOrList<String>) -> ::std::result::Result<(), ValidationError> {
@@ -79,12 +82,16 @@ fn validate_headers(input: &OneOrList<Vec<u8>>) -> ::std::result::Result<(), Val
 /// **XXX:** Allow an exception to this if "overrides" contains a glob that matches it?
 fn validate_filetype_raw(input: &FiletypeRaw) -> ::std::result::Result<(), ValidationError> {
     if input.extension.is_none() && input.header.is_none() {
-        fail_valid!("no_autodetect",
-            format!("Neither extension nor header set for filetype: {}", input.description));
+        fail_valid!(
+            "no_autodetect",
+            format!("Neither extension nor header set for filetype: {}", input.description)
+        );
     }
     if input.handler.is_none() && input.container.is_none() {
-        fail_valid!("no_handler",
-            format!("Neither handler nor container set for filetype: {}", input.description));
+        fail_valid!(
+            "no_handler",
+            format!("Neither handler nor container set for filetype: {}", input.description)
+        );
     }
     Ok(())
 }
@@ -189,7 +196,7 @@ pub struct FiletypeRaw {
     /// indicate a situation like "`.bin` and `.exe` could be one of several things and we can't
     /// tell just from the header or extension" where fallback should be performed as part of
     /// identifying the format.)
-    #[validate(custom="validate_handlers")]
+    #[validate(custom = "validate_handlers")]
     pub handler: Option<OneOrList<String>>,
 
     /// A special case for the image verifier
@@ -206,7 +213,7 @@ pub struct FiletypeRaw {
 pub struct OverrideRaw {
     /// A globbing pattern for files this rule should match
     #[validate(length(min = 1, message = "Globbing pattern must not be empty"))]
-    pub path:    String,
+    pub path: String,
 
     /// The status message to display if this override matches a path.
     /// May be omitted to avoid displaying a message.
@@ -220,7 +227,7 @@ pub struct OverrideRaw {
     /// **XXX:** At some point, I may need to extend the design to also supporting handlers that
     /// take a *directory* path as input without risking feeding directories with file-like names
     /// to handlers that only expect files.
-    #[validate(custom="validate_handlers")]
+    #[validate(custom = "validate_handlers")]
     pub handler: Option<OneOrList<String>>,
 
     /// If `true`, don't process files or descend into directories matching the given glob.
@@ -242,7 +249,7 @@ pub struct HandlerRaw {
     /// To simplify the common case, `{path}` will be appended to the end of the `Vec` if no
     /// entries contain substitution tokens.
     #[validate(length(min = 1, message = "'argv' must not be empty"), custom = "validate_argv")]
-    pub argv:           Vec<String>,
+    pub argv: Vec<String>,
 
     /// If present and non-empty, the command will be considered to have failed if its output to
     /// `stderr` contains the given string, even if it returns an exit code that indicates success.
