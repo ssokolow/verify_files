@@ -10,6 +10,7 @@
 // Standard library imports
 use std::collections::HashMap;
 use std::fmt::Write;
+use std::result::Result as StdResult;
 
 // 3rd-party crate imports
 use anyhow::{anyhow, Context, Result}; // It's an internal API, so no need for thiserror yet.
@@ -29,8 +30,8 @@ macro_rules! fail_valid {
     };
 }
 
-/// Validator: `argv[0]` doesn't contain a substitution token (as a safety net)
-fn validate_argv(argv: &[String]) -> ::std::result::Result<(), ValidationError> {
+/// Validator: `argv[0]` doesn't contain any substitution tokens (as a safety net)
+fn validate_argv(argv: &[String]) -> StdResult<(), ValidationError> {
     if let Some(argv0) = argv.get(0) {
         if argv0.contains('{') {
             fail_valid!(
@@ -42,8 +43,8 @@ fn validate_argv(argv: &[String]) -> ::std::result::Result<(), ValidationError> 
     Ok(())
 }
 
-/// Validator: verify structural correctness of extension definitions
-fn validate_exts(input: &OneOrList<String>) -> ::std::result::Result<(), ValidationError> {
+/// Validator: verify structural correctness of `extension` fields
+fn validate_exts(input: &OneOrList<String>) -> StdResult<(), ValidationError> {
     if input.is_empty() || input.iter().any(String::is_empty) {
         fail_valid!("empty_ext", "Extensions may not be empty strings");
     }
@@ -59,8 +60,8 @@ fn validate_exts(input: &OneOrList<String>) -> ::std::result::Result<(), Validat
     Ok(())
 }
 
-/// Validator: no handler definitions are empty strings
-fn validate_handlers(input: &OneOrList<String>) -> ::std::result::Result<(), ValidationError> {
+/// Validator: none of the `handler` fields contain empty strings
+fn validate_handlers(input: &OneOrList<String>) -> StdResult<(), ValidationError> {
     if input.is_empty() || input.iter().any(String::is_empty) {
         fail_valid!("empty_handler", "Handler names must not be empty sequences");
     }
@@ -68,8 +69,8 @@ fn validate_handlers(input: &OneOrList<String>) -> ::std::result::Result<(), Val
     Ok(())
 }
 
-/// Validator: no header definitions are empty strings
-fn validate_headers(input: &OneOrList<Vec<u8>>) -> ::std::result::Result<(), ValidationError> {
+/// Validator: none of the `header` fields contain empty strings
+fn validate_headers(input: &OneOrList<Vec<u8>>) -> StdResult<(), ValidationError> {
     if input.is_empty() || input.iter().any(Vec::is_empty) {
         fail_valid!("empty_header", "Header patterns must not be empty sequences");
     }
@@ -79,8 +80,9 @@ fn validate_headers(input: &OneOrList<Vec<u8>>) -> ::std::result::Result<(), Val
 
 /// Validator: every filetype definition maps an autodetection method to a handler
 ///
-/// **XXX:** Allow an exception to this if "overrides" contains a glob that matches it?
-fn validate_filetype_raw(input: &FiletypeRaw) -> ::std::result::Result<(), ValidationError> {
+/// **XXX:** Have overrides map to filetypes instead of handlers and allow an exception to this if
+/// "overrides" contains a glob that matches it?
+fn validate_filetype_raw(input: &FiletypeRaw) -> StdResult<(), ValidationError> {
     if input.extension.is_none() && input.header.is_none() {
         fail_valid!(
             "no_autodetect",
@@ -96,8 +98,8 @@ fn validate_filetype_raw(input: &FiletypeRaw) -> ::std::result::Result<(), Valid
     Ok(())
 }
 
-/// Validator: no overrides are no-ops
-fn validate_override_raw(input: &OverrideRaw) -> ::std::result::Result<(), ValidationError> {
+/// Validator: none of the overrides are no-ops
+fn validate_override_raw(input: &OverrideRaw) -> StdResult<(), ValidationError> {
     // Ignoring is a non-default effect
     if input.ignore {
         return Ok(());
@@ -114,8 +116,8 @@ fn validate_override_raw(input: &OverrideRaw) -> ::std::result::Result<(), Valid
 
 /// Helper to add support for using `#[validate]` nesting to `HashMap`
 ///
-/// (Works by exploiting how validator is implemented using macros and, as such, can duck-type its
-/// method resolution.)
+/// (As I understand it, this works by exploiting how validator is implemented using macros and,
+/// as such, can duck-type its method resolution.)
 ///
 /// Thanks to [@Kaiser1989](https://github.com/Keats/validator/issues/83#issuecomment-732006938)
 /// for this trick.
@@ -164,7 +166,7 @@ impl<T> ::std::ops::Deref for OneOrList<T> {
 #[derive(Debug, Deserialize, Validate)]
 #[validate(schema(function = "validate_filetype_raw"))]
 pub struct FiletypeRaw {
-    /// The `id` of another filetype that this is a specialization of.
+    /// The id of another filetype that this is a specialization of.
     /// (eg. OpenDocument and CBZ are specialized forms of Zip files.)
     #[validate(length(min = 1, message = "'container' must not be an empty string if present"))]
     pub container: Option<String>,
@@ -192,10 +194,13 @@ pub struct FiletypeRaw {
     /// If specified as a list, it indicates a fallback chain from more desirable/thorough
     /// validators to less desirable/thorough validators **for the same file type**.
     ///
-    /// (Specify multiple `[[filetype]]` sections with the same autodetection parameters to
-    /// indicate a situation like "`.bin` and `.exe` could be one of several things and we can't
-    /// tell just from the header or extension" where fallback should be performed as part of
-    /// identifying the format.)
+    /// The first validator that is available but reports failure will stop the fallback and the
+    /// file will be considered as corrupted.
+    ///
+    /// If fallback is necessary to tell apart several formats which share the same extension
+    /// and/or header (eg. `.exe` possibly being multiple different kinds of self-extracting
+    /// archives), then specify multiple `[filetype.*]` sections with the same or overlapping
+    /// `extension` and `header` content.
     #[validate(custom = "validate_handlers")]
     pub handler: Option<OneOrList<String>>,
 
@@ -224,7 +229,7 @@ pub struct OverrideRaw {
     ///
     /// Has no effect when the glob matches a directory.
     ///
-    /// **XXX:** At some point, I may need to extend the design to also supporting handlers that
+    /// **NOTE:** At some point, I may need to extend the design to also support handlers that
     /// take a *directory* path as input without risking feeding directories with file-like names
     /// to handlers that only expect files.
     #[validate(custom = "validate_handlers")]
