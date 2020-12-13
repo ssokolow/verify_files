@@ -19,6 +19,9 @@ use crate::validators::path_input_file_or_dir;
 /// The verbosity level when no `-q` or `-v` arguments are given, with `0` being `-q`
 pub const DEFAULT_VERBOSITY: u64 = 2;
 
+/// The contents of the default configuration file that is used if nothing else is found
+pub const DEFAULT_CONFIG: &str = include_str!("../../verifiers.toml");
+
 /// Command-line argument schema
 #[derive(StructOpt, Debug)]
 #[structopt(template = HELP_TEMPLATE,
@@ -40,6 +43,10 @@ pub struct CliOpts {
 
 /// The actual `main()`
 pub fn main(opts: CliOpts) -> Result<()> {
+    // TODO: Support reading a custom config before using the embedded one
+    let test = config::parse(DEFAULT_CONFIG)?;
+    println!("{:#?}", test);
+
     for inpath in opts.inpath {
         todo!("Implement application logic")
     }
