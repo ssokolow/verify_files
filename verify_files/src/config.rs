@@ -90,7 +90,7 @@ fn validate_headers(input: &OneOrList<Vec<u8>>) -> StdResult<(), ValidationError
 ///
 /// **XXX:** Have overrides map to filetypes instead of handlers and allow an exception to this if
 /// "overrides" contains a glob that matches it?
-fn validate_filetype_raw(input: &FiletypeRaw) -> StdResult<(), ValidationError> {
+fn validate_filetype(input: &Filetype) -> StdResult<(), ValidationError> {
     if input.extension.is_none() && input.header.is_none() {
         fail_valid!(
             "no_autodetect",
@@ -107,7 +107,7 @@ fn validate_filetype_raw(input: &FiletypeRaw) -> StdResult<(), ValidationError> 
 }
 
 /// Validator: none of the overrides are no-ops
-fn validate_override_raw(input: &OverrideRaw) -> StdResult<(), ValidationError> {
+fn validate_override(input: &Override) -> StdResult<(), ValidationError> {
     // Ignoring is a non-default effect
     if input.ignore {
         return Ok(());
@@ -172,8 +172,8 @@ impl<T> ::std::ops::Deref for OneOrList<T> {
 
 /// Definition of `[[filetype]]` tables.
 #[derive(Debug, Deserialize, Serialize, Validate)]
-#[validate(schema(function = "validate_filetype_raw"))]
-pub struct FiletypeRaw {
+#[validate(schema(function = "validate_filetype"))]
+pub struct Filetype {
     /// The id of another filetype that this is a specialization of.
     /// (eg. OpenDocument and CBZ are specialized forms of Zip files.)
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -226,8 +226,8 @@ pub struct FiletypeRaw {
 
 /// Definition of `[[override]]` tables.
 #[derive(Debug, Deserialize, Serialize, Validate)]
-#[validate(schema(function = "validate_override_raw"))]
-pub struct OverrideRaw {
+#[validate(schema(function = "validate_override"))]
+pub struct Override {
     /// A globbing pattern for files this rule should match
     #[validate(length(min = 1, message = "Globbing pattern must not be empty"))]
     pub path: String,
@@ -256,7 +256,7 @@ pub struct OverrideRaw {
 
 /// Definition of `[handler.*]` tables.
 #[derive(Debug, Deserialize, Serialize, Validate)]
-pub struct HandlerRaw {
+pub struct Handler {
     /// A template for the command to invoke via `[std::process::Command]`.
     ///
     /// The following substitution tokens are available:
@@ -283,7 +283,7 @@ pub struct HandlerRaw {
 /// Root of the configuration schema
 ///
 #[derive(Debug, Deserialize, Serialize, Validate)]
-pub struct RootRaw {
+pub struct Root {
     /// A list of filetype definitions, including mappings to handlers.
     ///
     /// It is represented as a hashmap to ensure that each filetype has a unique identifer. This
@@ -299,18 +299,18 @@ pub struct RootRaw {
     /// to avoid ambiguity. (eg. ms_cab)
     #[validate]
     #[serde(rename = "filetype", default, serialize_with = "toml::ser::tables_last")]
-    pub filetypes: BTreeMap<String, FiletypeRaw>,
+    pub filetypes: BTreeMap<String, Filetype>,
 
     /// A list of rules for overriding `filetypes` or excluding folder for specific globs.
     #[validate]
     #[serde(rename = "override", default)]
-    pub overrides: Vec<OverrideRaw>,
+    pub overrides: Vec<Override>,
 
     /// A list of *external* handler definitions to be used by `filetypes` and `overrides`.
     /// (This list includes only subprocesses, not built-in handlers)
     #[validate]
     #[serde(rename = "handler", default, serialize_with = "toml::ser::tables_last")]
-    pub handlers: BTreeMap<String, HandlerRaw>,
+    pub handlers: BTreeMap<String, Handler>,
 }
 
 // ----==== Parsing Functions ====----
@@ -380,10 +380,10 @@ pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
 }
 
 /// Parse and validate the given `verifiers.toml` text
-pub fn parse(toml_str: &str) -> Result<RootRaw> {
+pub fn parse(toml_str: &str) -> Result<Root> {
     // Parse and perform all validation where the outcome couldn't change as a result of a fallback
     // chain injecting new values.
-    let parsed: RootRaw =
+    let parsed: Root =
         toml::from_str(toml_str).with_context(|| "Error parsing configuration file")?;
     parsed.validate().map_err(format_validation_errors)?;
     // TODO: Use a Result for all other failures too, instead of `warn!`.
@@ -446,7 +446,7 @@ mod tests {
     }
 
     fn do_validate(toml_str: &str) -> std::result::Result<(), ValidationErrors> {
-        let parsed: RootRaw = toml::from_str(toml_str).unwrap();
+        let parsed: Root = toml::from_str(toml_str).unwrap();
         parsed.validate()
     }
 
@@ -527,14 +527,14 @@ mod tests {
     /// Ensure the continued presence of a behaviour I'm not sure how I achieved
     #[test]
     fn test_rejects_empty_filetype_id() {
-        let parsed: Result<RootRaw, _> = toml::from_str(r#"[filetype.""]"#);
+        let parsed: Result<Root, _> = toml::from_str(r#"[filetype.""]"#);
         parsed.expect_err("Empty table names should be rejected");
     }
 
     /// Ensure the continued presence of a behaviour I'm not sure how I achieved
     #[test]
     fn test_rejects_empty_handler_id() {
-        let parsed: Result<RootRaw, _> = toml::from_str(r#"[handler.""]"#);
+        let parsed: Result<Root, _> = toml::from_str(r#"[handler.""]"#);
         parsed.expect_err("Empty table names should be rejected");
     }
 
