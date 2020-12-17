@@ -76,31 +76,25 @@ extension = "bz2"
 handler = "bz2"
 header = [66, 90, 104]
 
-# TODO: Remove `handler` lines which just duplicate what's inherited from
-#       `container` once I no longer need to support the Python version.
 [filetype.cb7]
 container = "7zip"
 description = "Comic Book Archive (7-Zip)"
 extension = "cb7"
-handler = "p7zip"
 
 [filetype.cbr]
 container = "rar"
 description = "Comic Book Archive (RAR)"
 extension = "cbr"
-handler = "unrar"
 
 [filetype.cbt]
 container = "tar"
 description = "Comic Book Archive (Tar)"
 extension = "cbt"
-handler = "tar"
 
 [filetype.cbz]
 container = "zip"
 description = "Comic Book Archive (Zip)"
 extension = "cbz"
-handler = "zip"
 
 [filetype.dashtoc]
 description = "Dash/Zeal Docset Table of Contents"
@@ -127,19 +121,16 @@ handler = "p7zip"
 container = "zip"
 description = "Macro-enabled OOXML Document"
 extension = "docm"
-handler = "zip"
 
 [filetype.docx]
 container = "zip"
 description = "OOXML Document"
 extension = "docx"
-handler = "zip"
 
 [filetype.epub]
 container = "zip"
 description = "ePub e-book"
 extension = "epub"
-handler = "zip"
 
 [filetype.f4a]
 description = "FLV Audio"
@@ -192,7 +183,6 @@ handler = "innoextract"
 container = "zip"
 description = "Java ARchive"
 extension = "jar"
-handler = "zip"
 
 [filetype.jpeg]
 description = "JPEG/JFIF Image"
@@ -342,55 +332,46 @@ handler = "ffmpeg"
 container = "zip"
 description = "ODF Database"
 extension = "odb"
-handler = "zip"
 
 [filetype.odc]
 container = "zip"
 description = "ODF Chart"
 extension = "odc"
-handler = "zip"
 
 [filetype.odf]
 container = "zip"
 description = "ODF Formula"
 extension = "odf"
-handler = "zip"
 
 [filetype.odg]
 container = "zip"
 description = "ODF Drawing"
 extension = "odg"
-handler = "zip"
 
 [filetype.odi]
 container = "zip"
 description = "ODF Image"
 extension = "odi"
-handler = "zip"
 
 [filetype.odm]
 container = "zip"
 description = "ODF Master Document"
 extension = "odm"
-handler = "zip"
 
 [filetype.odp]
 container = "zip"
 description = "ODF Presentation"
 extension = "odp"
-handler = "zip"
 
 [filetype.ods]
 container = "zip"
 description = "ODF Spreadsheet"
 extension = "ods"
-handler = "zip"
 
 [filetype.odt]
 container = "zip"
 description = "ODF Text Document"
 extension = "odt"
-handler = "zip"
 
 [filetype.oga]
 description = "Ogg containing audio (.oga)"
@@ -426,49 +407,41 @@ handler = "ffmpeg"
 container = "zip"
 description = "ODF Chart Template"
 extension = "otc"
-handler = "zip"
 
 [filetype.otf]
 container = "zip"
 description = "ODF Formula Template"
 extension = "otf"
-handler = "zip"
 
 [filetype.otg]
 container = "zip"
 description = "ODF Drawing Template"
 extension = "otg"
-handler = "zip"
 
 [filetype.oth]
 container = "zip"
 description = "ODF Web Page Template"
 extension = "oth"
-handler = "zip"
 
 [filetype.oti]
 container = "zip"
 description = "ODF Image Template"
 extension = "oti"
-handler = "zip"
 
 [filetype.otp]
 container = "zip"
 description = "ODF Presentation Template"
 extension = "otp"
-handler = "zip"
 
 [filetype.ots]
 container = "zip"
 description = "ODF Spreadsheet Template"
 extension = "ots"
-handler = "zip"
 
 [filetype.ott]
 container = "zip"
 description = "ODF Text Document Template"
 extension = "ott"
-handler = "zip"
 
 [filetype.pbm]
 description = "NetPBM Portable Bitmap Image"
@@ -501,7 +474,6 @@ header = [137, 80, 78, 71, 13, 10, 26, 10]
 container = "zip"
 description = "Macro-enabled OOXML Presentation Template"
 extension = "potm"
-handler = "zip"
 
 [filetype.ppm]
 description = "NetPBM Portable Pixmap Image"
@@ -512,19 +484,16 @@ handler = "pil"
 container = "zip"
 description = "OOXML Presentation (Self-Starting)"
 extension = "ppsx"
-handler = "zip"
 
 [filetype.pptm]
 container = "zip"
 description = "Macro-enabled OOXML Presentation"
 extension = "pptm"
-handler = "zip"
 
 [filetype.pptx]
 container = "zip"
 description = "OOXML Presentation"
 extension = "pptx"
-handler = "zip"
 
 [filetype.py]
 description = "Python Source Code"
@@ -576,7 +545,6 @@ handler = "rpm"
 container = "rar"
 description = "RSN"
 extension = "rsn"
-handler = "unrar"
 
 [filetype.rss]
 description = "RSS Feed"
@@ -628,7 +596,6 @@ handler = "xml"
 container = "gzip"
 description = "SVG Image (GZip compressed)"
 extension = "svgz"
-handler = "gzip"
 
 [filetype.tar]
 description = "Tar Archive"
@@ -646,13 +613,11 @@ handler = "pil"
 container = "bzip2"
 description = "Tar Archive (BZip2 compressed)"
 extension = "tbz2"
-handler = "tar"
 
 [filetype.tgz]
 container = "gzip"
 description = "Tar Archive (GZip compressed)"
 extension = "tgz"
-handler = "tar"
 
 [filetype.tiff]
 description = "TIFF Image"
@@ -663,7 +628,6 @@ handler = "pil"
 container = "lzma"
 description = "Tar Archive (.lzma compressed)"
 extension = "tlz"
-handler = "tar"
 
 [filetype.txt]
 description = "Plaintext"
@@ -674,7 +638,6 @@ handler = "txt"
 container = "xz"
 description = "Tar Archive (.xz compressed)"
 extension = "txz"
-handler = "tar"
 
 [filetype.uu]
 description = "UUEncoded"
@@ -710,13 +673,11 @@ handler = "pil"
 container = "asf"
 description = "Windows Media Audio"
 extension = "wma"
-handler = "ffmpeg"
 
 [filetype.wmv]
 container = "asf"
 description = "Windows Media Video"
 extension = "wmv"
-handler = "ffmpeg"
 
 [filetype.xbm]
 description = "X BitMap Image"
@@ -727,13 +688,11 @@ handler = "pil"
 container = "zip"
 description = "Macro-enabled OOXML Workbook"
 extension = "xlsm"
-handler = "zip"
 
 [filetype.xlsx]
 container = "zip"
 description = "OOXML Workbook"
 extension = "xlsx"
-handler = "zip"
 
 [filetype.xml]
 description = "XML Data"
@@ -745,7 +704,6 @@ header = [60, 63, 120, 109, 108, 32]
 container = "zip"
 description = "Mozilla XPI"
 extension = "xpi"
-handler = "zip"
 
 [filetype.xpm]
 description = "X PixMap Image"
@@ -775,7 +733,10 @@ ignore = true
 
 # TODO: Decide how to indicate how thorough a handler is so something like
 # "unpack the Zip container" isn't treated as equivalent to "unpack the Zip
-# container and check the images inside the CBZ for corruption".
+# container and check the images inside the CBZ for corruption" but, at the
+# same time, also come up with a way for a built-in handler to report
+# "Unsupported variant of the filetype. Fall back to an external processor if
+# available".
 
 [handler.arj]
 argv = ["arj", "t"]
