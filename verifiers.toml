@@ -783,10 +783,16 @@ argv = ["arj", "t"]
 [handler.cabextract]
 argv = ["cabextract", "-t"]
 
-# TODO: FFmpeg ignores too many errors. Find stricter options and better
-#       verifiers for as many different formats as possible.
+# TODO: Automated tests to verify that this is the best combination of
+#       error-detection flags to invoke ffmpeg with.
+#       - https://superuser.com/a/100290/48014
+#       - https://superuser.com/q/588147/48014
+#       - https://superuser.com/q/326629/48014
+#       - http://www.ffmpeg-archive.org/how-to-set-flags-td936142.html
+#       - https://www.reddit.com/r/DataHoarder/comments/bgsgr2/how_to_check_if_a_video_file_is_corrupted/
 [handler.ffmpeg]
-argv = ["ffmpeg", "-f", "null", "-", "-i"]
+argv = ["ffmpeg", "-err_detect", "+crccheck+bitstream+buffer+explode",
+        "-v quiet", "-xerror", "-f", "null", "-", "-i"]
 
 [handler.flac]
 argv = ["flac", "-t"]
