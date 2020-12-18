@@ -20,7 +20,7 @@ handler = "p7zip"
 header = [55, 122, 188, 175, 39, 28]
 
 [filetype.aac]
-description = "AAC (ADTS Stream)"
+description = "AAC Audio (ADTS Stream)"
 extension = "aac"
 handler = "ffmpeg"
 
@@ -61,7 +61,7 @@ extension = "bin"
 handler = "bin"
 
 [filetype.binhex4]
-description = "BinHex4"
+description = "BinHex4 encoded"
 extension = "hqx"
 handler = "binhex"
 
@@ -212,7 +212,7 @@ handler = "lzip"
 header = [76, 90, 73, 80]
 
 [filetype.lzma]
-description = ".lzma"
+description = ".lzma compressed"
 extension = "lzma"
 handler = "lzma"
 
@@ -516,7 +516,7 @@ extension = "ra"
 handler = "ffmpeg"
 
 [filetype.rar]
-description = "RAR"
+description = "RAR archive"
 extension = "rar"
 handler = "unrar"
 header = [82, 97, 114, 33, 26, 7]
@@ -543,7 +543,7 @@ handler = "rpm"
 
 [filetype.rsn]
 container = "rar"
-description = "RSN"
+description = "RAR-compressed SPC chiptune album"
 extension = "rsn"
 
 [filetype.rss]
@@ -557,7 +557,7 @@ extension = "rv"
 handler = "ffmpeg"
 
 [filetype.sea]
-description = "SEA archive"
+description = "Self-Extracting Stuffit archive"
 extension = "sea"
 handler = "lsar"
 
@@ -598,7 +598,7 @@ description = "SVG Image (GZip compressed)"
 extension = "svgz"
 
 [filetype.tar]
-description = "Tar Archive"
+description = "Tar archive"
 extension = "tar"
 handler = "tar"
 header = [[117, 115, 116, 97, 114, 0, 48, 48], [117, 115, 116, 97, 114, 32, 32, 0]]
@@ -611,12 +611,12 @@ handler = "pil"
 
 [filetype.tbz2]
 container = "bzip2"
-description = "Tar Archive (BZip2 compressed)"
+description = "Tar archive (BZip2 compressed)"
 extension = "tbz2"
 
 [filetype.tgz]
 container = "gzip"
-description = "Tar Archive (GZip compressed)"
+description = "Tar archive (GZip compressed)"
 extension = "tgz"
 
 [filetype.tiff]
@@ -626,7 +626,7 @@ handler = "pil"
 
 [filetype.tlz]
 container = "lzma"
-description = "Tar Archive (.lzma compressed)"
+description = "Tar archive (.lzma compressed)"
 extension = "tlz"
 
 [filetype.txt]
@@ -636,7 +636,7 @@ handler = "txt"
 
 [filetype.txz]
 container = "xz"
-description = "Tar Archive (.xz compressed)"
+description = "Tar archive (.xz compressed)"
 extension = "txz"
 
 [filetype.uu]
@@ -645,7 +645,7 @@ extension = ["uu", "uue"]
 handler = "uuencode"
 
 [filetype.voc]
-description = "Soundblaster VOC Audio"
+description = "Creative Labs VOC Audio"
 extension = "voc"
 handler = "ffmpeg"
 
@@ -699,10 +699,13 @@ description = "XML Data"
 extension = "xml"
 handler = "xml"
 header = [60, 63, 120, 109, 108, 32]
+# TODO: Decide how to handle formats that are less rigid on their 'header'
+#       format, like XML. (Maybe a flag that indicates detection shouldn't
+#       complain if the extension matches but the header doesn't?)
 
 [filetype.xpi]
 container = "zip"
-description = "Mozilla XPI"
+description = "Mozilla XPI archive"
 extension = "xpi"
 
 [filetype.xpm]
@@ -721,6 +724,9 @@ description = "Zip archive"
 extension = "zip"
 handler = "zip"
 header = [[80, 75, 3, 4], [80, 75, 5, 6], [80, 75, 7, 8]]
+
+# TODO: Integrate the rest of the formats supported by lsar:
+#       (https://github.com/ashang/unar#supported-old-formats)
 
 [[override]]
 path = "*/hts-cache/new.zip"
@@ -780,5 +786,3 @@ argv = ["rpm", "--checksig"]
 [handler.unrar]
 argv = ["unrar", "t"]
 
-# TODO: Write a test suite to verify that validators are catching every readily
-#       detectable way this config file could be malformed.
