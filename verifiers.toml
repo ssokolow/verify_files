@@ -179,6 +179,11 @@ description = "Inno Setup Installer"
 extension = "exe"
 handler = "innoextract"
 
+[filetype.iso_dvdisaster]
+description = "ISO CD/DVD image (DVDisaster ECC)"
+extension = "iso"
+handler = "dvdisaster"
+
 [filetype.jar]
 container = "zip"
 description = "Java ARchive"
@@ -752,6 +757,10 @@ sources = "http://arj.sourceforge.net/"
 [handler.cabextract]
 argv = ["cabextract", "-t"]
 sources = "https://www.cabextract.org.uk/"
+
+[handler.dvdisaster]
+argv = ["dvdisaster", "-t", "-i"]
+sources = "https://en.wikipedia.org/wiki/Dvdisaster"
 
 # TODO: Automated tests to verify that this is the best combination of
 #       error-detection flags to invoke ffmpeg with.
