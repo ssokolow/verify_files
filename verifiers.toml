@@ -746,9 +746,12 @@ ignore = true
 
 [handler.arj]
 argv = ["arj", "t"]
+description = "Open-source ARJ"
+sources = "http://arj.sourceforge.net/"
 
 [handler.cabextract]
 argv = ["cabextract", "-t"]
+sources = "https://www.cabextract.org.uk/"
 
 # TODO: Automated tests to verify that this is the best combination of
 #       error-detection flags to invoke ffmpeg with.
@@ -760,29 +763,47 @@ argv = ["cabextract", "-t"]
 [handler.ffmpeg]
 argv = ["ffmpeg", "-err_detect", "+crccheck+bitstream+buffer+explode",
         "-v quiet", "-xerror", "-f", "null", "-", "-i"]
+description = "FFmpeg"
+sources = "https://ffmpeg.org/download.html"
 
 [handler.flac]
 argv = ["flac", "-t"]
+description = "The FLAC command-line utilities"
+sources = "https://xiph.org/flac/download.html"
 
 [handler.innoextract]
 argv = ["innoextract", "-t", "-g"]
+sources = "https://constexpr.org/innoextract/"
 
 [handler.lsar]
 argv = ["lsar", "-t"]
+description = "The command-line tools for The Unarchiver"
+sources = "https://theunarchiver.com/command-line"
+# TODO: Maybe set fail_if_stdout = "... Unknown."
 
 [handler.lzip]
 argv = ["lzip", "-t"]
+sources = "https://www.nongnu.org/lzip/lzip.html"
 
 [handler.p7zip]
 argv = ["7z", "t"]
+description = "Command-line '7z' tool from 7-zip"
+sources = ["https://7-zip.org/, http://p7zip.sourceforge.net/"]
 
 [handler.pdftotext]
 argv = ["pdftotext", "{path}", "{devnull}"]
+description = "pdftotext from Poppler or the Xpdf command-line tools"
 fail_if_stderr = "Error"
+sources = ["https://linuxappfinder.com/package/poppler-utils",
+           "https://www.xpdfreader.com/download.html"]
 
 [handler.rpm]
 argv = ["rpm", "--checksig"]
+description = "RPM"
+sources = ["https://rpm.org/", "https://www.cygwin.com/"]
 
 [handler.unrar]
 argv = ["unrar", "t"]
+description = "RARLAB UnRAR"
+sources = "https://www.rarlab.com/rar_add.htm"
 

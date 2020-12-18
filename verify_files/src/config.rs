@@ -153,6 +153,23 @@ fn validate_root(input: &Root) -> StdResult<(), ValidationError> {
     Ok(())
 }
 
+/// Validator: If present, the `sources` field must contain valid URLs
+///
+/// **TODO:** Look into how much weight it would add to validate the format of these further.
+fn validate_sources(input: &OneOrList<String>) -> StdResult<(), ValidationError> {
+    if input.is_empty() || input.iter().any(String::is_empty) {
+        fail_valid!("empty_handler", "Source list must be absent or contain non-empty strings");
+    }
+
+    // Ensure users who already need help don't have to deal with esoteric protocols
+    for url in input.iter() {
+        if !(url.starts_with("http://") || url.starts_with("https://")) {
+            fail_valid!("invalid_url", "Only HTTP and HTTPS URLs are supported as sources");
+        }
+    }
+    Ok(())
+}
+
 /// Helper to add support for using `#[validate]` nesting to `BTreeMap`
 ///
 /// (As I understand it, this works by exploiting how validator is implemented using macros and,
@@ -212,7 +229,7 @@ pub struct Filetype {
     pub container: Option<String>,
 
     /// A human-readable description for use in status messages
-    #[validate(length(min = 1, message = "'description' must not be an empty string if present"))]
+    #[validate(length(min = 1, message = "'description' must not be an empty string"))]
     pub description: String,
 
     /// One or more extensions to identify the file by
@@ -301,6 +318,15 @@ pub struct Handler {
     #[validate(length(min = 1, message = "'argv' must not be empty"), custom = "validate_argv")]
     pub argv: Vec<String>,
 
+    /// A human-readable description for use in status messages instead of the command name from
+    /// argv[0] when indicating what needs to be installed.
+    ///
+    /// Should include the definite article "the" if necessary to fit in a message like
+    /// "Could not find {description}. Please install it from one of the following URLs:" but,
+    /// by convention, it should also be capitalized suitably for display alone.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[validate(length(min = 1, message = "If provided, 'description' must not be empty"))]
+    pub description: Option<String>,
     /// If present and non-empty, the command will be considered to have failed if its output to
     /// `stderr` contains the given string, even if it returns an exit code that indicates success.
     ///
@@ -309,6 +335,26 @@ pub struct Handler {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[validate(length(min = 1, message = "If provided, 'fail_if_stderr' must not be empty"))]
     pub fail_if_stderr: Option<String>,
+
+    /// If specified, one or more URLs from which the handler can be installed.
+    ///
+    /// By convention:
+    ///
+    /// * The first item in a multi-element list should point to the project's website
+    /// * Links should point to the stable, version-agnostic URL closest to the actual download
+    ///   without immediately initiating a download.
+    /// * If the project's website includes links to builds for multiple platforms, link to the
+    ///   page containing them instead.
+    ///
+    /// This means that, in a case like 7-Zip and p7zip where the official project is Windows-only,
+    /// the link for Windows users should come first while, for projects like RPM which are ported
+    /// from Linux to Windows, the link for Linux users should come first.
+    ///
+    /// It is acceptable to link to the website for Cygwin if the only suitable Windows port is
+    /// provided as part of Cygwin.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[validate(custom = "validate_sources")]
+    pub sources: Option<OneOrList<String>>,
 }
 
 /// Root of the configuration schema
@@ -527,6 +573,56 @@ mod tests {
                 [[override]]
                 path = "quux"
             "#, "override");
+    }
+
+    /// Verify that sources are checked to be superficially valid URLs
+    #[test]
+    #[rustfmt::skip]
+    fn test_sources_validation() {
+        do_validate(r#"
+                [handler.foo]
+                argv = ["foo"]
+            "#).expect("Parsed handler definition with no sources");
+        do_validate(r#"
+                [handler.foo]
+                argv = ["foo"]
+                sources = ["http://www.example.com/"]
+            "#).expect("Parsed handler definition with sources");
+        do_validate(r#"
+                [handler.foo]
+                argv = ["foo"]
+                sources = ["http://www.example.com/", "https://example.com/"]
+            "#).expect("Parsed handler definition with sources");
+        assert_validation_result(r#"
+                [handler.foo]
+                argv = ["foo"]
+                sources = ""
+            "#, "handler");
+        assert_validation_result(r#"
+                [handler.foo]
+                argv = ["foo"]
+                sources = []
+            "#, "handler");
+        assert_validation_result(r#"
+                [handler.foo]
+                argv = ["foo"]
+                sources = [""]
+            "#, "handler");
+        assert_validation_result(r#"
+                [handler.foo]
+                argv = ["foo"]
+                sources = ["foo"]
+            "#, "handler");
+        assert_validation_result(r#"
+                [handler.foo]
+                argv = ["foo"]
+                sources = ["http://www.example.com/", ""]
+            "#, "handler");
+        assert_validation_result(r#"
+                [handler.foo]
+                argv = ["foo"]
+                sources = ["http://www.example.com/", "ftp://example.com/"]
+            "#, "handler");
     }
 
     /// Verify that all sections are optional
