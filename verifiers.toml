@@ -3,6 +3,8 @@
 # something and both handlers can process the type? Is such a situation a big
 # enough hazard to worry about it?)
 
+# TODO: For every fallback chain, test the relative ability of each option to
+#       detect flipped bits and truncation.
 [filetype.3gpp]
 description = "MPEG-4 Part 12 Media (3GPP)"
 extension = "3gp"
@@ -16,7 +18,7 @@ handler = "ffmpeg"
 [filetype.7zip]
 description = "7-Zip archive"
 extension = "7z"
-handler = "p7zip"
+handler = ["p7zip", "lsar"]
 header = [55, 122, 188, 175, 39, 28]
 
 [filetype.aac]
@@ -42,7 +44,7 @@ handler = "ffmpeg"
 [filetype.arj]
 description = "ARJ archive"
 extension = "arj"
-handler = "arj"
+handler = ["arj", "lsar"]
 
 [filetype.asf]
 description = "Microsoft ASF"
@@ -73,7 +75,7 @@ handler = "pil"
 [filetype.bzip2]
 description = "BZip2 compressed"
 extension = "bz2"
-handler = "bz2"
+handler = ["bz2", "p7zip", "lsar"]
 header = [66, 90, 104]
 
 [filetype.cb7]
@@ -150,7 +152,7 @@ handler = "ffmpeg"
 [filetype.flac]
 description = "FLAC Audio"
 extension = "flac"
-handler = "flac"
+handler = "flac"  # TODO: Can FFmpeg be asked to check the md5sum?
 
 [filetype.flic]
 description = "Autodesk FLIC Animation"
@@ -171,7 +173,7 @@ header = [[71, 73, 70, 56, 55, 97], [71, 73, 70, 56, 57, 97]]
 [filetype.gzip]
 description = "GZip compressed"
 extension = "gz"
-handler = "gzip"
+handler = ["gzip", "p7zip", "lsar"]
 header = [31, 139]
 
 [filetype.innosetup_exe]
@@ -208,7 +210,7 @@ handler = "json"
 [filetype.lha]
 description = "LHA archive"
 extension = ["lha", "lzh"]
-handler = "p7zip"
+handler = ["p7zip", "lsar"]  # TODO: `lha tq {file}`
 
 [filetype.lzip]
 description = "Lzip compressed"
@@ -219,7 +221,7 @@ header = [76, 90, 73, 80]
 [filetype.lzma]
 description = ".lzma compressed"
 extension = "lzma"
-handler = "lzma"
+handler = ["lzma", "p7zip", "lsar"]
 
 [filetype.lzx]
 description = "LZX archive"
@@ -309,7 +311,7 @@ handler = "ffmpeg"
 [filetype.ms_cab]
 description = "Microsoft CAB"
 extension = "cab"
-handler = "cabextract"
+handler = ["cabextract", "p7zip"]  # NOTE: "lsar" reports "Unknown" with 0 exit
 
 [filetype.ms_cursor]
 description = "Microsoft Cursor"
@@ -326,7 +328,7 @@ multipage = true
 [filetype.msi]
 description = "MSI Installer"
 extension = "msi"
-handler = "p7zip"
+handler = ["p7zip", "lsar"]
 
 [filetype.musepack]
 description = "Musepack Audio"
@@ -523,7 +525,7 @@ handler = "ffmpeg"
 [filetype.rar]
 description = "RAR archive"
 extension = "rar"
-handler = "unrar"
+handler = ["unrar", "p7zip", "lsar"]
 header = [82, 97, 114, 33, 26, 7]
 
 [filetype.rdf]
@@ -544,7 +546,7 @@ handler = "ffmpeg"
 [filetype.rpm]
 description = "RPM Package"
 extension = "rpm"
-handler = "rpm"
+handler = ["rpm", "p7zip"]
 
 [filetype.rsn]
 container = "rar"
@@ -605,7 +607,7 @@ extension = "svgz"
 [filetype.tar]
 description = "Tar archive"
 extension = "tar"
-handler = "tar"
+handler = ["tar", "p7zip", "lsar"]
 header = [[117, 115, 116, 97, 114, 0, 48, 48], [117, 115, 116, 97, 114, 32, 32, 0]]
 header_offset = 257
 
@@ -721,7 +723,7 @@ handler = "pil"
 [filetype.xz]
 description = ".xz compressed"
 extension = "xz"
-handler = "lzma"
+handler = ["lzma", "p7zip", "lsar"]
 header = [253, 55, 122, 88, 90, 0]
 
 [filetype.zip]
