@@ -27,11 +27,11 @@ use validator::{Validate, ValidationError, ValidationErrors};
 /// Wrapper to compact the repeated boilerplate of attaching messages to a custom
 /// validation failure
 macro_rules! fail_valid {
-    ($code:expr, $msg:expr) => {
+    ($code:expr, $msg:expr) => {{
         let mut err = ValidationError::new($code);
         err.message = Some($msg.into());
         return Err(err);
-    };
+    }};
 }
 
 /// Helper for Serde's `skip_serializing_if`
@@ -120,6 +120,37 @@ fn validate_override(input: &Override) -> StdResult<(), ValidationError> {
         }
     }
     fail_valid!("noop_override", format!("Override has no effect: {}", input.path));
+}
+
+/// Validator: all filetypes have sane `container` dependencies
+fn validate_root(input: &Root) -> StdResult<(), ValidationError> {
+    for (id, mut filetype) in &input.filetypes {
+        // Don't bother allocating the dep_chain vec for entries without `container`
+        if filetype.container.is_none() {
+            continue;
+        }
+
+        // Pre-allocate for the typical case of only one iteration plus the push() for error join()
+        // (Something like "cbz -> zip -> cbz")
+        let mut dep_chain = Vec::with_capacity(3);
+        dep_chain.push(id.as_str());
+
+        while let Some(container) = filetype.container.as_deref() {
+            let cycle = dep_chain.contains(&container);
+            dep_chain.push(&container);
+            if cycle {
+                fail_valid!("container_cycle", format!("Cyclical 'container' dependency: {}",
+                        dep_chain.join(" -> ")));
+            }
+            if let Some(container_filetype) = input.filetypes.get(container) {
+                filetype = container_filetype
+            } else {
+                fail_valid!("container_not_found", format!("'container' for {} not found: {}",
+                        id, container));
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Helper to add support for using `#[validate]` nesting to `BTreeMap`
@@ -283,6 +314,7 @@ pub struct Handler {
 /// Root of the configuration schema
 ///
 #[derive(Debug, Deserialize, Serialize, Validate)]
+#[validate(schema(function = "validate_root"))]
 pub struct Root {
     /// A list of filetype definitions, including mappings to handlers.
     ///
@@ -542,17 +574,49 @@ mod tests {
     #[test]
     #[rustfmt::skip]
     fn test_rejects_substition_in_argv0() {
-        do_validate(r#"
+        assert_validation_result(r#"
                 [handler.foobar]
                 argv = [ "{foobar}" ]
-            "#).expect_err("argv[0] should reject substitution tokens (1)");
-        do_validate(r#"
+            "#, "handler");
+        assert_validation_result(r#"
                 [handler.foobar]
                 argv = [ "foo{bar}" ]
-            "#).expect_err("argv[0] should reject substitution tokens (2)");
-        do_validate(r#"
+            "#, "handler");
+        assert_validation_result(r#"
                 [handler.foobar]
                 argv = [ "foo{bar}baz" ]
-            "#).expect_err("argv[0] should reject substitution tokens (3)");
+            "#, "handler");
+    }
+
+    /// Make sure the validation catches 'container' cycles
+    #[test]
+    fn test_rejects_container_cycle() {
+        assert_validation_result(r#"
+            [filetype.foo]
+            description = "Foo"
+            extension = "foo"
+            container = "bar"
+
+            [filetype.bar]
+            description = "Bar"
+            extension = "bar"
+            container = "baz"
+
+            [filetype.baz]
+            description = "Baz"
+            extension = "baz"
+            container = "foo"
+        "#, "__all__");
+    }
+
+    /// Make sure the validation catches unknown 'container' values
+    #[test]
+    fn test_rejects_unknown_container() {
+        assert_validation_result(r#"
+            [filetype.foo]
+            description = "Foo"
+            extension = "foo"
+            container = "bar"
+        "#, "__all__");
     }
 }
