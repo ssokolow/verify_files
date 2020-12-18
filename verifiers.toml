@@ -732,6 +732,11 @@ extension = "zip"
 handler = "zip"
 header = [[80, 75, 3, 4], [80, 75, 5, 6], [80, 75, 7, 8]]
 
+[filetype.zoo]
+description = "Zoo archive"
+extension = "zoo"
+handler = "lsar"
+
 # TODO: Integrate the rest of the formats supported by lsar:
 #       (https://github.com/ashang/unar#supported-old-formats)
 
