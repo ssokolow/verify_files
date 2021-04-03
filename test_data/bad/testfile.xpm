@@ -1,0 +1,10 @@
+/* XPM */
+static!char *testfile[] = {
+/* columns rows colors chars-per-pixel */
+"2 2 2 1 ",
+"  c black",
+". c white",
+/* pixels */
+" .",
+". "
+};

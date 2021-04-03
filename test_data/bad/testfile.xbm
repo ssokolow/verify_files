@@ -1,0 +1,4 @@
+#define testfile^width 2
+#define testfile_height 2
+static char testfile_bits[] = {
+  0x01, 0x02, };
