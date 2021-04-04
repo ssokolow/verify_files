@@ -43,13 +43,22 @@ artifacts = \
   ../good/testfile.tga \
   ../good/testfile.tgz \
   ../good/testfile.tlz \
+  ../good/testfile.txt.b64 \
+  ../good/testfile.txt.bz2 \
+  ../good/testfile.txt.compress.Z \
+  ../good/testfile.txt.gz \
   ../good/testfile.txt.lz \
   ../good/testfile.txt.lzma \
+  ../good/testfile.txt.uu \
+  ../good/testfile.txt.uue \
   ../good/testfile.txt.xz \
+  ../good/testfile.txt.xx \
+  ../good/testfile.txt.xxe \
+  ../good/testfile.txt.ync \
+  ../good/testfile.txt.yenc \
   ../good/testfile.txz \
   ../good/testfile.tif \
   ../good/testfile.tiff \
-  ../good/testfile.txt.uue \
   ../good/testfile.webp \
   ../good/testfile.wim \
   ../good/testfile.xar \
@@ -60,9 +69,6 @@ artifacts = \
   ../good/testfile.xpm \
   ../good/testfile.zip \
   ../good/testfile.zoo \
-  ../good/testfile.txt.bz2 \
-  ../good/testfile.txt.compress.Z \
-  ../good/testfile.txt.gz \
   ../bad/testfile.jar
 
 all: $(artifacts)
@@ -91,6 +97,10 @@ clean:
 	$(LSAR_TEST) $@
 	arj t $@
 	file -binNpr $@ | grep -q application/x-arj
+
+../good/testfile.txt.b64: testfile.txt
+	uuenview -b $< >$@
+	# TODO: Test
 
 ../good/testfile.bmp: testfile.png
 	convert $< $@
@@ -324,6 +334,10 @@ clean:
 	unxz -c $@ | diff - testfile.tar
 	file -binNpr $@ | grep -q application/x-xz
 
+../good/testfile.txt.uu: testfile.txt
+	uuenview -u $< >$@
+	# TODO: Test
+
 ../good/testfile.txt.uue: ../good/testfile.txt.uu
 	cp $< $@
 	# TODO: Test
@@ -368,6 +382,22 @@ clean:
 	convert $< $@
 	# TODO: Test
 	file -binNpr $@ | grep -q image/x-xpmi
+
+../good/testfile.txt.xx: testfile.txt
+	uuenview -x $< >$@
+	# TODO: Test
+
+../good/testfile.txt.xxe: ../good/testfile.txt.xx
+	cp $< $@
+	# TODO: Test
+
+../good/testfile.txt.ync: testfile.txt
+	uuenview -y $< >$@
+	# TODO: Test
+
+../good/testfile.txt.yenc: ../good/testfile.txt.ync
+	cp $< $@
+	# TODO: Test
 
 ../good/testfile.zip: testfile.txt
 	zip -T $@ $^
