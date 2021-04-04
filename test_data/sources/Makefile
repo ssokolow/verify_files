@@ -58,6 +58,16 @@ artifacts = \
   ../good/testfile.txt.xxe \
   ../good/testfile.txt.ync \
   ../good/testfile.txt.yenc \
+  ../good/testfile.utf-16-be-bom.txt \
+  ../good/testfile.utf-16-be.txt \
+  ../good/testfile.utf-16-le-bom.txt \
+  ../good/testfile.utf-16-le.txt \
+  ../good/testfile.utf-32-be-bom.txt \
+  ../good/testfile.utf-32-be.txt \
+  ../good/testfile.utf-32-le-bom.txt \
+  ../good/testfile.utf-32-le.txt \
+  ../good/testfile.utf8-bom.txt \
+  ../good/testfile.utf8.txt \
   ../good/testfile.txz \
   ../good/testfile.tif \
   ../good/testfile.tiff \
@@ -351,6 +361,9 @@ clean:
 ../good/testfile.txt.uue: ../good/testfile.txt.uu
 	cp $< $@
 	# TODO: Test
+
+../good/testfile.utf-16-be-bom.txt ../good/testfile.utf-16-be.txt ../good/testfile.utf-16-le-bom.txt ../good/testfile.utf-16-le.txt ../good/testfile.utf-32-be-bom.txt ../good/testfile.utf-32-be.txt ../good/testfile.utf-32-le-bom.txt ../good/testfile.utf-32-le.txt ../good/testfile.utf8-bom.txt ../good/testfile.utf8.txt: make_test_txt.py
+	python3 make_test_txt.py
 
 ../good/testfile.webp: testfile.png
 	convert $< $@
