@@ -1,14 +1,20 @@
-1. All .rar and .cbr files were created by Stephan Sokolow using a legitimate
-   RAR/WinRAR license. See https://github.com/ssokolow/rar-test-files
-   for details.
+1. All .rar and .cbr files in the `good` directory were created by
+   Stephan Sokolow using a legitimate RAR/WinRAR license.
+   See https://github.com/ssokolow/rar-test-files for details.
 
-2. good/testfile.lxz was created by Stephan Sokolow using the freeware
+2. All .rar and .cbr files in the `bad` directory were created from their
+   counterparts in the `good` directory by the `make_bad_files.py` script.
+
+3. `good/testfile.lxz` was created by Stephan Sokolow using the freeware
    "Registered to the Amiga community for non-commercial use" release
-   of LZX 1.21 EC (LZX_Y2KF.LHA) running inside inside FS-UAE with an
+   of LZX 1.21 EC (`LZX_Y2KF.LHA`) running inside inside FS-UAE with an
    Amiga 1200 Kickstart ROM purchased as part of Amiga Forever 2016
    Plus Edition.
 
-3. bad/testfile.lzx was derived from good/testfile.lzx by flipping a
-   single bit.
+4. `bad/testfile.lzx` was derived from `good/testfile.lzx` by running
+   the `make_bad_files.py` script.
+
+All other test files were created using legally free, open-source tools
+installed from the Ubuntu Linux 16.04 LTS package repositories.
 
 I hereby grant you permission to use any of these files for any purpose.
