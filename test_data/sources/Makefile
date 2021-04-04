@@ -1,3 +1,7 @@
+# REMINDER: For legal reasons, this makefile must use the pre-generated RAR and
+#           CBR files unless you've bought and installed your own RAR
+#           license key.
+
 .PHONY: all clean
 
 7Z_TEST=7z t >/dev/null
@@ -28,16 +32,43 @@ artifacts = \
   ../good/testfile.lzh \
   ../good/testfile.lzx \
   ../good/testfile.mml \
+  ../good/testfile.ogg \
   ../good/testfile.pbm \
   ../good/testfile.pcx \
+  ../good/testfile.pdf \
   ../good/testfile.pgm \
   ../good/testfile.png \
   ../good/testfile.ppm \
   ../good/testfile.ps \
   ../good/testfile.py \
+  ../good/testfile.rar3.av.cbr \
+  ../good/testfile.rar3.av.rar \
+  ../good/testfile.rar3.cbr \
+  ../good/testfile.rar3.dos_sfx.exe \
+  ../good/testfile.rar3.locked.cbr \
+  ../good/testfile.rar3.locked.rar \
+  ../good/testfile.rar3.rar \
+  ../good/testfile.rar3.rr.cbr \
+  ../good/testfile.rar3.rr.rar \
+  ../good/testfile.rar3.solid.cbr \
+  ../good/testfile.rar3.solid.rar \
+  ../good/testfile.rar3.wincon.sfx.exe \
+  ../good/testfile.rar3.wingui.sfx.exe \
+  ../good/testfile.rar5.cbr \
+  ../good/testfile.rar5.linux_sfx.bin \
+  ../good/testfile.rar5.locked.cbr \
+  ../good/testfile.rar5.locked.rar \
+  ../good/testfile.rar5.rar \
+  ../good/testfile.rar5.rr.cbr \
+  ../good/testfile.rar5.rr.rar \
+  ../good/testfile.rar5.solid.cbr \
+  ../good/testfile.rar5.solid.rar \
+  ../good/testfile.rar5.wincon.sfx.exe \
+  ../good/testfile.rar5.wingui.sfx.exe \
   ../good/testfile.rss \
   ../good/testfile.rtf \
   ../good/testfile.sqlite3 \
+  ../good/testfile_foreign.sqlite3 \
   ../good/testfile.svg \
   ../good/testfile.svgz \
   ../good/testfile.tbz2 \
@@ -83,9 +114,9 @@ artifacts = \
   ../good/testfile.zoo \
   ../bad/testfile.jar
 
-all: $(artifacts)
+all: rar-test-files $(artifacts)
 
-clean: 
+clean:
 	rm -f testfile.class testfile.jpg $(artifacts)
 
 # TODO: Add a rule to pull https://github.com/ssokolow/rar-test-files and copy
@@ -211,6 +242,11 @@ clean:
 	cp $^ $@
 	file -binNpr $@ | grep -q application/xml
 
+../good/testfile.ogg: testfile.wav
+	oggenc -q5 -o $@ $<
+	oggdec -o /dev/null 2>|/dev/null $@
+	file -binNpr $@ | grep -q audio/ogg
+
 ../good/testfile.pbm: testfile.png
 	convert $< $@
 	file -binNpr $@ | grep -q image/x-portable-bitmap
@@ -218,6 +254,10 @@ clean:
 ../good/testfile.pcx: testfile.png
 	convert $< $@
 	file -binNpr $@ | grep -q image/x-pcx
+
+../good/testfile.pdf: testfile.pdf
+	cp $< $@
+	file -binNpr $@ | grep -q application/pdf
 
 ../good/testfile.pgm: testfile.png
 	convert $< $@
@@ -240,6 +280,78 @@ clean:
 	cp $< $@
 	# TODO: Test
 
+../good/testfile.rar3.av.cbr: rar-test-files/testfile.rar3.av.cbr
+	cp $^ $@
+
+../good/testfile.rar3.av.rar: rar-test-files/testfile.rar3.av.rar
+	cp $^ $@
+
+../good/testfile.rar3.cbr: rar-test-files/testfile.rar3.cbr
+	cp $^ $@
+
+../good/testfile.rar3.dos_sfx.exe: rar-test-files/testfile.rar3.dos_sfx.exe
+	cp $^ $@
+
+../good/testfile.rar3.locked.cbr: rar-test-files/testfile.rar3.locked.cbr
+	cp $^ $@
+
+../good/testfile.rar3.locked.rar: rar-test-files/testfile.rar3.locked.rar
+	cp $^ $@
+
+../good/testfile.rar3.rar: rar-test-files/testfile.rar3.rar
+	cp $^ $@
+
+../good/testfile.rar3.rr.cbr: rar-test-files/testfile.rar3.rr.cbr
+	cp $^ $@
+
+../good/testfile.rar3.rr.rar: rar-test-files/testfile.rar3.rr.rar
+	cp $^ $@
+
+../good/testfile.rar3.solid.cbr: rar-test-files/testfile.rar3.solid.cbr
+	cp $^ $@
+
+../good/testfile.rar3.solid.rar: rar-test-files/testfile.rar3.solid.rar
+	cp $^ $@
+
+../good/testfile.rar3.wincon.sfx.exe: rar-test-files/testfile.rar3.wincon.sfx.exe
+	cp $^ $@
+
+../good/testfile.rar3.wingui.sfx.exe: rar-test-files/testfile.rar3.wingui.sfx.exe
+	cp $^ $@
+
+../good/testfile.rar5.cbr: rar-test-files/testfile.rar5.cbr
+	cp $^ $@
+
+../good/testfile.rar5.linux_sfx.bin: rar-test-files/testfile.rar5.linux_sfx.bin
+	cp $^ $@
+
+../good/testfile.rar5.locked.cbr: rar-test-files/testfile.rar5.locked.cbr
+	cp $^ $@
+
+../good/testfile.rar5.locked.rar: rar-test-files/testfile.rar5.locked.rar
+	cp $^ $@
+
+../good/testfile.rar5.rar: rar-test-files/testfile.rar5.rar
+	cp $^ $@
+
+../good/testfile.rar5.rr.cbr: rar-test-files/testfile.rar5.rr.cbr
+	cp $^ $@
+
+../good/testfile.rar5.rr.rar: rar-test-files/testfile.rar5.rr.rar
+	cp $^ $@
+
+../good/testfile.rar5.solid.cbr: rar-test-files/testfile.rar5.solid.cbr
+	cp $^ $@
+
+../good/testfile.rar5.solid.rar: rar-test-files/testfile.rar5.solid.rar
+	cp $^ $@
+
+../good/testfile.rar5.wincon.sfx.exe: rar-test-files/testfile.rar5.wincon.sfx.exe
+	cp $^ $@
+
+../good/testfile.rar5.wingui.sfx.exe: rar-test-files/testfile.rar5.wingui.sfx.exe
+	cp $^ $@
+
 ../good/testfile.rss: testfile.rss
 	cp $< $@
 	# TODO: Test
@@ -250,7 +362,11 @@ clean:
 
 ../good/testfile.sqlite3: testfile.sql
 	sqlite3 $@ < $<
-	sqlite3 $@ "pragma integrity_check;"
+	sqlite3 $@ "PRAGMA integrity_check; PRAGMA foreign_key_check"
+
+../good/testfile_foreign.sqlite3: testfile_foreign.sql
+	sqlite3 $@ < $<
+	sqlite3 $@ "PRAGMA integrity_check; PRAGMA foreign_key_check"
 
 ../good/testfile.svg: testfile.svg
 	cp $< $@
@@ -441,6 +557,9 @@ clean:
 	# use $^ instead of $<
 	python3 corrupt_zip.py $< $@
 	# TODO: Test that extractors report FAILURE
+
+rar-test-files:
+	git clone https://github.com/ssokolow/rar-test-files.git
 
 testfile.class: testfile.java
 	javac $^
