@@ -11,6 +11,7 @@ artifacts = \
   ../good/testfile.arj \
   ../good/testfile.bmp \
   ../good/testfile.microsoft.cab \
+  ../good/testfile.cb7 \
   ../good/testfile.chm \
   ../good/testfile.dashtoc \
   ../good/testfile.gif \
@@ -70,6 +71,11 @@ clean:
 
 ../good/testfile.microsoft.cab: testfile.txt
 	lcab $^ $@
+	$(7Z_TEST) $@
+	$(LSAR_TEST) $@
+
+../good/testfile.cb7: testfile.png ../good/testfile.jpg
+	7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on $@ $^
 	$(7Z_TEST) $@
 	$(LSAR_TEST) $@
 
