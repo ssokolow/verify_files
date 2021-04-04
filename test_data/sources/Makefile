@@ -47,6 +47,7 @@ artifacts = \
   ../good/testfile.txt.bz2 \
   ../good/testfile.txt.compress.Z \
   ../good/testfile.txt.gz \
+  ../good/testfile.txt.hqx \
   ../good/testfile.txt.lz \
   ../good/testfile.txt.lzma \
   ../good/testfile.txt.uu \
@@ -305,6 +306,10 @@ clean:
 	$(LSAR_TEST) $@
 	gunzip -c $@ | diff - testfile.txt
 	file -binNpr $@ | grep -q application/gzip
+
+../good/testfile.txt.hqx: testfile.txt
+	binhex -d $^ > $@
+	hexbin -i $@ 2>|/dev/null
 
 ../good/testfile.txt.lz: testfile.txt
 	lzip -c -9 $< > $@
