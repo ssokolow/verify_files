@@ -1,0 +1,3 @@
+BEGIN transaction;
+CREATE TABLE test (id INTEGER PRIMARY KEY);
+COMMIT;

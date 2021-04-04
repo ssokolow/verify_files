@@ -37,6 +37,7 @@ artifacts = \
   ../good/testfile.py \
   ../good/testfile.rss \
   ../good/testfile.rtf \
+  ../good/testfile.sqlite3 \
   ../good/testfile.svg \
   ../good/testfile.svgz \
   ../good/testfile.tbz2 \
@@ -236,6 +237,10 @@ clean:
 ../good/testfile.rtf: testfile.rtf
 	cp $< $@
 	# TODO: Test
+
+../good/testfile.sqlite3: testfile.sql
+	sqlite3 $@ < $<
+	sqlite3 $@ "pragma integrity_check;"
 
 ../good/testfile.svg: testfile.svg
 	cp $< $@
