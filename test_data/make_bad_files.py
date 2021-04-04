@@ -15,24 +15,34 @@ import logging, os
 log = logging.getLogger(__name__)
 
 
+def process_file(in_file, out_dir, offset):
+    fname = os.path.basename(in_file)
+    out_fpath = os.path.join(out_dir, fname)
+
+    if os.path.exists(out_fpath):
+        log.info("Already exists: %r", out_fpath)
+        return
+
+    log.info("%r → %r", in_file, out_fpath)
+    with open(in_file, 'rb') as fobj:
+        data = list(fobj.read())
+
+    data[offset] ^= 0b00000001
+    data = bytes(data)
+
+    with open(out_fpath, 'wb') as fobj:
+        fobj.write(data)
+
+
 def process_args(in_dir, out_dir, offset):
-    for fname in sorted(os.listdir(in_dir)):
-        in_fpath = os.path.join(in_dir, fname)
-        out_fpath = os.path.join(out_dir, fname)
+    if os.path.isfile(in_dir):
+        process_file(in_dir, out_dir, offset)
+    else:
+        for fname in sorted(os.listdir(in_dir)):
+            in_fpath = os.path.join(in_dir, fname)
+            out_fpath = os.path.join(out_dir, fname)
 
-        if os.path.exists(out_fpath):
-            log.info("Already exists: %r", out_fpath)
-            continue
-
-        log.info("%r → %r", in_fpath, out_fpath)
-        with open(in_fpath, 'rb') as fobj:
-            data = list(fobj.read())
-
-        data[offset] ^= 0b00000001
-        data = bytes(data)
-
-        with open(out_fpath, 'wb') as fobj:
-            fobj.write(data)
+            process_file(in_fpath, out_fpath, offset)
 
 
 def main():
