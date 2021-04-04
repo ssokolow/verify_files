@@ -50,7 +50,7 @@ def main():
         help="Directory to pull good files from")
     parser.add_argument('out_path', action="store",
         help="Directory to write bad files to")
-    parser.add_argument('--offset', action="store", default=16,
+    parser.add_argument('--offset', action="store", default=16, type=int,
         help="The offset of the byte to flip the lowest bit on "
         "(default: %(default)s)")
 
