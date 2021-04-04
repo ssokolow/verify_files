@@ -1,0 +1,6 @@
+[OPTIONS]
+COMPRESS=9
+Compiled file=../good/testfile.chm
+
+[FILES]
+testfile.html
