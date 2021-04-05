@@ -32,6 +32,7 @@ artifacts = \
   ../good/testfile.lzh \
   ../good/testfile.lzx \
   ../good/testfile.mml \
+  ../good/testfile.nsis.exe \
   ../good/testfile.ogg \
   ../good/testfile.pbm \
   ../good/testfile.pcx \
@@ -241,6 +242,11 @@ clean:
 ../good/testfile.mml: testfile.mml
 	cp $^ $@
 	file -binNpr $@ | grep -q application/xml
+
+../good/testfile.nsis.exe: testfile.nsi
+	# TODO: Generate test files for a bunch of different versions.
+	makensis -NOCONFIG "-XOutFile $@" $<
+	$(7Z_TEST) $@
 
 ../good/testfile.ogg: testfile.wav
 	oggenc -q5 -o $@ $<
