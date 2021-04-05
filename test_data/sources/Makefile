@@ -36,6 +36,7 @@
 # - mksquashfs (squashfs-tools)
 # - oggdec (vorbis-tools)
 # - oggenc (vorbis-tools)
+# - pandoc (pandoc)
 # - ps2ascii (ghostscript)
 # - python3 (python3)
 # - sqlite3 (sqlite3)
@@ -76,6 +77,7 @@ artifacts = \
   ../good/testfile.chm \
   ../good/testfile.cramfs \
   ../good/testfile.dashtoc \
+  ../good/testfile.docx \
   ../good/testfile.docm \
   ../good/testfile.flac \
   ../good/testfile.gif \
@@ -89,6 +91,7 @@ artifacts = \
   ../good/testfile.lzx \
   ../good/testfile.mml \
   ../good/testfile.nsis.exe \
+  ../good/testfile.odt \
   ../good/testfile.ogg \
   ../good/testfile.pbm \
   ../good/testfile.pcx \
@@ -253,6 +256,13 @@ clean:
 	cp $^ $@
 	$(JSON_TEST) $@
 
+../good/testfile.docx: testfile.txt
+	pandoc -t docx -o $@ $<
+	$(7Z_TEST) $@
+	$(LSAR_TEST) $@
+	$(ZIP_TEST) $@
+	# TODO: Assert the format more specifically
+
 ../good/testfile.docm: ../good/testfile.docx
 	cp $< $@
 	$(7Z_TEST) $@
@@ -318,6 +328,13 @@ clean:
 	# TODO: Generate test files for a bunch of different versions.
 	makensis -NOCONFIG "-XOutFile $@" $<
 	$(7Z_TEST) $@
+
+../good/testfile.odt: testfile.txt
+	pandoc -t odt -o $@ $<
+	$(7Z_TEST) $@
+	$(LSAR_TEST) $@
+	$(ZIP_TEST) $@
+	# TODO: Assert the format more specifically
 
 ../good/testfile.ogg: testfile.wav
 	oggenc -q5 -o $@ $<
