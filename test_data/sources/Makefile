@@ -19,6 +19,7 @@ artifacts = \
   ../good/testfile.cb7 \
   ../good/testfile.cbz \
   ../good/testfile.chm \
+  ../good/testfile.cramfs \
   ../good/testfile.dashtoc \
   ../good/testfile.docm \
   ../good/testfile.flac \
@@ -69,6 +70,11 @@ artifacts = \
   ../good/testfile.rss \
   ../good/testfile.rtf \
   ../good/testfile.sqlite3 \
+  ../good/testfile.gzip.squashfs \
+  ../good/testfile.lz4.squashfs \
+  ../good/testfile.lzma.squashfs \
+  ../good/testfile.lzo.squashfs \
+  ../good/testfile.xz.squashfs \
   ../good/testfile_foreign.sqlite3 \
   ../good/testfile.svg \
   ../good/testfile.svgz \
@@ -177,6 +183,14 @@ clean:
 	chmod 644 $@
 	$(7Z_TEST) $@
 	# TODO: Assert the format more specifically
+
+../good/testfile.cramfs: testfile.txt
+	mkdir tmp
+	cp $^ tmp
+	mkcramfs tmp $@
+	rm -rf tmp
+	$(7Z_TEST) $@
+	cramfsck $@ >|/dev/null 2>&1
 
 ../good/testfile.dashtoc: testfile.dashtoc
 	cp $^ $@
@@ -373,6 +387,31 @@ clean:
 ../good/testfile_foreign.sqlite3: testfile_foreign.sql
 	sqlite3 $@ < $<
 	sqlite3 $@ "PRAGMA integrity_check; PRAGMA foreign_key_check"
+
+../good/testfile.gzip.squashfs: testfile.txt
+	mksquashfs $^ $@ -comp gzip
+	$(7Z_TEST) $@
+	unsquashfs -l $@ >|/dev/null 2>&1
+
+../good/testfile.lz4.squashfs: testfile.txt
+	mksquashfs $^ $@ -comp lz4
+	# $(7Z_TEST) $@  # Error: E_NOTIMPL
+	unsquashfs -l $@ >|/dev/null 2>&1
+
+../good/testfile.lzma.squashfs: testfile.txt
+	mksquashfs $^ $@ -comp lzma
+	$(7Z_TEST) $@
+	unsquashfs -l $@ >|/dev/null 2>&1
+
+../good/testfile.lzo.squashfs: testfile.txt
+	mksquashfs $^ $@ -comp lzo -Xcompression-level 9
+	$(7Z_TEST) $@
+	unsquashfs -l $@ >|/dev/null 2>&1
+
+../good/testfile.xz.squashfs: testfile.txt
+	mksquashfs $^ $@ -comp xz
+	# $(7Z_TEST) $@  # Error: E_NOTIMPL
+	unsquashfs -l $@ >|/dev/null 2>&1
 
 ../good/testfile.svg: testfile.svg
 	cp $< $@
