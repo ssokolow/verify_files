@@ -1,8 +1,63 @@
-# REMINDER: For legal reasons, this makefile must use the pre-generated RAR and
-#           CBR files unless you've bought and installed your own RAR
-#           license key.
+# Makefile for regenerating (most of) the test data files
+#
+# REMINDER: For legal reasons, this makefile must download pre-generated 
+#           RAR and CBR files rather than regenerating them unless you've 
+#           bought and installed your own RAR license key.
+#
+# Required commands:
+# - 7z (p7zip)
+# - advdef (advancecomp)
+# - advzip (advancecomp)
+# - arc (arc)
+# - arj (arj)
+# - binhex (macutils)
+# - bunzip2 (bzip2)
+# - bzip2 (bzip2)
+# - cabextract (cabextract)
+# - chmcmd (fp-utils)
+# - chmod, cp, mkdir, rm, touch (a POSIX-compliant platform)
+# - compress (ncompress)
+# - convert (imagemagick)
+# - cramfsck (cramfsprogs)
+# - file (file)
+# - flac (flac)
+# - git (git) (Used to retrieve https://github.com/ssokolow/rar-test-files.git)
+# - gunzip (gzip)
+# - gzip (gzip)
+# - hexbin (macutils)
+# - jar (default-jdk-headless)
+# - javac (default-jdk-headless)
+# - lcab (lcab)
+# - lzh-archiver (jlha-utils)
+# - lzip (lzip)
+# - lzma (xz-utils)
+# - makensis (nsis)
+# - mkcramfs (cramfsprogs)
+# - mksquashfs (squashfs-tools)
+# - oggdec (vorbis-tools)
+# - oggenc (vorbis-tools)
+# - ps2ascii (ghostscript)
+# - python3 (python3)
+# - sqlite3 (sqlite3)
+# - tar (tar)
+# - unar (lsar)
+# - uncompress (ncompress)
+# - unlzma (xz-utils)
+# - unsquashfs (squashfs-tools)
+# - unxz (xz-utils)
+# - uuenview (uudeview)
+# - xar (https://mackyle.github.io/xar/)
+# - xz (xz-utils)
+# - zip (zip)
+# - zoo (zoo)
+#
+# TODO: Ensure that all these builds are reproducible.
+# 	(ie. That `make clean; make` doesn't cause `git st` to report changes)
+#
+# TODO: Check what kind of output pandoc produces if asked to convert
+# 	testfile.txt into docx, odt, and rtf.
 
-.PHONY: all clean
+.PHONY: all clean distclean
 
 7Z_TEST=7z t >/dev/null
 JSON_TEST=python3 -m json.tool >/dev/null
@@ -121,13 +176,15 @@ artifacts = \
   ../good/testfile.zoo \
   ../bad/testfile.jar
 
+objects = testfile.class testfile.jpg testfile.tar
+
 all: rar-test-files $(artifacts)
 
-clean:
-	rm -f testfile.class testfile.jpg $(artifacts)
+distclean: clean
+	rm -rf rar-test-files
 
-# TODO: Add a rule to pull https://github.com/ssokolow/rar-test-files and copy
-# 	the RAR and CBR files into ../good/
+clean:
+	rm -f $(objects) $(artifacts)
 
 ../good/testfile.7z: testfile.txt
 	7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on $@ $^
@@ -422,6 +479,7 @@ clean:
 	advdef -z4 $@
 	$(7Z_TEST) $@
 	$(LSAR_TEST) $@
+	gunzip -c $@
 	# TODO: Assert the format more specifically
 
 ../good/testfile.tga: testfile.png
@@ -606,11 +664,11 @@ clean:
 rar-test-files:
 	git clone https://github.com/ssokolow/rar-test-files.git
 
-testfile.class: testfile.java
-	javac $^
-
-testfile.jpg: testfile.png
-	convert $< $@
-
 testfile.tar: testfile.txt
 	tar cvf $@ $<
+
+%.class: %.java
+	javac $^
+
+%.jpg: %.png
+	convert $< $@
