@@ -54,9 +54,6 @@
 #
 # TODO: Ensure that all these builds are reproducible.
 # 	(ie. That `make clean; make` doesn't cause `git st` to report changes)
-#
-# TODO: Check what kind of output pandoc produces if asked to convert
-# 	testfile.txt into docx, odt, and rtf.
 
 .PHONY: all clean distclean
 
@@ -723,11 +720,37 @@ clean-intermediate:
 
 # --== Corrupted Test Files ==--
 
-../bad/testfile.jar: ../good/testfile.jar
-	# TODO: Rework corrupt_zip.py to take an output *directory* so I can
-	# use $^ instead of $<
+../bad/testfile.cbz: ../good/testfile.cbz
 	python3 corrupt_zip.py $< $@
-	# TODO: Test that extractors report FAILURE
+	file -binNpr $@ | grep -q application/zip
+
+../bad/testfile.docx: ../good/testfile.docx
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+../bad/testfile.docm: ../good/testfile.docm
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+../bad/testfile.epub: ../good/testfile.epub
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/epub+zip
+
+../bad/testfile.jar: ../good/testfile.jar
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/java-archive
+
+../bad/testfile.odt: ../good/testfile.odt
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.text
+
+../bad/testfile.xlsm: ../good/testfile.xlsm
+	python3 corrupt_zip.py $< $@
+	# TODO: Assert the format more specifically
+
+../bad/testfile.zip: ../good/testfile.zip
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/zip
 
 # --== Intermediate Artifacts Test Files ==--
 
