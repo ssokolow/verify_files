@@ -176,14 +176,60 @@ artifacts = \
   ../good/testfile.xpm \
   ../good/testfile.zip \
   ../good/testfile.zoo \
+  ../bad/testfile.7z \
+  ../bad/testfile.arc \
+  ../bad/testfile.arj \
+  ../bad/testfile.cb7 \
   ../bad/testfile.cbz \
   ../bad/testfile.docx \
   ../bad/testfile.docm \
   ../bad/testfile.epub \
+  ../bad/testfile.flac \
   ../bad/testfile.jar \
+  ../bad/testfile.lha \
+  ../bad/testfile.lzh \
+  ../bad/testfile.lzx \
   ../bad/testfile.odt \
+  ../bad/testfile.rar3.av.cbr \
+  ../bad/testfile.rar3.av.rar \
+  ../bad/testfile.rar3.cbr \
+  ../bad/testfile.rar3.dos_sfx.exe \
+  ../bad/testfile.rar3.locked.cbr \
+  ../bad/testfile.rar3.locked.rar \
+  ../bad/testfile.rar3.rar \
+  ../bad/testfile.rar3.rr.cbr \
+  ../bad/testfile.rar3.rr.rar \
+  ../bad/testfile.rar3.solid.cbr \
+  ../bad/testfile.rar3.solid.rar \
+  ../bad/testfile.rar3.wincon.sfx.exe \
+  ../bad/testfile.rar3.wingui.sfx.exe \
+  ../bad/testfile.rar5.cbr \
+  ../bad/testfile.rar5.linux_sfx.bin \
+  ../bad/testfile.rar5.locked.cbr \
+  ../bad/testfile.rar5.locked.rar \
+  ../bad/testfile.rar5.rar \
+  ../bad/testfile.rar5.rr.cbr \
+  ../bad/testfile.rar5.rr.rar \
+  ../bad/testfile.rar5.solid.cbr \
+  ../bad/testfile.rar5.solid.rar \
+  ../bad/testfile.rar5.wincon.sfx.exe \
+  ../bad/testfile.rar5.wingui.sfx.exe \
+  ../bad/testfile.svgz \
+  ../bad/testfile.tbz2 \
+  ../bad/testfile.tgz \
+  ../bad/testfile.tlz \
+  ../bad/testfile.txt.bz2 \
+  ../bad/testfile.txt.compress.Z \
+  ../bad/testfile.txt.gz \
+  ../bad/testfile.txt.lz \
+  ../bad/testfile.txt.lzma \
+  ../bad/testfile.txt.xz \
+  ../bad/testfile.txz \
+  ../bad/testfile.xar \
+  ../bad/testfile.xlsx \
   ../bad/testfile.xlsm \
-  ../bad/testfile.zip
+  ../bad/testfile.zip \
+  ../bad/testfile.zoo
 
 objects = testfile.class testfile.jpg testfile.tar
 
@@ -411,75 +457,99 @@ clean-intermediate:
 
 ../good/testfile.rar3.cbr: rar-test-files/testfile.rar3.cbr
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar3.rar: rar-test-files/testfile.rar3.rar
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar3.av.cbr: rar-test-files/testfile.rar3.av.cbr
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar3.av.rar: rar-test-files/testfile.rar3.av.rar
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar3.dos_sfx.exe: rar-test-files/testfile.rar3.dos_sfx.exe
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-dosexec
 
 ../good/testfile.rar3.locked.cbr: rar-test-files/testfile.rar3.locked.cbr
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar3.locked.rar: rar-test-files/testfile.rar3.locked.rar
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar3.rr.cbr: rar-test-files/testfile.rar3.rr.cbr
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar3.rr.rar: rar-test-files/testfile.rar3.rr.rar
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar3.solid.cbr: rar-test-files/testfile.rar3.solid.cbr
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar3.solid.rar: rar-test-files/testfile.rar3.solid.rar
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar3.wincon.sfx.exe: rar-test-files/testfile.rar3.wincon.sfx.exe
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-dosexec
 
 ../good/testfile.rar3.wingui.sfx.exe: rar-test-files/testfile.rar3.wingui.sfx.exe
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-dosexec
 
 ../good/testfile.rar5.cbr: rar-test-files/testfile.rar5.cbr
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar5.linux_sfx.bin: rar-test-files/testfile.rar5.linux_sfx.bin
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-executable
 
 ../good/testfile.rar5.locked.cbr: rar-test-files/testfile.rar5.locked.cbr
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar5.locked.rar: rar-test-files/testfile.rar5.locked.rar
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar5.rar: rar-test-files/testfile.rar5.rar
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar5.rr.cbr: rar-test-files/testfile.rar5.rr.cbr
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar5.rr.rar: rar-test-files/testfile.rar5.rr.rar
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar5.solid.cbr: rar-test-files/testfile.rar5.solid.cbr
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar5.solid.rar: rar-test-files/testfile.rar5.solid.rar
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-rar
 
 ../good/testfile.rar5.wincon.sfx.exe: rar-test-files/testfile.rar5.wincon.sfx.exe
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-dosexec
 
 ../good/testfile.rar5.wingui.sfx.exe: rar-test-files/testfile.rar5.wingui.sfx.exe
 	cp $^ $@
+	file -binNpr $@ | grep -q application/x-dosexec
 
 ../good/testfile.rss: testfile.rss
 	cp $< $@
@@ -491,6 +561,7 @@ clean-intermediate:
 	#       hand-crafted minimal RTF file.
 	cp $< $@
 	# TODO: Test
+	file -binNpr $@ | grep -q text/rtf
 
 ../good/testfile.sqlite3: testfile.sql
 	sqlite3 $@ < $<
@@ -535,6 +606,7 @@ clean-intermediate:
 	$(7Z_TEST) $@
 	$(LSAR_TEST) $@
 	gunzip -c $@
+	file -binNpr $@ | grep -q application/gzip
 	# TODO: Assert the format more specifically
 
 ../good/testfile.tbz2: testfile.tar
@@ -720,6 +792,25 @@ clean-intermediate:
 
 # --== Corrupted Test Files ==--
 
+# TODO: Some kind of macros to build this so I can't typo the mapping from
+# 	input filenames to output filenames or $< $@ ordering.
+
+../bad/testfile.7z: ../good/testfile.7z
+	python3 corrupt_any.py -o 40 -c "7z t" -m '(CRC|Data) Failed' $< $@
+	file -binNpr $@ | grep -q application/x-7z-compressed
+
+../bad/testfile.arc: ../good/testfile.arc
+	python3 corrupt_any.py -o15 -c "arc t" -m "fails CRC check" $< $@
+	file -binNpr $@ | grep -q application/x-arc
+
+../bad/testfile.arj: ../good/testfile.arj
+	python3 corrupt_any.py -o15 -c "arj t" -m "Bad header" $< $@
+	file -binNpr $@ | grep -q application/x-arj
+
+../bad/testfile.cb7: ../good/testfile.cb7
+	python3 corrupt_any.py -c "7z t" -m "(CRC|Data) Error" $< $@
+	file -binNpr $@ | grep -q application/x-7z-compressed
+
 ../bad/testfile.cbz: ../good/testfile.cbz
 	python3 corrupt_zip.py $< $@
 	file -binNpr $@ | grep -q application/zip
@@ -736,21 +827,189 @@ clean-intermediate:
 	python3 corrupt_zip.py $< $@
 	file -binNpr $@ | grep -q application/epub+zip
 
+../bad/testfile.flac: ../good/testfile.flac
+	python3 corrupt_any.py -c "flac -t" -m "Got error"  $< $@
+	file -binNpr $@ | grep -q audio/x-flac
+
 ../bad/testfile.jar: ../good/testfile.jar
 	python3 corrupt_zip.py $< $@
 	file -binNpr $@ | grep -q application/java-archive
+
+../bad/testfile.lha: ../good/testfile.lha
+	python3 corrupt_any.py -o47 -c "lha t" -m "CRC error" $< $@
+	file -binNpr $@ | grep -q application/x-lharc
+
+../bad/testfile.lzh: ../good/testfile.lzh
+	python3 corrupt_any.py -o47 -c "lha t" -m "CRC error" $< $@
+	file -binNpr $@ | grep -q application/x-lharc
+
+../bad/testfile.lzx: ../good/testfile.lzx
+	python3 corrupt_any.py -c "lsar -t" -m "Checksum failed"  $< $@
+	# TODO: Verify that it still passes header check
 
 ../bad/testfile.odt: ../good/testfile.odt
 	python3 corrupt_zip.py $< $@
 	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.text
 
+../bad/testfile.rar3.av.cbr: ../good/testfile.rar3.av.cbr
+	python3 corrupt_any.py -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar3.av.rar: ../good/testfile.rar3.av.rar
+	python3 corrupt_any.py -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar3.locked.cbr: ../good/testfile.rar3.locked.cbr
+	python3 corrupt_any.py -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar3.locked.rar: ../good/testfile.rar3.locked.rar
+	python3 corrupt_any.py -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar3.cbr: ../good/testfile.rar3.cbr
+	python3 corrupt_any.py -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar3.rar: ../good/testfile.rar3.rar
+	python3 corrupt_any.py -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar3.dos_sfx.exe: ../good/testfile.rar3.dos_sfx.exe
+	python3 corrupt_any.py -o210450 -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-dosexec
+
+../bad/testfile.rar3.rr.cbr: ../good/testfile.rar3.rr.cbr
+	python3 corrupt_any.py -o50 -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar3.rr.rar: ../good/testfile.rar3.rr.rar
+	python3 corrupt_any.py -o50 -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar3.solid.cbr: ../good/testfile.rar3.solid.cbr
+	python3 corrupt_any.py -o50 -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar3.solid.rar: ../good/testfile.rar3.solid.rar
+	python3 corrupt_any.py -o50 -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar3.wincon.sfx.exe: ../good/testfile.rar3.wincon.sfx.exe
+	python3 corrupt_any.py -o69700 -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-dosexec
+
+../bad/testfile.rar3.wingui.sfx.exe: ../good/testfile.rar3.wingui.sfx.exe
+	python3 corrupt_any.py -o92700 -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-dosexec
+
+../bad/testfile.rar5.locked.cbr: ../good/testfile.rar5.locked.cbr
+	python3 corrupt_any.py -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar5.locked.rar: ../good/testfile.rar5.locked.rar
+	python3 corrupt_any.py -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar5.linux_sfx.bin: ../good/testfile.rar5.linux_sfx.bin
+	python3 corrupt_any.py -o175150 -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-executable
+
+../bad/testfile.rar5.cbr: ../good/testfile.rar5.cbr
+	python3 corrupt_any.py -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar5.rar: ../good/testfile.rar5.rar
+	python3 corrupt_any.py -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar5.rr.cbr: ../good/testfile.rar5.rr.cbr
+	python3 corrupt_any.py -o50 -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar5.rr.rar: ../good/testfile.rar5.rr.rar
+	python3 corrupt_any.py -o50 -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar5.solid.cbr: ../good/testfile.rar5.solid.cbr
+	python3 corrupt_any.py -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar5.solid.rar: ../good/testfile.rar5.solid.rar
+	python3 corrupt_any.py -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-rar
+
+../bad/testfile.rar5.wincon.sfx.exe: ../good/testfile.rar5.wincon.sfx.exe
+	python3 corrupt_any.py -o282650 -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-dosexec
+
+../bad/testfile.rar5.wingui.sfx.exe: ../good/testfile.rar5.wingui.sfx.exe
+	python3 corrupt_any.py -o317000 -c "unrar t" -m "(checksum error|is corrupt)" $< $@
+	file -binNpr $@ | grep -q application/x-dosexec
+
+../bad/testfile.svgz: ../good/testfile.svgz
+	python3 corrupt_any.py -c "gunzip -t" -m "crc error" $< $@
+	file -binNpr $@ | grep -q application/gzip
+
+../bad/testfile.tbz2: ../good/testfile.tbz2
+	python3 corrupt_any.py -c "bunzip2 -t" -m "error in data" $< $@
+	file -binNpr $@ | grep -q application/x-bzip2
+
+../bad/testfile.tgz: ../good/testfile.tgz
+	python3 corrupt_any.py -c "gunzip -t" -m "invalid" $< $@
+	file -binNpr $@ | grep -q application/gzip
+
+../bad/testfile.tlz: ../good/testfile.tlz
+	python3 corrupt_any.py -c "lzip -t" -m "Decoder error" $< $@
+	file -binNpr $@ | grep -q application/x-lzip
+
+../bad/testfile.txt.bz2: ../good/testfile.txt.bz2
+	python3 corrupt_any.py -c "bunzip2 -t" -m "error in data" $< $@
+	file -binNpr $@ | grep -q application/x-bzip2
+
+../bad/testfile.txt.compress.Z: ../good/testfile.txt.compress.Z
+	python3 corrupt_any.py -o13 -c "uncompress -t" -m "corrupt" $< $@
+	file -binNpr $@ | grep -q application/x-compress
+
+../bad/testfile.txt.gz: ../good/testfile.txt.gz
+	python3 corrupt_any.py -c "gunzip -t" -m "invalid" $< $@
+	file -binNpr $@ | grep -q application/gzip
+
+../bad/testfile.txt.lz: ../good/testfile.txt.lz
+	python3 corrupt_any.py -c "lzip -t" -m "Decoder error" $< $@
+	file -binNpr $@ | grep -q application/x-lzip
+
+../bad/testfile.txt.lzma: ../good/testfile.txt.lzma
+	python3 corrupt_any.py -c "unlzma -t" -m "is corrupt" $< $@
+	file -binNpr $@ | grep -q application/x-lzma
+
+../bad/testfile.txt.xz: ../good/testfile.txt.xz
+	python3 corrupt_any.py -c "unxz -t" -m "is corrupt" $< $@
+	file -binNpr $@ | grep -q application/x-xz
+
+../bad/testfile.txz: ../good/testfile.txz
+	python3 corrupt_any.py -c "unxz -t" -m "is corrupt" $< $@
+	file -binNpr $@ | grep -q application/x-xz
+
+../bad/testfile.xar: ../good/testfile.xar
+	python3 corrupt_any.py -o10 -c "xar -t -f" -m "Checksums" $< $@
+	# TODO: Verify that it still passes header check
+
 ../bad/testfile.xlsm: ../good/testfile.xlsm
+	python3 corrupt_zip.py $< $@
+	# TODO: Assert the format more specifically
+
+../bad/testfile.xlsx: ../good/testfile.xlsx
 	python3 corrupt_zip.py $< $@
 	# TODO: Assert the format more specifically
 
 ../bad/testfile.zip: ../good/testfile.zip
 	python3 corrupt_zip.py $< $@
 	file -binNpr $@ | grep -q application/zip
+
+../bad/testfile.zoo: ../good/testfile.zoo
+	python3 corrupt_any.py -o50 -c "zoo -test" -m "corrupted" $< $@
+	file -binNpr $@ | grep -q application/x-zoo
 
 # --== Intermediate Artifacts Test Files ==--
 
