@@ -25,6 +25,7 @@
 # - gunzip (gzip)
 # - gzip (gzip)
 # - hexbin (macutils)
+# - identify (imagemagick)
 # - jar (default-jdk-headless)
 # - javac (default-jdk-headless)
 # - lcab (lcab)
@@ -179,13 +180,20 @@ artifacts = \
   ../bad/testfile.7z \
   ../bad/testfile.arc \
   ../bad/testfile.arj \
+  ../bad/testfile.bmp \
   ../bad/testfile.cb7 \
   ../bad/testfile.cbz \
+  ../bad/testfile.dashtoc \
   ../bad/testfile.docx \
   ../bad/testfile.docm \
   ../bad/testfile.epub \
   ../bad/testfile.flac \
+  ../bad/testfile.gif \
   ../bad/testfile.jar \
+  ../bad/testfile.jpe \
+  ../bad/testfile.jpeg \
+  ../bad/testfile.jpg \
+  ../bad/testfile.json \
   ../bad/testfile.lha \
   ../bad/testfile.lzh \
   ../bad/testfile.lzx \
@@ -200,7 +208,12 @@ artifacts = \
   ../bad/testfile.otp \
   ../bad/testfile.ots \
   ../bad/testfile.ott \
+  ../bad/testfile.pbm \
+  ../bad/testfile.pcx \
+  ../bad/testfile.pgm \
+  ../bad/testfile.png \
   ../bad/testfile.potm \
+  ../bad/testfile.ppm \
   ../bad/testfile.ppsx \
   ../bad/testfile.pptx \
   ../bad/testfile.rar3.av.cbr \
@@ -233,6 +246,8 @@ artifacts = \
   ../bad/testfile.lzo.squashfs \
   ../bad/testfile.xz.squashfs \
   ../bad/testfile.svgz \
+  ../bad/testfile.tif \
+  ../bad/testfile.tiff \
   ../bad/testfile.tbz2 \
   ../bad/testfile.tgz \
   ../bad/testfile.tlz \
@@ -243,9 +258,12 @@ artifacts = \
   ../bad/testfile.txt.lzma \
   ../bad/testfile.txt.xz \
   ../bad/testfile.txz \
+  ../bad/testfile.webp \
   ../bad/testfile.xar \
+  ../bad/testfile.xbm \
   ../bad/testfile.xlsx \
   ../bad/testfile.xlsm \
+  ../bad/testfile.xpm \
   ../bad/testfile.zip \
   ../bad/testfile.zoo
 
@@ -825,6 +843,9 @@ clean-intermediate:
 	python3 corrupt_any.py -o15 -c "arj t" -m "Bad header" $< $@
 	file -binNpr $@ | grep -q application/x-arj
 
+../bad/testfile.bmp: ../good/testfile.bmp
+	python3 corrupt_any.py -o15 -c "identify" -m "error/bmp.c/ReadBMP" $< $@
+
 ../bad/testfile.cb7: ../good/testfile.cb7
 	python3 corrupt_any.py -c "7z t" -m "(CRC|Data) (Failed|Error)" $< $@
 	file -binNpr $@ | grep -q application/x-7z-compressed
@@ -832,6 +853,10 @@ clean-intermediate:
 ../bad/testfile.cbz: ../good/testfile.cbz
 	python3 corrupt_zip.py $< $@
 	file -binNpr $@ | grep -q application/zip
+
+../bad/testfile.dashtoc: ../good/testfile.dashtoc
+	cp $< $@
+	python3 corrupt_any.py -o9 -c "python3 -m json.tool" $< $@
 
 ../bad/testfile.docx: ../good/testfile.docx
 	python3 corrupt_zip.py $< $@
@@ -849,9 +874,25 @@ clean-intermediate:
 	python3 corrupt_any.py -c "flac -t" -m "Got error"  $< $@
 	file -binNpr $@ | grep -q audio/x-flac
 
+../bad/testfile.gif: ../good/testfile.gif
+	python3 corrupt_any.py -o38 -c "identify" -m "corrupt image" $< $@
+
 ../bad/testfile.jar: ../good/testfile.jar
 	python3 corrupt_zip.py $< $@
 	file -binNpr $@ | grep -q application/java-archive
+
+../bad/testfile.jpe: ../good/testfile.jpe
+	python3 corrupt_any.py -c "identify" -m "JPEGError" $< $@
+
+../bad/testfile.jpeg: ../good/testfile.jpeg
+	python3 corrupt_any.py -c "identify" -m "JPEGError" $< $@
+
+../bad/testfile.jpg: ../good/testfile.jpg
+	python3 corrupt_any.py -c "identify" -m "JPEGError" $< $@
+
+../bad/testfile.json: ../good/testfile.json
+	cp $< $@
+	python3 corrupt_any.py -o1 -c "python3 -m json.tool" $< $@
 
 ../bad/testfile.lha: ../good/testfile.lha
 	python3 corrupt_any.py -o47 -c "lha t" -m "CRC error" $< $@
@@ -909,6 +950,18 @@ clean-intermediate:
 	python3 corrupt_zip.py $< $@
 	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.text-template
 
+../bad/testfile.pbm: ../good/testfile.pbm
+	python3 corrupt_any.py -o5 -c "identify" -m "error/pnm.c/ReadPNM" $< $@
+
+../bad/testfile.pcx: ../good/testfile.pcx
+	python3 corrupt_any.py -o65 -c "identify" -m "error/pcx.c/ReadPCX" $< $@
+
+../bad/testfile.pgm: ../good/testfile.pgm
+	python3 corrupt_any.py -c "identify" -m "unable to read" $< $@
+
+../bad/testfile.png: ../good/testfile.png
+	python3 corrupt_any.py -c "identify" -m "corrupt image" $< $@
+
 ../bad/testfile.potm: ../good/testfile.potm
 	python3 corrupt_zip.py $< $@
 	file -binNpr $@ | grep -q application/vnd.openxmlformats-officedocument.presentationml.presentation
@@ -920,6 +973,9 @@ clean-intermediate:
 ../bad/testfile.pptx: ../good/testfile.pptx
 	python3 corrupt_zip.py $< $@
 	file -binNpr $@ | grep -q application/vnd.openxmlformats-officedocument.presentationml.presentation
+
+../bad/testfile.ppm: ../good/testfile.ppm
+	python3 corrupt_any.py -o7 -c "identify" -m "error/pnm.c/ReadPNM" $< $@
 
 ../bad/testfile.rar3.av.cbr: ../good/testfile.rar3.av.cbr
 	python3 corrupt_any.py -c "unrar t" -m "(checksum error|is corrupt)" $< $@
@@ -1040,9 +1096,17 @@ clean-intermediate:
 	python3 corrupt_any.py -c "bunzip2 -t" -m "error in data" $< $@
 	file -binNpr $@ | grep -q application/x-bzip2
 
+# NOTE: I'm not sure it's possible to construct an invalid TGA file
+
 ../bad/testfile.tgz: ../good/testfile.tgz
 	python3 corrupt_any.py -c "gunzip -t" -m "invalid" $< $@
 	file -binNpr $@ | grep -q application/gzip
+
+../bad/testfile.tif: ../good/testfile.tif
+	python3 corrupt_any.py -c "identify" -m "error/tiff.c/TIFF" $< $@
+
+../bad/testfile.tiff: ../good/testfile.tiff
+	python3 corrupt_any.py -c "identify" -m "error/tiff.c/TIFF" $< $@
 
 ../bad/testfile.tlz: ../good/testfile.tlz
 	python3 corrupt_any.py -c "lzip -t" -m "Decoder error" $< $@
@@ -1076,9 +1140,15 @@ clean-intermediate:
 	python3 corrupt_any.py -c "unxz -t" -m "is corrupt" $< $@
 	file -binNpr $@ | grep -q application/x-xz
 
+../bad/testfile.webp: ../good/testfile.webp
+	python3 corrupt_any.py -o25 -c "identify" -m "delegate failed \`\"dwebp\"" $< $@
+
 ../bad/testfile.xar: ../good/testfile.xar
 	python3 corrupt_any.py -o10 -c "xar -t -f" -m "Checksums" $< $@
 	# TODO: Verify that it still passes header check
+
+../bad/testfile.xbm: ../good/testfile.xbm
+	python3 corrupt_any.py -c "identify" -m "error/xbm.c/ReadXBM" $< $@
 
 ../bad/testfile.xlsm: ../good/testfile.xlsm
 	python3 corrupt_zip.py $< $@
@@ -1087,6 +1157,9 @@ clean-intermediate:
 ../bad/testfile.xlsx: ../good/testfile.xlsx
 	python3 corrupt_zip.py $< $@
 	# TODO: Assert the format more specifically
+
+../bad/testfile.xpm: ../good/testfile.xpm
+	python3 corrupt_any.py -o82 -c "identify" -m "error/xpm.c/ReadXPM" $< $@
 
 ../bad/testfile.zip: ../good/testfile.zip
 	python3 corrupt_zip.py $< $@
