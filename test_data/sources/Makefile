@@ -80,6 +80,7 @@ artifacts = \
   ../good/testfile.dashtoc \
   ../good/testfile.docx \
   ../good/testfile.docm \
+  ../good/testfile.epub \
   ../good/testfile.flac \
   ../good/testfile.gif \
   ../good/testfile.jar \
@@ -279,6 +280,13 @@ clean:
 	$(LSAR_TEST) $@
 	$(ZIP_TEST) $@
 	file -binNpr $@ | grep -q application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+../good/testfile.epub: testfile.txt
+	pandoc -t epub -o $@ $<
+	$(7Z_TEST) $@
+	$(LSAR_TEST) $@
+	$(ZIP_TEST) $@
+	file -binNpr $@ | grep -q application/epub+zip
 
 ../good/testfile.flac: testfile.wav
 	flac --best --verify -o $@ $<
