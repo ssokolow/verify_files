@@ -820,7 +820,7 @@ clean-intermediate:
 	file -binNpr $@ | grep -q application/x-arj
 
 ../bad/testfile.cb7: ../good/testfile.cb7
-	python3 corrupt_any.py -c "7z t" -m "(CRC|Data) Error" $< $@
+	python3 corrupt_any.py -c "7z t" -m "(CRC|Data) (Failed|Error)" $< $@
 	file -binNpr $@ | grep -q application/x-7z-compressed
 
 ../bad/testfile.cbz: ../good/testfile.cbz
