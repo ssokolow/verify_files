@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 __author__ = "Stephan Sokolow (deitarion/SSokolow)"
 __license__ = "Public Domain"
 
-import os, shutil, zipfile
+import os, shutil, struct, zipfile
 
 
 def main():
@@ -25,11 +25,20 @@ def main():
     # Make a copy in bad/ and Corrupt it
     shutil.copy(args.in_path, args.out_path)
     with zipfile.ZipFile(args.out_path) as zobj:
-        offset = zobj.infolist()[1].header_offset
+        infolist = zobj.infolist()
+        idx = min(1, len(infolist) - 1)
+        offset = zobj.infolist()[idx].header_offset
     with open(args.out_path, 'rb+') as fobj:
-        fobj.seek(offset)
+        # Seek to the file name length field in the local file header
+        fobj.seek(offset + 26)
+        # Calculate the offset at which the file data begins
+        fname_len, extra_len = struct.unpack("<HH", fobj.read(4))
+        data_offset = fobj.tell() + fname_len + extra_len
+
+        # Read the first byte of the file data, flip the LSB, and write it back
+        fobj.seek(data_offset)
         old_value = fobj.read(1)
-        fobj.seek(offset)
+        fobj.seek(data_offset)
         fobj.write(bytes([old_value[0] ^ 1]))
 
 if __name__ == '__main__':  # pragma: nocover
