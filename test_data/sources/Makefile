@@ -195,6 +195,7 @@ artifacts = \
   ../bad/testfile.odp \
   ../bad/testfile.ods \
   ../bad/testfile.odt \
+  ../bad/testfile.ogg \
   ../bad/testfile.otg \
   ../bad/testfile.otp \
   ../bad/testfile.ots \
@@ -226,6 +227,11 @@ artifacts = \
   ../bad/testfile.rar5.solid.rar \
   ../bad/testfile.rar5.wincon.sfx.exe \
   ../bad/testfile.rar5.wingui.sfx.exe \
+  ../bad/testfile.gzip.squashfs \
+  ../bad/testfile.lz4.squashfs \
+  ../bad/testfile.lzma.squashfs \
+  ../bad/testfile.lzo.squashfs \
+  ../bad/testfile.xz.squashfs \
   ../bad/testfile.svgz \
   ../bad/testfile.tbz2 \
   ../bad/testfile.tgz \
@@ -883,6 +889,10 @@ clean-intermediate:
 	python3 corrupt_zip.py $< $@
 	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.text
 
+../bad/testfile.ogg: ../good/testfile.ogg
+	python3 corrupt_any.py -o50 -c "oggdec --raw -o/dev/null" -m "Failed to open" $< $@
+	file -binNpr $@ | grep -q audio/ogg
+
 ../bad/testfile.otg: ../good/testfile.otg
 	python3 corrupt_zip.py $< $@
 	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.graphics-template
@@ -1006,6 +1016,21 @@ clean-intermediate:
 ../bad/testfile.rar5.wingui.sfx.exe: ../good/testfile.rar5.wingui.sfx.exe
 	python3 corrupt_any.py -o317000 -c "unrar t" -m "(checksum error|is corrupt)" $< $@
 	file -binNpr $@ | grep -q application/x-dosexec
+
+../bad/testfile.gzip.squashfs: ../good/testfile.gzip.squashfs
+	python3 corrupt_any.py -o50 -c "unsquashfs -l" -m "failed to" $< $@
+
+../bad/testfile.lz4.squashfs: ../good/testfile.lz4.squashfs
+	python3 corrupt_any.py -o50 -c "unsquashfs -l" -m "failed to" $< $@
+
+../bad/testfile.lzma.squashfs: ../good/testfile.lzma.squashfs
+	python3 corrupt_any.py -o50 -c "unsquashfs -l" -m "failed to" $< $@
+
+../bad/testfile.lzo.squashfs: ../good/testfile.lzo.squashfs
+	python3 corrupt_any.py -o50 -c "unsquashfs -l" -m "failed to" $< $@
+
+../bad/testfile.xz.squashfs: ../good/testfile.xz.squashfs
+	python3 corrupt_any.py -o50 -c "unsquashfs -l" -m "failed to" $< $@
 
 ../bad/testfile.svgz: ../good/testfile.svgz
 	python3 corrupt_any.py -c "gunzip -t" -m "crc error" $< $@
