@@ -189,7 +189,19 @@ artifacts = \
   ../bad/testfile.lha \
   ../bad/testfile.lzh \
   ../bad/testfile.lzx \
+  ../bad/testfile.odf \
+  ../bad/testfile.odg \
+  ../bad/testfile.odm \
+  ../bad/testfile.odp \
+  ../bad/testfile.ods \
   ../bad/testfile.odt \
+  ../bad/testfile.otg \
+  ../bad/testfile.otp \
+  ../bad/testfile.ots \
+  ../bad/testfile.ott \
+  ../bad/testfile.potm \
+  ../bad/testfile.ppsx \
+  ../bad/testfile.pptx \
   ../bad/testfile.rar3.av.cbr \
   ../bad/testfile.rar3.av.rar \
   ../bad/testfile.rar3.cbr \
@@ -847,9 +859,57 @@ clean-intermediate:
 	python3 corrupt_any.py -c "lsar -t" -m "Checksum failed"  $< $@
 	# TODO: Verify that it still passes header check
 
+../bad/testfile.odf: ../good/testfile.odf
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.formula
+
+../bad/testfile.odg: ../good/testfile.odg
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.graphics
+
+../bad/testfile.odm: ../good/testfile.odm
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.text-master
+
+../bad/testfile.odp: ../good/testfile.odp
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.presentation
+
+../bad/testfile.ods: ../good/testfile.ods
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.spreadsheet
+
 ../bad/testfile.odt: ../good/testfile.odt
 	python3 corrupt_zip.py $< $@
 	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.text
+
+../bad/testfile.otg: ../good/testfile.otg
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.graphics-template
+
+../bad/testfile.otp: ../good/testfile.otp
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.presentation-template
+
+../bad/testfile.ots: ../good/testfile.ots
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.spreadsheet-template
+
+../bad/testfile.ott: ../good/testfile.ott
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.text-template
+
+../bad/testfile.potm: ../good/testfile.potm
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.openxmlformats-officedocument.presentationml.presentation
+
+../bad/testfile.ppsx: ../good/testfile.ppsx
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.openxmlformats-officedocument.presentationml.presentation
+
+../bad/testfile.pptx: ../good/testfile.pptx
+	python3 corrupt_zip.py $< $@
+	file -binNpr $@ | grep -q application/vnd.openxmlformats-officedocument.presentationml.presentation
 
 ../bad/testfile.rar3.av.cbr: ../good/testfile.rar3.av.cbr
 	python3 corrupt_any.py -c "unrar t" -m "(checksum error|is corrupt)" $< $@
