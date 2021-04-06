@@ -70,6 +70,7 @@ artifacts = \
   ../good/testfile.7z \
   ../good/testfile.arc \
   ../good/testfile.arj \
+  ../good/testfile.protect.arj \
   ../good/testfile.bmp \
   ../good/testfile.microsoft.cab \
   ../good/testfile.cb7 \
@@ -207,6 +208,14 @@ clean:
 
 ../good/testfile.arj: testfile.txt
 	arj a $@ $^
+	$(7Z_TEST) $@
+	$(LSAR_TEST) $@
+	arj t $@
+	file -binNpr $@ | grep -q application/x-arj
+
+# ARJ with ARJ-PROTECT damage protection
+../good/testfile.protect.arj: testfile.txt
+	arj a -hk $@ $^
 	$(7Z_TEST) $@
 	$(LSAR_TEST) $@
 	arj t $@
