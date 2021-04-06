@@ -179,7 +179,14 @@ artifacts = \
   ../good/testfile.xpm \
   ../good/testfile.zip \
   ../good/testfile.zoo \
-  ../bad/testfile.jar
+  ../bad/testfile.cbz \
+  ../bad/testfile.docx \
+  ../bad/testfile.docm \
+  ../bad/testfile.epub \
+  ../bad/testfile.jar \
+  ../bad/testfile.odt \
+  ../bad/testfile.xlsm \
+  ../bad/testfile.zip
 
 objects = testfile.class testfile.jpg testfile.tar
 

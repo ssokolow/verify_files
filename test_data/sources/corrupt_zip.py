@@ -8,7 +8,14 @@ from __future__ import (absolute_import, division, print_function,
 __author__ = "Stephan Sokolow (deitarion/SSokolow)"
 __license__ = "Public Domain"
 
-import os, shutil, struct, zipfile
+import os, shutil, struct, sys, zipfile
+import subprocess  # nosec
+
+EXTRACTORS = [
+    ['7z', 't'],
+    ['lsar', '-t'],
+    ['unzip', '-tqq'],
+]
 
 
 def main():
@@ -22,6 +29,12 @@ def main():
 
     args = parser.parse_args()
 
+    # Test that the output is NOT detected as corrupt
+    for extractor in EXTRACTORS:
+        subprocess.check_call(extractor + [args.in_path],  # nosec
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL)
+
     # Make a copy in bad/ and Corrupt it
     shutil.copy(args.in_path, args.out_path)
     with zipfile.ZipFile(args.out_path) as zobj:
@@ -33,13 +46,20 @@ def main():
         fobj.seek(offset + 26)
         # Calculate the offset at which the file data begins
         fname_len, extra_len = struct.unpack("<HH", fobj.read(4))
-        data_offset = fobj.tell() + fname_len + extra_len
+        data_offset = fobj.tell() + fname_len + extra_len + 1
 
         # Read the first byte of the file data, flip the LSB, and write it back
         fobj.seek(data_offset)
         old_value = fobj.read(1)
         fobj.seek(data_offset)
         fobj.write(bytes([old_value[0] ^ 1]))
+
+    # Test that the output is detected as corrupt
+    for extractor in EXTRACTORS:
+        if subprocess.call(extractor + [args.out_path],  # nosec
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL) == 0:
+            sys.exit(1)
 
 if __name__ == '__main__':  # pragma: nocover
     main()
