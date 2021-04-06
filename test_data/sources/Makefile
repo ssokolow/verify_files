@@ -181,6 +181,8 @@ artifacts = \
 
 objects = testfile.class testfile.jpg testfile.tar
 
+# --== Tasks ==--
+
 all: rar-test-files $(artifacts)
 
 distclean: clean
@@ -188,6 +190,8 @@ distclean: clean
 
 clean:
 	rm -f $(objects) $(artifacts)
+
+# --== Good Test Files ==--
 
 ../good/testfile.7z: testfile.txt
 	7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on $@ $^
@@ -208,15 +212,12 @@ clean:
 	arj t $@
 	file -binNpr $@ | grep -q application/x-arj
 
-../good/testfile.txt.b64: testfile.txt
-	uuenview -b $< >$@
-	# TODO: Test
-
 ../good/testfile.bmp: testfile.png
 	convert $< $@
-	file -binNpr $@ | grep -q image/x-ms-bmp
 	# TODO: Test
+	file -binNpr $@ | grep -q image/x-ms-bmp
 
+# Use .microsoft.cab to distinguish it from InstallShield .cab
 ../good/testfile.microsoft.cab: testfile.txt
 	lcab $^ $@
 	$(7Z_TEST) $@
@@ -256,19 +257,19 @@ clean:
 	cp $^ $@
 	$(JSON_TEST) $@
 
-../good/testfile.docx: testfile.txt
-	pandoc -t docx -o $@ $<
-	$(7Z_TEST) $@
-	$(LSAR_TEST) $@
-	$(ZIP_TEST) $@
-	# TODO: Assert the format more specifically
-
 ../good/testfile.docm: ../good/testfile.docx
 	cp $< $@
 	$(7Z_TEST) $@
 	$(LSAR_TEST) $@
 	$(ZIP_TEST) $@
-	# TODO: Assert the format more specifically
+	file -binNpr $@ | grep -q application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+../good/testfile.docx: testfile.txt
+	pandoc -t docx -o $@ $<
+	$(7Z_TEST) $@
+	$(LSAR_TEST) $@
+	$(ZIP_TEST) $@
+	file -binNpr $@ | grep -q application/vnd.openxmlformats-officedocument.wordprocessingml.document
 
 ../good/testfile.flac: testfile.wav
 	flac --best --verify -o $@ $<
@@ -278,6 +279,7 @@ clean:
 
 ../good/testfile.gif: testfile.png
 	convert $< $@
+	# TODO: Test
 	file -binNpr $@ | grep -q image/gif
 
 ../good/testfile.jar: MANIFEST.MF testfile.class
@@ -289,14 +291,17 @@ clean:
 
 ../good/testfile.jpe: testfile.jpg
 	convert $< $@
+	# TODO: Test
 	file -binNpr $@ | grep -q image/jpeg
 
 ../good/testfile.jpeg: testfile.png
 	convert $< $@
+	# TODO: Test
 	file -binNpr $@ | grep -q image/jpeg
 
 ../good/testfile.jpg: testfile.jpg
 	cp $< $@
+	# TODO: Test
 	file -binNpr $@ | grep -q image/jpeg
 
 ../good/testfile.json: testfile.json
@@ -328,13 +333,14 @@ clean:
 	# TODO: Generate test files for a bunch of different versions.
 	makensis -NOCONFIG "-XOutFile $@" $<
 	$(7Z_TEST) $@
+	file -binNpr $@ | grep -q application/x-dosexec
 
 ../good/testfile.odt: testfile.txt
 	pandoc -t odt -o $@ $<
 	$(7Z_TEST) $@
 	$(LSAR_TEST) $@
 	$(ZIP_TEST) $@
-	# TODO: Assert the format more specifically
+	file -binNpr $@ | grep -q application/vnd.oasis.opendocument.text
 
 ../good/testfile.ogg: testfile.wav
 	oggenc -q5 -o $@ $<
@@ -343,10 +349,12 @@ clean:
 
 ../good/testfile.pbm: testfile.png
 	convert $< $@
+	# TODO: Test
 	file -binNpr $@ | grep -q image/x-portable-bitmap
 
 ../good/testfile.pcx: testfile.png
 	convert $< $@
+	# TODO: Test
 	file -binNpr $@ | grep -q image/x-pcx
 
 ../good/testfile.pdf: testfile.pdf
@@ -355,14 +363,17 @@ clean:
 
 ../good/testfile.pgm: testfile.png
 	convert $< $@
+	# TODO: Test
 	file -binNpr $@ | grep -q image/x-portable-greymap
 
 ../good/testfile.png: testfile.png
 	cp $< $@
+	# TODO: Test
 	file -binNpr $@ | grep -q image/png
 
 ../good/testfile.ppm: testfile.png
 	convert $< $@
+	# TODO: Test
 	file -binNpr $@ | grep -q image/x-portable-pixmap
 
 ../good/testfile.ps: testfile.ps
@@ -374,13 +385,16 @@ clean:
 	cp $< $@
 	# TODO: Test
 
+../good/testfile.rar3.cbr: rar-test-files/testfile.rar3.cbr
+	cp $^ $@
+
+../good/testfile.rar3.rar: rar-test-files/testfile.rar3.rar
+	cp $^ $@
+
 ../good/testfile.rar3.av.cbr: rar-test-files/testfile.rar3.av.cbr
 	cp $^ $@
 
 ../good/testfile.rar3.av.rar: rar-test-files/testfile.rar3.av.rar
-	cp $^ $@
-
-../good/testfile.rar3.cbr: rar-test-files/testfile.rar3.cbr
 	cp $^ $@
 
 ../good/testfile.rar3.dos_sfx.exe: rar-test-files/testfile.rar3.dos_sfx.exe
@@ -390,9 +404,6 @@ clean:
 	cp $^ $@
 
 ../good/testfile.rar3.locked.rar: rar-test-files/testfile.rar3.locked.rar
-	cp $^ $@
-
-../good/testfile.rar3.rar: rar-test-files/testfile.rar3.rar
 	cp $^ $@
 
 ../good/testfile.rar3.rr.cbr: rar-test-files/testfile.rar3.rr.cbr
@@ -451,6 +462,9 @@ clean:
 	# TODO: Test
 
 ../good/testfile.rtf: testfile.rtf
+	# NOTE: pandoc's RTF generation doesn't produce an RTF version header,
+	#       so LibreOffice interprets it as plaintext, so this has to use a
+	#       hand-crafted minimal RTF file.
 	cp $< $@
 	# TODO: Test
 
@@ -499,10 +513,6 @@ clean:
 	gunzip -c $@
 	# TODO: Assert the format more specifically
 
-../good/testfile.tga: testfile.png
-	convert $< $@
-	# TODO: Test
-
 ../good/testfile.tbz2: testfile.tar
 	bzip2 -c -9 $< > $@
 	$(7Z_TEST) $@
@@ -511,14 +521,9 @@ clean:
 	bunzip2 -c $@ | diff - testfile.tar
 	file -binNpr $@ | grep -q application/x-bzip2
 
-../good/testfile.tif: testfile.png
+../good/testfile.tga: testfile.png
 	convert $< $@
 	# TODO: Test
-	file -binNpr $@ | grep -q image/tiff
-
-../good/testfile.tiff: testfile.png
-	convert $< $@
-	file -binNpr $@ | grep -q image/tiff
 
 ../good/testfile.tgz: testfile.tar
 	gzip -c -9 $< > $@
@@ -529,11 +534,25 @@ clean:
 	gunzip -c $@ | diff - testfile.tar
 	file -binNpr $@ | grep -q application/gzip
 
+../good/testfile.tif: testfile.png
+	convert $< $@
+	# TODO: Test
+	file -binNpr $@ | grep -q image/tiff
+
+../good/testfile.tiff: testfile.png
+	convert $< $@
+	# TODO: Test
+	file -binNpr $@ | grep -q image/tiff
+
 ../good/testfile.tlz: testfile.tar
 	lzip -c -9 $< > $@
 	$(TAR_TEST) $@
 	lzip -t $@
 	file -binNpr $@ | grep -q application/x-lzip
+
+../good/testfile.txt.b64: testfile.txt
+	uuenview -b $< >$@
+	# TODO: Test
 
 ../good/testfile.txt.bz2: testfile.txt
 	bzip2 -c -9 $< > $@
@@ -542,6 +561,8 @@ clean:
 	bunzip2 -c $@ | diff - testfile.txt
 	file -binNpr $@ | grep -q application/x-bzip2
 
+# Use `.compress.Z` rather than `.Z` so there's no risk of a collision with a
+# pack-compressed `.z` test file on case-insensitive filesystems.
 ../good/testfile.txt.compress.Z: testfile.txt
 	compress -V 2>&1 | grep -q ncompress  # Make sure we have the real deal
 	compress -cf $< > $@
@@ -601,6 +622,22 @@ clean:
 ../good/testfile.utf-16-be-bom.txt ../good/testfile.utf-16-be.txt ../good/testfile.utf-16-le-bom.txt ../good/testfile.utf-16-le.txt ../good/testfile.utf-32-be-bom.txt ../good/testfile.utf-32-be.txt ../good/testfile.utf-32-le-bom.txt ../good/testfile.utf-32-le.txt ../good/testfile.utf8-bom.txt ../good/testfile.utf8.txt: make_test_txt.py
 	python3 make_test_txt.py
 
+../good/testfile.txt.xx: testfile.txt
+	uuenview -x $< >$@
+	# TODO: Test
+
+../good/testfile.txt.xxe: ../good/testfile.txt.xx
+	cp $< $@
+	# TODO: Test
+
+../good/testfile.txt.ync: testfile.txt
+	uuenview -y $< >$@
+	# TODO: Test
+
+../good/testfile.txt.yenc: ../good/testfile.txt.ync
+	cp $< $@
+	# TODO: Test
+
 ../good/testfile.webp: testfile.png
 	convert $< $@
 	# TODO: Test
@@ -628,12 +665,13 @@ clean:
 	$(ZIP_TEST) $@
 	# TODO: Assert the format more specifically
 
+# XML test file with extension but not header
 ../good/testfile.xml: testfile.xml
 	cp $< $@
 	# TODO: Test
 
-# Extensionless XML test
-../good/testfile_xml: testfile.xml
+# Extensionless XML test with header
+../good/testfile_xml: testfile_xml
 	cp $< $@
 	# TODO: Test
 
@@ -641,22 +679,6 @@ clean:
 	convert $< $@
 	# TODO: Test
 	file -binNpr $@ | grep -q image/x-xpmi
-
-../good/testfile.txt.xx: testfile.txt
-	uuenview -x $< >$@
-	# TODO: Test
-
-../good/testfile.txt.xxe: ../good/testfile.txt.xx
-	cp $< $@
-	# TODO: Test
-
-../good/testfile.txt.ync: testfile.txt
-	uuenview -y $< >$@
-	# TODO: Test
-
-../good/testfile.txt.yenc: ../good/testfile.txt.ync
-	cp $< $@
-	# TODO: Test
 
 ../good/testfile.zip: testfile.txt
 	zip -T $@ $^
@@ -672,11 +694,15 @@ clean:
 	$(LSAR_TEST) $@
 	file -binNpr $@ | grep -q application/x-zoo
 
+# --== Corrupted Test Files ==--
+
 ../bad/testfile.jar: ../good/testfile.jar
 	# TODO: Rework corrupt_zip.py to take an output *directory* so I can
 	# use $^ instead of $<
 	python3 corrupt_zip.py $< $@
 	# TODO: Test that extractors report FAILURE
+
+# --== Intermediate Artifacts Test Files ==--
 
 rar-test-files:
 	git clone https://github.com/ssokolow/rar-test-files.git
