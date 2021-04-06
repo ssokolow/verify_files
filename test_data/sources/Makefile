@@ -190,8 +190,11 @@ all: rar-test-files $(artifacts)
 distclean: clean
 	rm -rf rar-test-files
 
-clean:
-	rm -f $(objects) $(artifacts)
+clean: clean-intermediate
+	rm -f $(artifacts)
+
+clean-intermediate:
+	rm -f $(objects)
 
 # --== Good Test Files ==--
 
