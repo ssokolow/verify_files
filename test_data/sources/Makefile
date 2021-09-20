@@ -491,99 +491,99 @@ clean-intermediate:
 	cp $< $@
 	# TODO: Test
 
-../good/testfile.rar3.cbr: rar-test-files/testfile.rar3.cbr
+../good/testfile.rar3.cbr: rar-test-files/build/testfile.rar3.cbr
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar3.rar: rar-test-files/testfile.rar3.rar
+../good/testfile.rar3.rar: rar-test-files/build/testfile.rar3.rar
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar3.av.cbr: rar-test-files/testfile.rar3.av.cbr
+../good/testfile.rar3.av.cbr: rar-test-files/build/testfile.rar3.av.cbr
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar3.av.rar: rar-test-files/testfile.rar3.av.rar
+../good/testfile.rar3.av.rar: rar-test-files/build/testfile.rar3.av.rar
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar3.dos_sfx.exe: rar-test-files/testfile.rar3.dos_sfx.exe
+../good/testfile.rar3.dos_sfx.exe: rar-test-files/build/testfile.rar3.dos_sfx.exe
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-dosexec
 
-../good/testfile.rar3.locked.cbr: rar-test-files/testfile.rar3.locked.cbr
+../good/testfile.rar3.locked.cbr: rar-test-files/build/testfile.rar3.locked.cbr
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar3.locked.rar: rar-test-files/testfile.rar3.locked.rar
+../good/testfile.rar3.locked.rar: rar-test-files/build/testfile.rar3.locked.rar
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar3.rr.cbr: rar-test-files/testfile.rar3.rr.cbr
+../good/testfile.rar3.rr.cbr: rar-test-files/build/testfile.rar3.rr.cbr
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar3.rr.rar: rar-test-files/testfile.rar3.rr.rar
+../good/testfile.rar3.rr.rar: rar-test-files/build/testfile.rar3.rr.rar
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar3.solid.cbr: rar-test-files/testfile.rar3.solid.cbr
+../good/testfile.rar3.solid.cbr: rar-test-files/build/testfile.rar3.solid.cbr
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar3.solid.rar: rar-test-files/testfile.rar3.solid.rar
+../good/testfile.rar3.solid.rar: rar-test-files/build/testfile.rar3.solid.rar
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar3.wincon.sfx.exe: rar-test-files/testfile.rar3.wincon.sfx.exe
+../good/testfile.rar3.wincon.sfx.exe: rar-test-files/build/testfile.rar3.wincon.sfx.exe
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-dosexec
 
-../good/testfile.rar3.wingui.sfx.exe: rar-test-files/testfile.rar3.wingui.sfx.exe
+../good/testfile.rar3.wingui.sfx.exe: rar-test-files/build/testfile.rar3.wingui.sfx.exe
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-dosexec
 
-../good/testfile.rar5.cbr: rar-test-files/testfile.rar5.cbr
+../good/testfile.rar5.cbr: rar-test-files/build/testfile.rar5.cbr
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar5.linux_sfx.bin: rar-test-files/testfile.rar5.linux_sfx.bin
+../good/testfile.rar5.linux_sfx.bin: rar-test-files/build/testfile.rar5.linux_sfx.bin
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-executable
 
-../good/testfile.rar5.locked.cbr: rar-test-files/testfile.rar5.locked.cbr
+../good/testfile.rar5.locked.cbr: rar-test-files/build/testfile.rar5.locked.cbr
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar5.locked.rar: rar-test-files/testfile.rar5.locked.rar
+../good/testfile.rar5.locked.rar: rar-test-files/build/testfile.rar5.locked.rar
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar5.rar: rar-test-files/testfile.rar5.rar
+../good/testfile.rar5.rar: rar-test-files/build/testfile.rar5.rar
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar5.rr.cbr: rar-test-files/testfile.rar5.rr.cbr
+../good/testfile.rar5.rr.cbr: rar-test-files/build/testfile.rar5.rr.cbr
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar5.rr.rar: rar-test-files/testfile.rar5.rr.rar
+../good/testfile.rar5.rr.rar: rar-test-files/build/testfile.rar5.rr.rar
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar5.solid.cbr: rar-test-files/testfile.rar5.solid.cbr
+../good/testfile.rar5.solid.cbr: rar-test-files/build/testfile.rar5.solid.cbr
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar5.solid.rar: rar-test-files/testfile.rar5.solid.rar
+../good/testfile.rar5.solid.rar: rar-test-files/build/testfile.rar5.solid.rar
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-rar
 
-../good/testfile.rar5.wincon.sfx.exe: rar-test-files/testfile.rar5.wincon.sfx.exe
+../good/testfile.rar5.wincon.sfx.exe: rar-test-files/build/testfile.rar5.wincon.sfx.exe
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-dosexec
 
-../good/testfile.rar5.wingui.sfx.exe: rar-test-files/testfile.rar5.wingui.sfx.exe
+../good/testfile.rar5.wingui.sfx.exe: rar-test-files/build/testfile.rar5.wingui.sfx.exe
 	cp $^ $@
 	file -binNpr $@ | grep -q application/x-dosexec
 
