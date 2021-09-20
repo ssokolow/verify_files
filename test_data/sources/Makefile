@@ -58,6 +58,8 @@
 
 .PHONY: all clean distclean
 
+INNOSETUP_PATH=$(HOME)/.wine/drive_c/Program Files (x86)/Inno Setup 6/ISCC.exe
+
 7Z_TEST=7z t >/dev/null
 JSON_TEST=python3 -m json.tool >/dev/null
 LSAR_TEST=lsar -t >/dev/null
@@ -81,6 +83,7 @@ artifacts = \
   ../good/testfile.epub \
   ../good/testfile.flac \
   ../good/testfile.gif \
+  ../good/testfile.innosetup.exe \
   ../good/testfile.jar \
   ../good/testfile.jpe \
   ../good/testfile.jpeg \
@@ -391,6 +394,9 @@ clean-intermediate:
 	convert $< $@
 	# TODO: Test
 	file -binNpr $@ | grep -q image/gif
+
+../good/testfile.innosetup.exe: testfile.txt testfile.iss
+	wine "$(INNOSETUP_PATH)" testfile.iss
 
 ../good/testfile.jar: MANIFEST.MF testfile.class
 	jar cfm $@ $^
