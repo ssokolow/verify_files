@@ -80,6 +80,9 @@ def main():
             if fail_msg and not re.search(fail_msg, err.output):
                 print(err.output)
                 print("Failed message check")
+
+                # Ensure `make` tries again next time
+                os.remove(args.out_path)
                 sys.exit(3)
             else:
                 pass  # print(err.output)
