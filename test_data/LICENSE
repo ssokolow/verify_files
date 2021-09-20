@@ -1,33 +1,5 @@
-With the exception of the ctime0.* files, all files in this test data set have
-been released into the public domain.
-
----
-
-The ctime0.* files in the good/ directory are unmodified copies of
-test/files/ctime0.rar from the 969ba46d06e5aecd14cf2900883d594910881981
-commit of markokr/rarfile on GitHub, originally retrieved from
-
-https://github.com/markokr/rarfile/raw/969ba46d06e5aecd14cf2900883d594910881981/test/files/ctime0.rar
-
-They are used under the ISC license quoted below:
-
-  Copyright (c) 2005-2016 Marko Kreen <markokr@gmail.com>
-
-  Permission to use, copy, modify, and/or distribute this software for any
-  purpose with or without fee is hereby granted, provided that the above
-  copyright notice and this permission notice appear in all copies.
-
-  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-  ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-The ctime0.* files in the bad/ directory are the same file, which has been
-modified in a hex editor by flipping a single bit, to cause CRC checks to fail.
-
+With the exception of the executable code in the self-extractor stubs, all
+files in this test data set have been released into the public domain.
 ---
 
 The following two images were released into the public domain by
@@ -36,6 +8,25 @@ https://stackoverflow.com/q/35814919/435253
 
  - bad/corrupt_image.jpg
  - bad/corrupt_image2.jpg
+
+---
+
+good/testfile.nsis.exe was built using the Nullsoft Scriptable Install System
+and includes code released under several permissive open-source licenses, none
+of which impose attribution requirements on the generated binary.
+
+See https://nsis-dev.github.io/NSIS-Forums/html/t-350646.html and
+https://nsis.sourceforge.io/License for further details.
+
+---
+
+The self-extractor stubs on all self-extracting RAR archives included in this
+collection are not released into the public domain but may be freely
+redistributed.
+
+See https://github.com/ssokolow/rar-test-files and the RAR license for further
+details.
+
 
 ---
 
@@ -48,4 +39,3 @@ neighboring rights together with all associated claims and causes of action
 with respect to this work to the extent possible under the law.
 
 See https://creativecommons.org/publicdomain/zero/1.0/ for more details.
-

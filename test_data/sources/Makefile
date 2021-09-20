@@ -21,7 +21,7 @@
 # - cramfsck (cramfsprogs)
 # - file (file)
 # - flac (flac)
-# - git (git) (Used to retrieve https://github.com/ssokolow/rar-test-files.git)
+# - git (git) (Used to retrieve RAR and StuffIt test files)
 # - gunzip (gzip)
 # - gzip (gzip)
 # - hexbin (macutils)
@@ -127,6 +127,8 @@ artifacts = \
   ../good/testfile.rar5.wingui.sfx.exe \
   ../good/testfile.rss \
   ../good/testfile.rtf \
+  ../good/testfile.sit \
+  ../good/testfile.sitx \
   ../good/testfile.sqlite3 \
   ../good/testfile.gzip.squashfs \
   ../good/testfile.lz4.squashfs \
@@ -245,6 +247,8 @@ artifacts = \
   ../bad/testfile.lzma.squashfs \
   ../bad/testfile.lzo.squashfs \
   ../bad/testfile.xz.squashfs \
+  ../bad/testfile.sit \
+  ../bad/testfile.sitx \
   ../bad/testfile.svgz \
   ../bad/testfile.tif \
   ../bad/testfile.tiff \
@@ -271,10 +275,10 @@ objects = testfile.class testfile.jpg testfile.tar
 
 # --== Tasks ==--
 
-all: rar-test-files $(artifacts)
+all: rar-test-files stuffit-test-files $(artifacts)
 
 distclean: clean
-	rm -rf rar-test-files
+	rm -rf rar-test-files stuffit-test-files
 
 clean: clean-intermediate
 	rm -f $(artifacts)
@@ -598,6 +602,14 @@ clean-intermediate:
 	cp $< $@
 	# TODO: Test
 	file -binNpr $@ | grep -q text/rtf
+
+../good/testfile.sit: stuffit-test-files/build/testfile.stuffit7.win.sit
+	cp $^ $@
+	file -binNpr $@ | grep -q application/x-stuffit; charset=binary
+
+../good/testfile.sitx: stuffit-test-files/build/testfile.stuffit_deluxe_2009.win.backcompat.sitx
+	cp $^ $@
+	file -binNpr $@ | grep -q application/x-stuffit; charset=binary
 
 ../good/testfile.sqlite3: testfile.sql
 	sqlite3 $@ < $<
@@ -1088,6 +1100,12 @@ clean-intermediate:
 ../bad/testfile.xz.squashfs: ../good/testfile.xz.squashfs
 	python3 corrupt_any.py -o50 -c "unsquashfs -l" -m "failed to" $< $@
 
+../bad/testfile.sit: ../good/testfile.sit
+	python3 corrupt_any.py -c "lsar -t" -m "Unpacking failed!"  $< $@
+
+../bad/testfile.sitx: ../good/testfile.sitx
+	python3 corrupt_any.py -c "lsar -t" -m "Checksum failed!"  $< $@
+
 ../bad/testfile.svgz: ../good/testfile.svgz
 	python3 corrupt_any.py -c "gunzip -t" -m "crc error" $< $@
 	file -binNpr $@ | grep -q application/gzip
@@ -1173,6 +1191,9 @@ clean-intermediate:
 
 rar-test-files:
 	git clone https://github.com/ssokolow/rar-test-files.git
+
+stuffit-test-files:
+	git clone https://github.com/ssokolow/stuffit-test-files.git
 
 testfile.tar: testfile.txt
 	tar cvf $@ $<
