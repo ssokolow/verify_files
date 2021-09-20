@@ -422,13 +422,13 @@ clean-intermediate:
 	lzh-archiver c $@ $^
 	$(7Z_TEST) $@
 	$(LSAR_TEST) $@
-	file -binNpr $@ | grep -q application/x-lharc
+	file -binNpr $@ | egrep -q 'application/(x-lharc|x-lzh-compressed)'
 
 ../good/testfile.lzh: testfile.txt
 	lzh-archiver c $@ $^
 	$(7Z_TEST) $@
 	$(LSAR_TEST) $@
-	file -binNpr $@ | grep -q application/x-lharc
+	file -binNpr $@ | egrep -q 'application/(x-lharc|x-lzh-compressed)'
 
 ../good/testfile.lzx: testfile.lzx
 	cp $< $@
@@ -437,7 +437,7 @@ clean-intermediate:
 
 ../good/testfile.mml: testfile.mml
 	cp $^ $@
-	file -binNpr $@ | grep -q application/xml
+	file -binNpr $@ | egrep -q (application|text)/xml
 
 ../good/testfile.nsis.exe: testfile.nsi
 	# TODO: Generate test files for a bunch of different versions.
@@ -708,7 +708,7 @@ clean-intermediate:
 # Use `.compress.Z` rather than `.Z` so there's no risk of a collision with a
 # pack-compressed `.z` test file on case-insensitive filesystems.
 ../good/testfile.txt.compress.Z: testfile.txt
-	compress -V 2>&1 | grep -q ncompress  # Make sure we have the real deal
+	compress -V 2>&1 | egrep -q '(\(N\)|n)compress'  # Make sure we have the real deal
 	compress -cf $< > $@
 	$(7Z_TEST) $@
 	$(LSAR_TEST) $@
@@ -884,7 +884,7 @@ clean-intermediate:
 
 ../bad/testfile.flac: ../good/testfile.flac
 	python3 corrupt_any.py -c "flac -t" -m "Got error"  $< $@
-	file -binNpr $@ | grep -q audio/x-flac
+	file -binNpr $@ | egrep -q 'audio/(x-)?flac'
 
 ../bad/testfile.gif: ../good/testfile.gif
 	python3 corrupt_any.py -o38 -c "identify" -m "corrupt image" $< $@
@@ -907,12 +907,12 @@ clean-intermediate:
 	python3 corrupt_any.py -o1 -c "python3 -m json.tool" $< $@
 
 ../bad/testfile.lha: ../good/testfile.lha
-	python3 corrupt_any.py -o47 -c "lha t" -m "CRC error" $< $@
-	file -binNpr $@ | grep -q application/x-lharc
+	python3 corrupt_any.py -o48 -c "lha t" -m "CRC error" $< $@
+	file -binNpr $@ | egrep -q 'application/x-(lharc|lzh-compressed)'
 
 ../bad/testfile.lzh: ../good/testfile.lzh
-	python3 corrupt_any.py -o47 -c "lha t" -m "CRC error" $< $@
-	file -binNpr $@ | grep -q application/x-lharc
+	python3 corrupt_any.py -o48 -c "lha t" -m "CRC error" $< $@
+	file -binNpr $@ | egrep -q 'application/x-lharc|application/x-lzh-compressed'
 
 ../bad/testfile.lzx: ../good/testfile.lzx
 	python3 corrupt_any.py -c "lsar -t" -m "Checksum failed"  $< $@
@@ -972,7 +972,7 @@ clean-intermediate:
 	python3 corrupt_any.py -c "identify" -m "unable to read" $< $@
 
 ../bad/testfile.png: ../good/testfile.png
-	python3 corrupt_any.py -c "identify" -m "corrupt image" $< $@
+	python3 corrupt_any.py -o 65 -c "identify" -m "corrupt image" $< $@
 
 ../bad/testfile.potm: ../good/testfile.potm
 	python3 corrupt_zip.py $< $@
@@ -1121,10 +1121,10 @@ clean-intermediate:
 	file -binNpr $@ | grep -q application/gzip
 
 ../bad/testfile.tif: ../good/testfile.tif
-	python3 corrupt_any.py -c "identify" -m "error/tiff.c/TIFF" $< $@
+	python3 corrupt_any.py -o65 -c "identify" -m "error/tiff.c/TIFF" $< $@
 
 ../bad/testfile.tiff: ../good/testfile.tiff
-	python3 corrupt_any.py -c "identify" -m "error/tiff.c/TIFF" $< $@
+	python3 corrupt_any.py -o65 -c "identify" -m "error/tiff.c/TIFF" $< $@
 
 ../bad/testfile.tlz: ../good/testfile.tlz
 	python3 corrupt_any.py -c "lzip -t" -m "Decoder error" $< $@
@@ -1166,7 +1166,7 @@ clean-intermediate:
 	# TODO: Verify that it still passes header check
 
 ../bad/testfile.xbm: ../good/testfile.xbm
-	python3 corrupt_any.py -c "identify" -m "error/xbm.c/ReadXBM" $< $@
+	python3 corrupt_any.py -o17 -c "identify" -m "error/xbm.c/ReadXBM" $< $@
 
 ../bad/testfile.xlsm: ../good/testfile.xlsm
 	python3 corrupt_zip.py $< $@
