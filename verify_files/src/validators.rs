@@ -133,7 +133,7 @@ mod tests {
         assert!(path_input_file_or_dir(OsStr::new("/tmp\0with\0null")).is_err());       // Bad CStr
         // TODO: Not-already-canonicalized paths (eg. relative paths)
 
-        assert!(path_output_dir(OsStr::from_bytes(b"/not\xffutf8")).is_err());   // Invalid UTF-8
+        assert!(path_input_dir(OsStr::from_bytes(b"/not\xffutf8")).is_err());   // Invalid UTF-8
         // TODO: Non-UTF8 path that actually does exist and is writable
     }
 
@@ -156,7 +156,7 @@ mod tests {
         assert!(path_input_dir(OsStr::new("/tmp\0with\0null")).is_err());       // Invalid CString
         // TODO: Not-already-canonicalized paths (eg. relative paths)
 
-        assert!(path_output_dir(OsStr::from_bytes(b"/not\xffutf8")).is_err());   // Invalid UTF-8
+        assert!(path_input_dir(OsStr::from_bytes(b"/not\xffutf8")).is_err());   // Invalid UTF-8
         // TODO: Non-UTF8 path that actually does exist and is writable
     }
 
@@ -165,7 +165,6 @@ mod tests {
     fn path_input_dir_basic_functionality() {
         unimplemented!("TODO: Implement unit test for Windows version of path_input_dir");
     }
-
 
     // ---- path_input_file ----
 
