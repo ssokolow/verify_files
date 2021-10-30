@@ -41,21 +41,25 @@ handler = "ffmpeg"
 description = "AIFF Audio (Compressed)"
 extension = "aifc"
 handler = "ffmpeg"
+header = [[70, 79, 82, 77], [65, 73, 70, 70]]
 
 [filetype.aiff]
 description = "AIFF Audio"
 extension = ["aif", "aiff"]
 handler = "ffmpeg"
+header = [[70, 79, 82, 77], [65, 73, 70, 70]]
 
 [filetype.ape]
 description = "Monkey's Audio"
 extension = "ape"
 handler = "ffmpeg"
+header = [77, 65, 67, 32]
 
 [filetype.arj]
 description = "ARJ archive"
 extension = "arj"
 handler = ["arj", "lsar"]
+header = [96, 234]
 
 [filetype.asf]
 description = "Microsoft ASF"
@@ -67,7 +71,13 @@ header = [48, 38, 178, 117, 142, 102, 207, 17, 166, 217, 0, 170, 0, 98, 206, 108
 description = "Microsoft AVI Video"
 extension = "avi"
 handler = "ffmpeg"
+# TODO: Rework deserializing to support a header of the form
+# [52, 49, 46, 46, ??, ??, ??, ??, 41, 56, 49, 20]
 
+# TODO: Look into whether it would be useful to have some kind of fallback
+# verifier for unidentified RIFF-based formats.
+
+# TODO: Split .bin into RAR, BIN/CUE, etc.
 [filetype.bin]
 description = ".bin"
 extension = "bin"
@@ -77,11 +87,15 @@ handler = "bin"
 description = "BinHex4 encoded"
 extension = "hqx"
 handler = "binhex"
+header = [40, 84, 104, 105, 115, 32, 102, 105, 108, 101, 32, 109, 117, 115,
+    116, 32, 98, 101, 32, 99, 111, 110, 118, 101, 114, 116, 101, 100, 32, 119,
+    105, 116, 104, 32, 66, 105, 110, 72, 101, 120, 32, 52, 46, 48, 41]
 
 [filetype.bmp]
 description = "Microsoft Device-Independent Bitmap Image"
 extension = ["bmp", "dib"]
 handler = "image"
+header = [66, 77]
 
 [filetype.bzip2]
 description = "BZip2 compressed"
@@ -118,17 +132,22 @@ extension = "dashtoc"
 description = "Multi-page ZSoft PC Paintbrush Image"
 extension = "dcx"
 handler = "pil"
+header = [177, 104, 222, 58]
 multipage = true
 
+# TODO: See if the "ar" crate is an acceptable substitute and, if so, how much
+#       size it would add to the output binary.
 [filetype.deb]
 description = "Debian Package"
 extension = "deb"
 handler = "p7zip"
+header = [33, 60, 97, 114, 99, 104, 62]
 
 [filetype.dmg]
 description = "Apple DMG Disk Image"
 extension = "dmg"
 handler = "p7zip"
+header = [120, 1, 115, 13, 98, 98, 96]
 
 [filetype.docm]
 container = "zip"
@@ -160,20 +179,41 @@ description = "FLV Video"
 extension = "f4v"
 handler = "ffmpeg"
 
+# TODO: See how much work it would take to use something like `claxon` or
+#       `cauldron` to do md5sum verification internally.
 [filetype.flac]
 description = "FLAC Audio"
 extension = "flac"
 handler = "flac"  # TODO: Can FFmpeg be asked to check the md5sum?
+header = [102, 76, 97, 67]
 
-[filetype.flic]
-description = "Autodesk FLIC Animation"
-extension = ["fli", "flc"]
+# See if the `flic` crate is suitable for this use
+[filetype.fli]
+description = "Autodesk Animator FLIC Animation"
+extension = ["fli"]
 handler = "pil"
+header = [17, 175]
+header_offset = 2
+# Source: http://steve.hollasch.net/cgindex/formats/fli.html
+
+# See if the `flic` crate is suitable for this use
+[filetype.flc]
+description = "Autodesk Animator Pro FLIC Animation"
+extension = ["flc"]
+handler = "pil"
+header = [18, 175]
+header_offset = 2
+# Source: http://www.retroarchive.org/swag/MISC/0140.PAS.html
 
 [filetype.flv]
 description = "Flash Video"
 extension = "flv"
 handler = "ffmpeg"
+header = [70, 76, 86]
+
+# TODO: A Gameboy ROM must contain the Nintendo logo for its startup screen
+#       from offset0x104to0x133, one of the longest signatures required in any
+#       file format.
 
 [filetype.gif]
 description = "GIF Image"
@@ -193,10 +233,12 @@ extension = "exe"
 handler = "innoextract"
 
 [filetype.iso_dvdisaster]
-description = "ISO CD/DVD image (DVDisaster ECC)"
+description = "ISO 9660 CD/DVD image (DVDisaster ECC)"
 extension = "iso"
 handler = "dvdisaster"
+header = [67, 68, 48, 48, 49]
 
+# TODO: What does `jarsigner -verify` do on an unsigned JAR?
 [filetype.jar]
 container = "zip"
 description = "Java ARchive"
@@ -208,16 +250,24 @@ extension = ["jfi", "jfif", "jif", "jpe", "jpeg", "jpg"]
 handler = "image"
 header = [255, 216, 255]
 
+# TODO: Either match only FF D8 (the actual JFIF magic number) or be
+#       *absolutely* certain that all relevant parsers restrict input to the
+#       combination I'm matching on.
+
 [filetype.jpeg2k]
 description = "JPEG 2000 Image"
-extension = ["j2k", "jp2", "jpf", "jpx"]
+extension = ["j2k", "jp2", "jpg2", "jpf", "jpx"]
 handler = "pil"
+header = [0, 0, 0, 12, 106, 80, 32, 32, 13, 10, 135, 10]
 
 [filetype.json]
 description = "JSON Data"
 extension = "json"
 handler = "json"
 
+# TODO: Since LHA is used as a container for stuff, find a way to header detect
+# TODO: When I have time, safety-dance the delharc crate and then decide if
+#       that makes it suitable for built-in LHA support.
 [filetype.lha]
 description = "LHA archive"
 extension = ["lha", "lzh"]
@@ -238,6 +288,7 @@ handler = ["lzma", "p7zip", "lsar"]
 description = "LZX archive"
 extension = "lzx"
 handler = "lsar"
+header = [76, 90, 88]
 
 [filetype.m4a]
 description = "MPEG-4 Part 14 Audio"
@@ -263,16 +314,19 @@ handler = "ffmpeg"
 description = "Matroska Video (3D)"
 extension = "mk3d"
 handler = "ffmpeg"
+header = [26, 69, 223, 163]
 
 [filetype.mka]
 description = "Matroska Audio"
 extension = "mka"
 handler = "ffmpeg"
+header = [26, 69, 223, 163]
 
 [filetype.mkv]
 description = "Matroska Video"
 extension = "mkv"
 handler = "ffmpeg"
+header = [26, 69, 223, 163]
 
 [filetype.mov]
 description = "Quicktime Video"
@@ -293,11 +347,13 @@ handler = "ffmpeg"
 description = "MPEG Layer 3 Audio"
 extension = "mp3"
 handler = "ffmpeg"
+header = [[73, 68, 51], [255, 251], [255, 243], [255,242]]
 
 [filetype.mp4]
 description = "MPEG-4 Part 14 Video"
 extension = "mp4"
 handler = "ffmpeg"
+header = [0, 0, 0, 32, 102, 116, 121, 112, 105, 115, 111, 109]
 
 [filetype.mpeg]
 description = "MPEG Video"
@@ -323,6 +379,7 @@ handler = "ffmpeg"
 description = "Microsoft CAB"
 extension = "cab"
 handler = ["cabextract", "p7zip"]  # NOTE: "lsar" reports "Unknown" with 0 exit
+header = [77, 83, 67, 70]
 
 [filetype.ms_cursor]
 description = "Microsoft Cursor"
@@ -345,6 +402,7 @@ handler = ["p7zip", "lsar"]
 description = "Musepack Audio"
 extension = ["mp+", "mpc", "mpp"]
 handler = "ffmpeg"
+header = [[77, 80, 43], [77, 80, 67, 75]]
 
 [filetype.odb]
 container = "zip"
@@ -392,29 +450,30 @@ description = "ODF Text Document"
 extension = "odt"
 
 [filetype.oga]
+container = "ogx"
 description = "Ogg containing audio (.oga)"
 extension = "oga"
-handler = "ffmpeg"
 
 [filetype.ogg]
+container = "ogx"
 description = "Ogg Vorbis (.ogg)"
 extension = "ogg"
-handler = "ffmpeg"
 
 [filetype.ogm]
+container = "ogx"
 description = "OGM (Ogg, Unofficial)"
 extension = "ogm"
-handler = "ffmpeg"
 
 [filetype.ogv]
+container = "ogx"
 description = "Ogg containing video (.ogv)"
 extension = "ogv"
-handler = "ffmpeg"
 
 [filetype.ogx]
 description = "Ogg (unspecified) (.ogx)"
 extension = "ogx"
 handler = "ffmpeg"
+header = [79, 103, 103, 83]
 
 [filetype.opus]
 description = "Opus Audio"
@@ -465,23 +524,46 @@ extension = "ott"
 description = "NetPBM Portable Bitmap Image"
 extension = "pbm"
 handler = "image"
+header = [80, 49, 10]
 
+# TODO: See how PIL and the `pcx` crate compare for catching errors
 [filetype.pcx]
 description = "ZSoft PC Paintbrush Image"
 extension = "pcx"
 handler = "pil"
+header = [[10, 0, 1], [10, 2, 1], [10, 3, 1], [10, 4, 1], [10, 5, 1]]
+# Source: https://www.fileformat.info/format/pcx/egff.htm
 
+# TODO: See if the `pdf` or `lopdf` crate could replace pdftotext in this role
 [filetype.pdf]
 description = "PDF Document"
 extension = "pdf"
 handler = "pdftotext"
-header = [37, 80, 68, 70]
+header = [[37, 80, 68, 70, 45, 49, 46], [37, 80, 68, 70, 0]]
+# NOTE: https://www.garykessler.net/library/file_sigs.html says the PDF format
+#       also has a trailer, which could be useful for looking for ways to split
+#       and individually check the parts of a concatenated stream.
+# NOTE: According to pocorgtfo07.pdf, some PDF parsers will accept this
+#       occurring anywhere within the first 1024 bytes and some only look for
+#       the PDF trailer and will accept a missing header, so I'll need something
+#       smarter.
+
+# TODO: As hinted previously, PDF can be easily abused. For security reasons,
+#       Adobe Reader, the standard PDF reader, has blacklisted known magic
+#       signatures such as PNG or PE since version 10.1.5.  It is thus not
+#       possible anymore to have a valid polyglot that would open in Adobe
+#       Reader as PDF. This is a good security measure even if it breaks
+#       compatibility with older releases of PoC‖GTFO.
+#       -- pocorgtfo07.pdf
 
 [filetype.pgm]
 description = "NetPBM Portable Graymap Image"
 extension = "pgm"
 handler = "image"
+header = [80, 50, 10]
 
+# NOTE: According to the PICO-8 Wiki, .p8.png files store the game data in the
+# least significant bits of the screenshot and don't need special handling here
 [filetype.png]
 description = "PNG Image"
 extension = "png"
@@ -497,6 +579,7 @@ extension = "potm"
 description = "NetPBM Portable Pixmap Image"
 extension = "ppm"
 handler = "image"
+header = [80, 51, 10]
 
 [filetype.ppsx]
 container = "zip"
@@ -513,6 +596,8 @@ container = "zip"
 description = "OOXML Presentation"
 extension = "pptx"
 
+# TODO: See if it's feasible to use `python-parser` or `rustpython-parser`
+#       for this and, if so, how much bigger it makes the output file.
 [filetype.py]
 description = "Python Source Code"
 extension = "py"
@@ -554,10 +639,13 @@ description = "RealMedia Video (VBR)"
 extension = "rmvb"
 handler = "ffmpeg"
 
+# TODO: See if the `rpm-rs` crate can replace `rpm --checksig` and how much
+#       size it would add to the output binary.
 [filetype.rpm]
 description = "RPM Package"
 extension = "rpm"
 handler = ["rpm", "p7zip"]
+header = [237, 171, 238, 219]
 
 [filetype.rsn]
 container = "rar"
@@ -588,6 +676,8 @@ handler = "ffmpeg"
 description = "Stuffit archive"
 extension = "sit"
 handler = "lsar"
+header = [[83, 73, 84, 33, 0], [0x53, 0x74, 0x75, 0x66, 0x66, 0x49, 0x74, 0x20,
+    0x28, 0x63, 0x29, 0x31, 0x39, 0x39, 0x37, 0x2D]]
 
 [filetype.speex]
 description = "Speex Audio"
@@ -626,6 +716,8 @@ header_offset = 257
 description = "Truevision TGA Image"
 extension = "tga"
 handler = "image"
+# NOTE: https://www.garykessler.net/library/file_sigs.html lists a trailer for
+#       these files but it's optional and not present in my test files.
 
 [filetype.tbz2]
 container = "bzip2"
@@ -641,6 +733,7 @@ extension = "tgz"
 description = "TIFF Image"
 extension = ["tif", "tiff"]
 handler = "image"
+header = [[73, 73, 42, 0], [77, 77, 0, 42]]
 
 [filetype.tlz]
 container = "lzma"
@@ -666,26 +759,33 @@ handler = "uuencode"
 description = "Creative Labs VOC Audio"
 extension = "voc"
 handler = "ffmpeg"
+header = [67, 114, 101, 97, 116, 105, 118, 101, 32, 86, 111, 105, 99, 101, 32, 70]
 
 [filetype.wave]
 description = "Microsoft Waveform Audio"
 extension = "wav"
 handler = "ffmpeg"
+# TODO: Rework deserializing to support a header of the form
+# [52, 49, 46, 46, ??, ??, ??, ??, 57, 41, 56, 45]
 
 [filetype.wavpack]
 description = "WavPack Audio"
 extension = "wv"
 handler = "ffmpeg"
+header = [119, 118, 112, 107]
 
 [filetype.webm]
 description = "WebM Video"
 extension = "webm"
 handler = "ffmpeg"
+header = [26, 69, 223, 163]
 
 [filetype.webp]
 description = "WebP Image"
 extension = "webp"
-handler = "pil"
+handler = "pil" # TODO: Check if `image` validates despite only supporting luma
+# TODO: Rework deserializing to support a header of the form
+# [52, 49, 46, 46, ??, ??, ??, ??, 57, 45, 42, 50]
 
 [filetype.wma]
 container = "asf"
@@ -730,6 +830,7 @@ extension = "xpi"
 description = "X PixMap Image"
 extension = "xpm"
 handler = "pil"
+header = [47, 42, 32, 88, 80, 77, 32, 42, 47]
 
 [filetype.xz]
 description = ".xz compressed"
@@ -747,6 +848,7 @@ header = [[80, 75, 3, 4], [80, 75, 5, 6], [80, 75, 7, 8]]
 description = "Zoo archive"
 extension = "zoo"
 handler = "lsar"
+header = [90, 79, 79]
 
 # TODO: Integrate the rest of the formats supported by lsar:
 #       (https://github.com/ashang/unar#supported-old-formats)
