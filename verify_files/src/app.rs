@@ -7,6 +7,7 @@ use std::path::PathBuf;
 
 // 3rd-party crate imports
 use anyhow::Result;
+use ignore::WalkBuilder;
 use structopt::StructOpt;
 
 use log::{debug, error, info, trace, warn};
@@ -42,13 +43,31 @@ pub struct CliOpts {
 }
 
 /// The actual `main()`
-pub fn main(opts: CliOpts) -> Result<()> {
+pub fn main(mut opts: CliOpts) -> Result<()> {
     // TODO: Support reading a custom config before using the embedded one
-    let test = config::parse(DEFAULT_CONFIG)?;
-    println!("{:#?}", test);
+    let config = config::parse(DEFAULT_CONFIG,
+        &|x| processors::BUILTIN_PROCESSORS.contains_key(x))?;
 
-    for inpath in opts.inpath {
-        todo!("Implement application logic")
+    // XXX: Fix this once https://github.com/BurntSushi/ripgrep/issues/1761 is resolved.
+    if let Some(path1) = opts.inpath.pop() {
+        let mut builder = WalkBuilder::new(path1);
+        builder.standard_filters(false);
+        for ignore_pat in config.overrides.iter().filter(|x| x.ignore) {
+            // TODO: Integration test the proper handling of ignores
+            builder.add_custom_ignore_filename(&ignore_pat.path);
+        }
+        // TODO: Allow the standard filters to be toggled individually in the config file or via
+        //       command-line arguments
+        // TODO: Support all WalkBuilder arguments that don't make sense in the config file as
+        //       command-line options.
+        for path in opts.inpath {
+            builder.add(path);
+        }
+        for result in builder.build() {
+            // TODO: Have an internal validator (which can be turned off) which runs in addition to
+            // the regular check and just looks for Win32-incompatible filenames.
+            error!("TODO: Implement processing of {:?}", result?);
+        }
     }
 
     Ok(())
