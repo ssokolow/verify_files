@@ -55,6 +55,11 @@ extension = "ape"
 handler = "ffmpeg"
 header = [77, 65, 67, 32]
 
+[filetype.apk]
+container = "zip"
+description = "Android application package"
+extension = "apk"
+
 [filetype.arj]
 description = "ARJ archive"
 extension = "arj"
@@ -310,6 +315,11 @@ description = "MPEG-4 Part 14 Video"
 extension = "m4v"
 handler = "ffmpeg"
 
+[filetype.maff]
+container = "zip"
+description = "Mozilla Archive Format"
+extension = "maff"
+
 [filetype.mk3d]
 description = "Matroska Video (3D)"
 extension = "mk3d"
@@ -380,6 +390,12 @@ description = "Microsoft CAB"
 extension = "cab"
 handler = ["cabextract", "p7zip"]  # NOTE: "lsar" reports "Unknown" with 0 exit
 header = [77, 83, 67, 70]
+
+[filetype.is_cab]
+description = "InstallShield CAB"
+extension = "cab"
+handler = ["unshield"]  # TODO: Do p7zip or lsar support any of these?
+header = [73, 83, 99, 40]
 
 [filetype.ms_cursor]
 description = "Microsoft Cursor"
@@ -755,6 +771,11 @@ description = "UUEncoded"
 extension = ["uu", "uue"]
 handler = "uuencode"
 
+[filetype.vgacopy]
+description = "Compressed VGA-COPY/386 Floppy Disk Image"
+extension = "vcp"
+container = "arj"
+
 [filetype.voc]
 description = "Creative Labs VOC Audio"
 extension = "voc"
@@ -818,12 +839,11 @@ extension = "xml"
 handler = "xml"
 header = [60, 63, 120, 109, 108, 32]
 # TODO: Decide how to handle formats that are less rigid on their 'header'
-#       format, like XML. (Maybe a flag that indicates detection shouldn't
-#       complain if the extension matches but the header doesn't?)
+#       format.
 
 [filetype.xpi]
 container = "zip"
-description = "Mozilla XPI archive"
+description = "Mozilla XPInstall archive"
 extension = "xpi"
 
 [filetype.xpm]
@@ -831,6 +851,11 @@ description = "X PixMap Image"
 extension = "xpm"
 handler = "pil"
 header = [47, 42, 32, 88, 80, 77, 32, 42, 47]
+
+[filetype.ym]
+container = "lha"
+description = "Atari ST/Amstrad CPC YM2149 Chiptune"
+extension = "ym"
 
 [filetype.xz]
 description = ".xz compressed"
@@ -935,4 +960,9 @@ sources = ["https://rpm.org/", "https://www.cygwin.com/"]
 argv = ["unrar", "t"]
 description = "RARLAB UnRAR"
 sources = "https://www.rarlab.com/rar_add.htm"
+
+[handler.unshield]
+argv = ["unshield", "t"]
+description = "Unshield"
+sources = "https://github.com/twogood/unshield"
 
