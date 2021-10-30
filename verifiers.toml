@@ -105,7 +105,7 @@ header = [66, 77]
 [filetype.bzip2]
 description = "BZip2 compressed"
 extension = "bz2"
-handler = ["bz2", "p7zip", "lsar"]
+handler = ["bunzip2", "p7zip", "lsar"]
 header = [66, 90, 104]
 
 [filetype.cb7]
@@ -866,7 +866,7 @@ extension = "ym"
 [filetype.xz]
 description = ".xz compressed"
 extension = "xz"
-handler = ["lzma", "p7zip", "lsar"]
+handler = ["xz", "p7zip", "lsar"]
 header = [253, 55, 122, 88, 90, 0]
 
 # TODO: Decide how to disable fallback for formats that use Zip as a container
@@ -906,6 +906,11 @@ ignore = true
 argv = ["arj", "t"]
 description = "Open-source ARJ"
 sources = "http://arj.sourceforge.net/"
+
+[handler.bunzip2]
+argv = ["bunzip2", "-t"]
+sources = ["https://sourceware.org/bzip2/",
+           "https://sourceforge.net/projects/bzip2-for-windows/"]
 
 [handler.cabextract]
 argv = ["cabextract", "-t"]
@@ -974,3 +979,7 @@ argv = ["unshield", "t"]
 description = "Unshield"
 sources = "https://github.com/twogood/unshield"
 
+[handler.xz]
+argv = ["xz", "-t"]
+description = "XZ Utils"
+sources = "https://tukaani.org/xz/"
