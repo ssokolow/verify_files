@@ -292,6 +292,11 @@ pub struct Override {
     pub handler: Option<OneOrList<String>>,
 
     /// If `true`, don't process files or descend into directories matching the given glob.
+    ///
+    /// **TODO:** Disentangle `handler` and `ignore` overrides. Aside from "make invalid states
+    /// unrepresentable" (custom handler and ignore=true), using the `ignore` crate means that the
+    /// `message` field can't apply to overrides, so it makes more sense to do something like
+    /// having an ignores `Vec` and a handler overrides `BTreeMap` at the top level.
     #[serde(default, skip_serializing_if = "Not::not")]
     pub ignore: bool,
 
@@ -327,7 +332,12 @@ pub struct Handler {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[validate(length(min = 1, message = "If provided, 'description' must not be empty"))]
     pub description: Option<String>,
+
     /// If present and non-empty, the command will be considered to have failed if its output to
+    ///
+    /// **NOTE:** At some point, I may need to extend the design to also support handlers that
+    /// take a *directory* path as input without risking feeding directories with file-like names
+    /// to handlers that only expect files.
     /// `stderr` contains the given string, even if it returns an exit code that indicates success.
     ///
     /// Being present but empty is considered an error to avoid allowing an "unintended state that
@@ -458,7 +468,9 @@ pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
 }
 
 /// Parse and validate the given `verifiers.toml` text
-pub fn parse(toml_str: &str) -> Result<Root> {
+///
+/// TODO: Better design for integrating the builtin processor check.
+pub fn parse(toml_str: &str, is_builtin_processor: &dyn Fn(&str) -> bool) -> Result<Root> {
     // Parse and perform all validation where the outcome couldn't change as a result of a fallback
     // chain injecting new values.
     let parsed: Root =
@@ -478,7 +490,8 @@ pub fn parse(toml_str: &str) -> Result<Root> {
     // Check for typos in filetype handler fields
     for (id, filetype) in &parsed.filetypes {
         if let Some(ref handler) = filetype.handler {
-            for handler in handler.iter().filter(|y| !parsed.handlers.contains_key(*y)) {
+            for handler in handler.iter().filter(|y| !(parsed.handlers.contains_key(*y) ||
+                    is_builtin_processor(y.as_str()))) {
                 warn!("Unrecognized handler for filetype {}: {}", id, handler);
             }
         }

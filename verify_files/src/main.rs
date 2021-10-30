@@ -24,6 +24,7 @@ use structopt::{clap, StructOpt};
 mod app;
 mod config;
 mod helpers;
+mod processors;
 mod validators;
 
 /// Boilerplate to parse command-line arguments, set up logging, and handle bubbled-up `Error`s.

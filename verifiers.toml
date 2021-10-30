@@ -3,6 +3,17 @@
 # something and both handlers can process the type? Is such a situation a big
 # enough hazard to worry about it?)
 
+# TODO: Support a mode of operation which reports files which were detected by
+#       header rather than extension. (For easily identifying more esoteric
+#       formats that use a known format for a container but aren't on file.)
+
+# TODO: Automated tests to verify that, among a test corpus, if the extension
+#       matches, the associated header, if any, also matches.
+
+# TODO: See if the tree_magic crate would allow detection of a quality and
+#       comprehensiveness suitable for me to avoid having to reinvent it here.
+#       (https://lib.rs/crates/tree_magic)
+
 # TODO: For every fallback chain, test the relative ability of each option to
 #       detect flipped bits and truncation.
 [filetype.3gpp]
@@ -70,7 +81,7 @@ handler = "binhex"
 [filetype.bmp]
 description = "Microsoft Device-Independent Bitmap Image"
 extension = ["bmp", "dib"]
-handler = "pil"
+handler = "image"
 
 [filetype.bzip2]
 description = "BZip2 compressed"
@@ -99,9 +110,9 @@ description = "Comic Book Archive (Zip)"
 extension = "cbz"
 
 [filetype.dashtoc]
+container = "json"
 description = "Dash/Zeal Docset Table of Contents"
 extension = "dashtoc"
-handler = "json"
 
 [filetype.dcx]
 description = "Multi-page ZSoft PC Paintbrush Image"
@@ -167,13 +178,13 @@ handler = "ffmpeg"
 [filetype.gif]
 description = "GIF Image"
 extension = "gif"
-handler = "pil"
+handler = "image"
 header = [[71, 73, 70, 56, 55, 97], [71, 73, 70, 56, 57, 97]]
 
 [filetype.gzip]
 description = "GZip compressed"
 extension = "gz"
-handler = ["gzip", "p7zip", "lsar"]
+handler = "gzip"
 header = [31, 139]
 
 [filetype.innosetup_exe]
@@ -194,7 +205,7 @@ extension = "jar"
 [filetype.jpeg]
 description = "JPEG/JFIF Image"
 extension = ["jfi", "jfif", "jif", "jpe", "jpeg", "jpg"]
-handler = "pil"
+handler = "image"
 header = [255, 216, 255]
 
 [filetype.jpeg2k]
@@ -322,7 +333,7 @@ multipage = true
 [filetype.ms_ico]
 description = "Microsoft Icon"
 extension = "ico"
-handler = "pil"
+handler = "image"
 multipage = true
 
 [filetype.msi]
@@ -453,7 +464,7 @@ extension = "ott"
 [filetype.pbm]
 description = "NetPBM Portable Bitmap Image"
 extension = "pbm"
-handler = "pil"
+handler = "image"
 
 [filetype.pcx]
 description = "ZSoft PC Paintbrush Image"
@@ -469,12 +480,12 @@ header = [37, 80, 68, 70]
 [filetype.pgm]
 description = "NetPBM Portable Graymap Image"
 extension = "pgm"
-handler = "pil"
+handler = "image"
 
 [filetype.png]
 description = "PNG Image"
 extension = "png"
-handler = "pil"
+handler = "image"
 header = [137, 80, 78, 71, 13, 10, 26, 10]
 
 [filetype.potm]
@@ -485,7 +496,7 @@ extension = "potm"
 [filetype.ppm]
 description = "NetPBM Portable Pixmap Image"
 extension = "ppm"
-handler = "pil"
+handler = "image"
 
 [filetype.ppsx]
 container = "zip"
@@ -614,7 +625,7 @@ header_offset = 257
 [filetype.targa]
 description = "Truevision TGA Image"
 extension = "tga"
-handler = "pil"
+handler = "image"
 
 [filetype.tbz2]
 container = "bzip2"
@@ -629,7 +640,7 @@ extension = "tgz"
 [filetype.tiff]
 description = "TIFF Image"
 extension = ["tif", "tiff"]
-handler = "pil"
+handler = "image"
 
 [filetype.tlz]
 container = "lzma"

@@ -12,7 +12,7 @@ use structopt::StructOpt;
 use log::{debug, error, info, trace, warn};
 
 // Local Imports
-use crate::config;
+use crate::{config, processors};
 use crate::helpers::{BoilerplateOpts, HELP_TEMPLATE};
 use crate::validators::path_input_file_or_dir;
 
