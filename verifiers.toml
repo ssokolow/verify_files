@@ -320,6 +320,12 @@ container = "zip"
 description = "Mozilla Archive Format"
 extension = "maff"
 
+#[filetype.megadrive_rom]
+#description = "SEGA Genesis/Megadrive ROM"
+#header = [83, 69, 71, 65]
+#header_offset = 256
+## TODO: handler (Must stay commented out until we have one)
+
 [filetype.mk3d]
 description = "Matroska Video (3D)"
 extension = "mk3d"
@@ -863,10 +869,12 @@ extension = "xz"
 handler = ["lzma", "p7zip", "lsar"]
 header = [253, 55, 122, 88, 90, 0]
 
+# TODO: Decide how to disable fallback for formats that use Zip as a container
+#       and aren't supposed to support arbitrary compression algorithms.
 [filetype.zip]
 description = "Zip archive"
 extension = "zip"
-handler = "zip"
+handler = ["zip", "p7zip", "lsar"]
 header = [[80, 75, 3, 4], [80, 75, 5, 6], [80, 75, 7, 8]]
 
 [filetype.zoo]
