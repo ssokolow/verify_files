@@ -923,7 +923,7 @@ sources = "https://en.wikipedia.org/wiki/Dvdisaster"
 #       - http://www.ffmpeg-archive.org/how-to-set-flags-td936142.html
 #       - https://www.reddit.com/r/DataHoarder/comments/bgsgr2/how_to_check_if_a_video_file_is_corrupted/
 [handler.ffmpeg]
-argv = ["ffmpeg", "-err_detect", "+crccheck+bitstream+buffer+explode",
+argv = ["ffmpeg", "-err_detect", "+crccheck+bitstream+buffer+explode+careful",
         "-v quiet", "-xerror", "-f", "null", "-", "-i"]
 description = "FFmpeg"
 sources = "https://ffmpeg.org/download.html"
