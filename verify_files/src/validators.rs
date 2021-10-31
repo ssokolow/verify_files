@@ -18,7 +18,7 @@ use faccess::{AccessMode, PathExt as _};
 ///    because a quirk of an underlying API or subprocess precludes it.)
 ///
 /// ## Relevant Conventions:
-///  * **Prefer [`path_input_any`].**
+///  * **Prefer `path_input_any`.**
 ///    Commands should support taking input via `stdin` whenever feasible.
 ///  * Use `-r` or `-R` to request recursive traversal when it is not the default.
 ///    [\[1\]](http://www.catb.org/esr/writings/taoup/html/ch10s05.html)
@@ -42,7 +42,7 @@ pub fn path_input_file_or_dir<P: AsRef<Path> + ?Sized>(value: &P) -> Result<(), 
 ///  * Input arguments which must be a path to a directory, but not a file.
 ///
 /// ## Relevant Conventions:
-///  * **Prefer [`path_input_file_or_dir`] or [`path_input_any`].**
+///  * **Prefer [`path_input_file_or_dir`] or `path_input_any`.**
 ///    Commands which traverse directories to find files should support paths pointing directly at
 ///    files where feasible.
 ///  * Use `-r` or `-R` to request recursive traversal when it is not the default.
@@ -72,7 +72,7 @@ pub fn path_input_dir<P: AsRef<Path> + ?Sized>(value: &P) -> Result<(), OsString
 ///  * Input file paths
 ///
 /// ## Relevant Conventions:
-///  * **Prefer [`path_input_file_or_stdin`].**
+///  * **Prefer `path_input_file_or_stdin`.**
 ///    Commands should support taking input via `stdin` whenever feasible.
 ///  * If specifying an input file via an option flag, use `-f` as the name of the flag.
 ///    [\[1\]](http://www.catb.org/esr/writings/taoup/html/ch10s05.html)

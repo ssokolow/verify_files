@@ -1,7 +1,9 @@
-/*! TODO: Application description here
+//! A simple tool for detecting corruption in files to the greatest extent feasible without
+//! reliable access to MD5, SHA1, PAR2, or other external hash/ECC files.
 
-This file provided by [rust-cli-boilerplate](https://github.com/ssokolow/rust-cli-boilerplate)
-*/
+// This source file provided by
+// [rust-cli-boilerplate](https://github.com/ssokolow/rust-cli-boilerplate)
+//
 // Copyright 2017-2020, Stephan Sokolow
 
 // Make rustc's built-in lints more strict and set clippy into a whitelist-based configuration so

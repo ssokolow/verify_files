@@ -3,7 +3,8 @@
 
 use structopt::{clap, StructOpt};
 
-/// Modified version of Clap's default template for proper help2man compatibility
+/// Modified version of Clap's default template for proper
+/// [help2man](https://www.gnu.org/software/help2man/) compatibility
 ///
 /// Used as a workaround for:
 /// 1. Clap's default template interfering with `help2man`'s proper function

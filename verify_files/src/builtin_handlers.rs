@@ -25,12 +25,13 @@ use lazy_static::lazy_static;
 use zip::read::ZipArchive;
 use zip::result::{ZipError, ZipResult};
 
-/// Function signature for file-type handler implementations
-type HandlerFn = fn(&Path) -> Result<(), FailureType>;
+/// The function signature for file-type handler implementations
+pub type HandlerFn = fn(&Path) -> Result<(), FailureType>;
 
 // Chosen because it's already a transitive dependency, unlike `phf`
 lazy_static! {
-    /// A registry of all built-in handlers, accessible by ID exposed to the config file
+    /// A registry of all built-in handlers, with descriptions suitable for display to end-users,
+    /// keyed by the IDs exposed to the config file.
     ///
     /// (Uses a BTreeMap to control the ordering of user-visible readouts without an extra sort)
     pub static ref ALL: BTreeMap<&'static str, (&'static str, HandlerFn)> = {
@@ -52,7 +53,7 @@ lazy_static! {
 pub enum FailureType {
     /// The handler detected some form of corruption or fatal spec-noncompliance
     ///
-    /// (Report the file as invalid to the user and abort the fallback chain **for this format**)
+    /// (Report the file as invalid to the user and abort the fallback chain *for this format*)
     ///
     /// This is the correct return type for fallback behaviour where multiple independent formats
     /// share the same detection characteristics, such as self-extracting archives with `.exe`
@@ -63,7 +64,7 @@ pub enum FailureType {
     /// ordered from broadest to narrowest format support, all else being equal. Without a way for
     /// a subprocess to distinguish between a bad file and an unsupported feature, all failures
     /// must be assumed to be corruption.)
-    InvalidContent(String),
+    InvalidContent(/** Stringified form of the internal error message */ String),
 
     /// The handler does not support the provided data
     ///
@@ -75,23 +76,30 @@ pub enum FailureType {
     ///
     /// It is intended to allow built-in handlers with limited format support to have a higher
     /// priority in fallback chains than external handlers without treating unsupported format
-    /// variations (like non-STORE, non-DEFLATE Zip compression) as corruption.
+    /// variations (like PPMd-compressed Zip files) as corruption.
     ///
     /// **TODO:** Decide how to handle cases where something imposes further validity constraints
     /// on its container, like EPUB, JAR, or OpenDocument only supporting STORE or DEFLATE.
-    UnsupportedFormat(String),
+    UnsupportedFormat(/** Stringified form of the internal error message */ String),
 
-    /// An operating system error was encountered on trying to read the file
+    /// The file cannot be read for some reason
     ///
-    /// (The file may be valid, but we can't tell and should abort the fallback chain)
-    IoError(String),
+    /// (Log a status message and move on to the next file)
+    ///
+    /// This variant is named after [`std::io::Error`] from the Rust standard library, which is
+    /// almost certainly going to be the cause of it through situations such as "Access Denied",
+    /// "file was deleted before we tried to read it", or "the media has bad sectors".
+    IoError(/** Stringified form of the internal error message */ String),
 
     /// The handler reported an unexpected but recoverable error
     ///
-    /// (This is for cases like `ImageError::Limits` and is intended as a cleaner alternative to
+    /// (This is for cases like [`ImageError::Limits`] and is intended as a cleaner alternative to
     /// intentionally using panicking and `catch_unwind` like try/catch to skip to the next item to
     /// be processed.)
-    InternalError(String),
+    ///
+    /// **TODO:** Be more clear about what purpose this serves, when to use it, and what result it
+    /// will have.
+    InternalError(/** Stringified form of the internal error message */ String),
 }
 
 /// A return value to indicate how reliable a validator's verdict of "no problems" is.
@@ -115,14 +123,14 @@ pub enum Confidence {
     DataParity,
     /// The data chunks within the file are covered by some form of hash or checksum (eg. the CRC32
     /// checksums in a Zip file, or the MD5 hash in a FLAC file) and the validator verified it.
+    ///
+    /// **TODO:** Decide how to distinguish "only checks FLAC CRCs" from "checks FLAC MD5sum"
     DataHash,
     /// In addition to checking the checksum/hash, the validator exploits redundancy or parity
     /// information in the metadata to perform basic corruption checks.
     ///
     /// (eg. checking a Zip file for consistency between the fields which are present in both the
     /// local file headers and the central directory records.)
-    ///
-    /// **TODO:** Decide how to distinguish "only checks FLAC CRCs" from "checks FLAC MD5sum"
     DataHashAndMetaParity,
     /// The file has some internal hash/checksum over its entire contents (eg. an ISO image
     /// augmented by dvdisaster ECC) that the validator verified.
@@ -156,6 +164,9 @@ pub fn gzip(path: &Path) -> Result<(),FailureType> {
 }
 
 /// Handler: Use the `image` crate to validate the formats it supports
+///
+/// **TODO:** Test how thoroughly each format can be checked, and also check whether enabling WebP
+/// support will validate well enough to be useful even though it doesn't support chroma yet.
 pub fn image(path: &Path) -> Result<(),FailureType> {
     #[allow(clippy::wildcard_enum_match_arm)]
     ImageReader::open(path)

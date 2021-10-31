@@ -324,7 +324,7 @@ pub struct Handler {
     pub argv: Vec<String>,
 
     /// A human-readable description for use in status messages instead of the command name from
-    /// argv[0] when indicating what needs to be installed.
+    /// `argv[0]` when indicating what needs to be installed.
     ///
     /// Should include the definite article "the" if necessary to fit in a message like
     /// "Could not find {description}. Please install it from one of the following URLs:" but,
