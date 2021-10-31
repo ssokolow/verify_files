@@ -35,11 +35,12 @@ lazy_static! {
     // Use a BTreeMap so we can control the order of user-visible readouts without an extra sort
     pub static ref BUILTIN_PROCESSORS: BTreeMap<&'static str, (&'static str, ProcessorFn)> = {
         let mut m = BTreeMap::new();
-        m.insert("gzip", ("Built-in GZip Handler", gzip as ProcessorFn));
-        m.insert("image", ("Built-in image Handler", image as ProcessorFn));
-        m.insert("json", ("Built-in JSON Handler", json as ProcessorFn));
-        m.insert("toml", ("Built-in TOML Handler", toml as ProcessorFn));
-        m.insert("zip", ("Built-in Zip Handler", zip as ProcessorFn));
+        m.insert("gzip", ("GZip CRC check (built-in)", gzip as ProcessorFn));
+        m.insert("image", ("BMP/GIF/ICO/JPEG/PNG/PNM/TGA/TIFF handler (built-in)",
+                image as ProcessorFn));
+        m.insert("json", ("JSON well-formedness check (built-in)", json as ProcessorFn));
+        m.insert("toml", ("TOML well-formedness check (built-in)", toml as ProcessorFn));
+        m.insert("zip", ("STORE/DEFLATE-compressed Zip CRC check (built-in)", zip as ProcessorFn));
         m
     };
 }
