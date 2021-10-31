@@ -16,6 +16,7 @@ use log::{debug, error, info, trace, warn};
 use crate::{config, processors};
 use crate::helpers::{BoilerplateOpts, HELP_TEMPLATE};
 use crate::validators::path_input_file_or_dir;
+use processors::BUILTIN_PROCESSORS;
 
 /// The verbosity level when no `-q` or `-v` arguments are given, with `0` being `-q`
 pub const DEFAULT_VERBOSITY: u64 = 2;
@@ -40,13 +41,24 @@ pub struct CliOpts {
     /// Just quickly identify files that have no checker registered
     #[structopt(long)]
     list_unrecognized: bool,
+
+    /// Just list the built-in handlers which are available for use in the configuration file
+    #[structopt(long)]
+    list_builtins: bool,
 }
 
 /// The actual `main()`
 pub fn main(mut opts: CliOpts) -> Result<()> {
+    if opts.list_builtins {
+        for (id, (description, _)) in BUILTIN_PROCESSORS.iter() {
+            println!("{:10}\t{}", id, description);
+        }
+        return Ok(());
+    }
+
     // TODO: Support reading a custom config before using the embedded one
     let config = config::parse(DEFAULT_CONFIG,
-        &|x| processors::BUILTIN_PROCESSORS.contains_key(x))?;
+        &|x| BUILTIN_PROCESSORS.contains_key(x))?;
 
     // XXX: Fix this once https://github.com/BurntSushi/ripgrep/issues/1761 is resolved.
     if let Some(path1) = opts.inpath.pop() {

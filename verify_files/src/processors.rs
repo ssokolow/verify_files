@@ -8,8 +8,11 @@
 //!
 //! **TODO:** When I have time to figure out how best to make it play nice with the config loader's
 //! sanity checks, make these optional features.
+//!
+//! **TODO:** Reconcile the "handler" terminology in the TOML file with the "processor" terminology
+//! here.
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fs::{self, File};
 use std::io::{self, BufReader, Read};
 use std::path::Path;
@@ -29,10 +32,11 @@ type ProcessorFn = fn(&Path) -> Result<(), FailureType>;
 
 // Chosen because it's already a transitive dependency, unlike `phf`
 lazy_static! {
-    pub static ref BUILTIN_PROCESSORS: HashMap<&'static str, (&'static str, ProcessorFn)> = {
-        let mut m = HashMap::new();
+    // Use a BTreeMap so we can control the order of user-visible readouts without an extra sort
+    pub static ref BUILTIN_PROCESSORS: BTreeMap<&'static str, (&'static str, ProcessorFn)> = {
+        let mut m = BTreeMap::new();
         m.insert("gzip", ("Built-in GZip Handler", gzip as ProcessorFn));
-        m.insert("image", ("Built-in Image Handler", image as ProcessorFn));
+        m.insert("image", ("Built-in image Handler", image as ProcessorFn));
         m.insert("json", ("Built-in JSON Handler", json as ProcessorFn));
         m.insert("zip", ("Built-in Zip Handler", zip as ProcessorFn));
         m
