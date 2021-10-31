@@ -38,6 +38,7 @@ lazy_static! {
         m.insert("gzip", ("Built-in GZip Handler", gzip as ProcessorFn));
         m.insert("image", ("Built-in image Handler", image as ProcessorFn));
         m.insert("json", ("Built-in JSON Handler", json as ProcessorFn));
+        m.insert("toml", ("Built-in TOML Handler", toml as ProcessorFn));
         m.insert("zip", ("Built-in Zip Handler", zip as ProcessorFn));
         m
     };
@@ -186,6 +187,25 @@ pub fn json(path: &Path) -> Result<(),FailureType> {
 
     // TODO: See if there's a Read-based API that could be used to reduce the memory footprint
     json::parse(&raw_data).map_err(|err| FailureType::InvalidContent(err.to_string()))?;
+    Ok(())
+}
+
+/// Processor: Use the `toml` crate to do a basic well-formedness check
+///
+/// **TODO:** Decide on an API and some real-world test data to allow detecting potential
+/// corruption in string variables using the UTF-8 subset of the plaintext processor's checks.
+pub fn toml(path: &Path) -> Result<(),FailureType> {
+    #[allow(clippy::wildcard_enum_match_arm)]
+    let raw_data = fs::read_to_string(path)
+        .map_err(|err| match err.kind() {
+            // If we can't String it, then report a validation error because JSON must be UTF-8
+            io::ErrorKind::InvalidData => FailureType::InvalidContent(err.to_string()),
+            // ...otherwise, report an OS-level error.
+            _ => FailureType::IoError(err.to_string())
+        })?;
+
+    // TODO: See if there's a Read-based API that could be used to reduce the memory footprint
+    raw_data.parse::<toml::Value>().map_err(|err| FailureType::InvalidContent(err.to_string()))?;
     Ok(())
 }
 

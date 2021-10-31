@@ -762,6 +762,11 @@ container = "lzma"
 description = "Tar archive (.lzma compressed)"
 extension = "tlz"
 
+[filetype.toml]
+description = "TOML Data"
+extension = "toml"
+handler = "toml"
+
 [filetype.txt]
 description = "Plaintext"
 extension = "txt"
