@@ -649,7 +649,7 @@ header = [82, 97, 114, 33, 26, 7]
 [filetype.rdf]
 description = "RDF Document"
 extension = "rdf"
-handler = "xml"
+container = "xml"
 
 [filetype.rm]
 description = "RealMedia Video"
@@ -677,7 +677,7 @@ extension = "rsn"
 [filetype.rss]
 description = "RSS Feed"
 extension = "rss"
-handler = "xml"
+container = "xml"
 
 [filetype.rv]
 description = "RealVideo"
@@ -720,7 +720,7 @@ header = [46, 115, 110, 100]
 [filetype.svg]
 description = "SVG Image"
 extension = "svg"
-handler = "xml"
+container = "xml"
 
 [filetype.svgz]
 container = "gzip"
