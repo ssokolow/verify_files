@@ -469,8 +469,8 @@ pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
 
 /// Parse and validate the given `verifiers.toml` text
 ///
-/// TODO: Better design for integrating the builtin processor check.
-pub fn parse(toml_str: &str, is_builtin_processor: &dyn Fn(&str) -> bool) -> Result<Root> {
+/// TODO: Better design for integrating the builtin handler check.
+pub fn parse(toml_str: &str, is_builtin_handler: &dyn Fn(&str) -> bool) -> Result<Root> {
     // Parse and perform all validation where the outcome couldn't change as a result of a fallback
     // chain injecting new values.
     let parsed: Root =
@@ -491,7 +491,7 @@ pub fn parse(toml_str: &str, is_builtin_processor: &dyn Fn(&str) -> bool) -> Res
     for (id, filetype) in &parsed.filetypes {
         if let Some(ref handler) = filetype.handler {
             for handler in handler.iter().filter(|y| !(parsed.handlers.contains_key(*y) ||
-                    is_builtin_processor(y.as_str()))) {
+                    is_builtin_handler(y.as_str()))) {
                 warn!("Unrecognized handler for filetype {}: {}", id, handler);
             }
         }

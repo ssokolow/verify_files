@@ -1,4 +1,4 @@
-//! Built-in processors for common file and container formats
+//! Built-in handlers for common file and container formats
 //!
 //! **NOTE:** These generally stop checking and report failure on encountering their first error,
 //! because the point of the tool as a whole is to identify problem files so more specialized
@@ -9,8 +9,6 @@
 //! **TODO:** When I have time to figure out how best to make it play nice with the config loader's
 //! sanity checks, make these optional features.
 //!
-//! **TODO:** Reconcile the "handler" terminology in the TOML file with the "processor" terminology
-//! here.
 
 use std::collections::BTreeMap;
 use std::fs::{self, File};
@@ -27,30 +25,32 @@ use lazy_static::lazy_static;
 use zip::read::ZipArchive;
 use zip::result::{ZipError, ZipResult};
 
-/// Function signature for file-type processor implementations
-type ProcessorFn = fn(&Path) -> Result<(), FailureType>;
+/// Function signature for file-type handler implementations
+type HandlerFn = fn(&Path) -> Result<(), FailureType>;
 
 // Chosen because it's already a transitive dependency, unlike `phf`
 lazy_static! {
-    // Use a BTreeMap so we can control the order of user-visible readouts without an extra sort
-    pub static ref BUILTIN_PROCESSORS: BTreeMap<&'static str, (&'static str, ProcessorFn)> = {
+    /// A registry of all built-in handlers, accessible by ID exposed to the config file
+    ///
+    /// (Uses a BTreeMap to control the ordering of user-visible readouts without an extra sort)
+    pub static ref ALL: BTreeMap<&'static str, (&'static str, HandlerFn)> = {
         let mut m = BTreeMap::new();
-        m.insert("gzip", ("GZip CRC check (built-in)", gzip as ProcessorFn));
+        m.insert("gzip", ("GZip CRC check (built-in)", gzip as HandlerFn));
         m.insert("image", ("BMP/GIF/ICO/JPEG/PNG/PNM/TGA/TIFF handler (built-in)",
-                image as ProcessorFn));
-        m.insert("json", ("JSON well-formedness check (built-in)", json as ProcessorFn));
-        m.insert("toml", ("TOML well-formedness check (built-in)", toml as ProcessorFn));
-        m.insert("zip", ("STORE/DEFLATE-compressed Zip CRC check (built-in)", zip as ProcessorFn));
+                image as HandlerFn));
+        m.insert("json", ("JSON well-formedness check (built-in)", json as HandlerFn));
+        m.insert("toml", ("TOML well-formedness check (built-in)", toml as HandlerFn));
+        m.insert("zip", ("STORE/DEFLATE-compressed Zip CRC check (built-in)", zip as HandlerFn));
         m
     };
 }
 
-/// A return value to indicate whether a processor couldn't verify the given file because it was
+/// A return value to indicate whether a handler couldn't verify the given file because it was
 /// corrupted or because it uses features not supported by the validator.
 ///
 /// (And, as such, whether the testing system should abort or continue down the fallback chain.)
 pub enum FailureType {
-    /// The processor detected some form of corruption or fatal spec-noncompliance
+    /// The handler detected some form of corruption or fatal spec-noncompliance
     ///
     /// (Report the file as invalid to the user and abort the fallback chain **for this format**)
     ///
@@ -59,21 +59,21 @@ pub enum FailureType {
     /// stubs, as it will abort fallback within a single format such as from internal Zip handling
     /// to p7zip's more versatile Zip support.
     ///
-    /// (It is also the reason that all processors that invoke subprocesses must currently be
+    /// (It is also the reason that all handlers that invoke subprocesses must currently be
     /// ordered from broadest to narrowest format support, all else being equal. Without a way for
     /// a subprocess to distinguish between a bad file and an unsupported feature, all failures
     /// must be assumed to be corruption.)
     InvalidContent(String),
 
-    /// The processor does not support the provided data
+    /// The handler does not support the provided data
     ///
-    /// (Log a status message and try the next processor in the fallback chain)
+    /// (Log a status message and try the next handler in the fallback chain)
     ///
     /// This is the correct return type for fallback behaviour where a single format has multiple
     /// choices for what handler should be used to validate it, as it will try the next handler in
     /// the fallback chain on failure.
     ///
-    /// It is intended to allow built-in processors with limited format support to have a higher
+    /// It is intended to allow built-in handlers with limited format support to have a higher
     /// priority in fallback chains than external handlers without treating unsupported format
     /// variations (like non-STORE, non-DEFLATE Zip compression) as corruption.
     ///
@@ -86,7 +86,7 @@ pub enum FailureType {
     /// (The file may be valid, but we can't tell and should abort the fallback chain)
     IoError(String),
 
-    /// The processor reported an unexpected but recoverable error
+    /// The handler reported an unexpected but recoverable error
     ///
     /// (This is for cases like `ImageError::Limits` and is intended as a cleaner alternative to
     /// intentionally using panicking and `catch_unwind` like try/catch to skip to the next item to
@@ -143,7 +143,7 @@ fn exhaust_reader(mut reader: impl Read) -> Result<(), io::Error> {
     }
 }
 
-/// Processor: Use the `flate2` crate to validate a stream of one or more gzipped files
+/// Handler: Use the `flate2` crate to validate a stream of one or more gzipped files
 ///
 /// **TODO:** Decide on the best API for selecting whether this should operate recursively to
 /// validate the data that it must extract anyway to check the CRC.
@@ -155,7 +155,7 @@ pub fn gzip(path: &Path) -> Result<(),FailureType> {
         .map_err(|err| FailureType::InvalidContent(err.to_string()))
 }
 
-/// Processor: Use the `image` crate to validate the formats it supports
+/// Handler: Use the `image` crate to validate the formats it supports
 pub fn image(path: &Path) -> Result<(),FailureType> {
     #[allow(clippy::wildcard_enum_match_arm)]
     ImageReader::open(path)
@@ -172,10 +172,10 @@ pub fn image(path: &Path) -> Result<(),FailureType> {
     Ok(())
 }
 
-/// Processor: Use the `json` crate to do a basic well-formedness check
+/// Handler: Use the `json` crate to do a basic well-formedness check
 ///
 /// **TODO:** Decide on an API and some real-world test data to allow detecting potential
-/// corruption in string variables using the UTF-8 subset of the plaintext processor's checks.
+/// corruption in string variables using the UTF-8 subset of the plaintext handler's checks.
 pub fn json(path: &Path) -> Result<(),FailureType> {
     #[allow(clippy::wildcard_enum_match_arm)]
     let raw_data = fs::read_to_string(path)
@@ -191,10 +191,10 @@ pub fn json(path: &Path) -> Result<(),FailureType> {
     Ok(())
 }
 
-/// Processor: Use the `toml` crate to do a basic well-formedness check
+/// Handler: Use the `toml` crate to do a basic well-formedness check
 ///
 /// **TODO:** Decide on an API and some real-world test data to allow detecting potential
-/// corruption in string variables using the UTF-8 subset of the plaintext processor's checks.
+/// corruption in string variables using the UTF-8 subset of the plaintext handler's checks.
 pub fn toml(path: &Path) -> Result<(),FailureType> {
     #[allow(clippy::wildcard_enum_match_arm)]
     let raw_data = fs::read_to_string(path)
@@ -210,7 +210,7 @@ pub fn toml(path: &Path) -> Result<(),FailureType> {
     Ok(())
 }
 
-/// Processor: Use the `zip` crate to validate Zip files which use STORE or DEFLATE compression
+/// Handler: Use the `zip` crate to validate Zip files which use STORE or DEFLATE compression
 ///
 /// **TODO:** Decide on the best API for selecting whether this should operate recursively to
 /// validate files that it must extract anyway to check their CRCs.

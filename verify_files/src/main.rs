@@ -22,9 +22,9 @@ use structopt::{clap, StructOpt};
 
 // Local imports
 mod app;
+mod builtin_handlers;
 mod config;
 mod helpers;
-mod processors;
 mod validators;
 
 /// Boilerplate to parse command-line arguments, set up logging, and handle bubbled-up `Error`s.

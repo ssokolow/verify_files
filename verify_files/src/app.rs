@@ -13,10 +13,10 @@ use structopt::StructOpt;
 use log::{debug, error, info, trace, warn};
 
 // Local Imports
-use crate::{config, processors};
+use crate::builtin_handlers::ALL as BUILTIN_HANDLERS;
+use crate::config;
 use crate::helpers::{BoilerplateOpts, HELP_TEMPLATE};
 use crate::validators::path_input_file_or_dir;
-use processors::BUILTIN_PROCESSORS;
 
 /// The verbosity level when no `-q` or `-v` arguments are given, with `0` being `-q`
 pub const DEFAULT_VERBOSITY: u64 = 2;
@@ -50,7 +50,7 @@ pub struct CliOpts {
 /// The actual `main()`
 pub fn main(mut opts: CliOpts) -> Result<()> {
     if opts.list_builtins {
-        for (id, (description, _)) in BUILTIN_PROCESSORS.iter() {
+        for (id, (description, _)) in BUILTIN_HANDLERS.iter() {
             println!("{:10}\t{}", id, description);
         }
         return Ok(());
@@ -58,7 +58,7 @@ pub fn main(mut opts: CliOpts) -> Result<()> {
 
     // TODO: Support reading a custom config before using the embedded one
     let config = config::parse(DEFAULT_CONFIG,
-        &|x| BUILTIN_PROCESSORS.contains_key(x))?;
+        &|x| BUILTIN_HANDLERS.contains_key(x))?;
 
     // XXX: Fix this once https://github.com/BurntSushi/ripgrep/issues/1761 is resolved.
     if let Some(path1) = opts.inpath.pop() {
