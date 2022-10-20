@@ -19,7 +19,7 @@ use std::result::Result as StdResult;
 // 3rd-party crate imports
 use anyhow::{anyhow, Context, Result}; // It's an internal API, so no need for thiserror yet.
 use log::warn;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError, ValidationErrors};
 
 // ----==== Helpers for Schema ====----
