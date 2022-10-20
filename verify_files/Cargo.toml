@@ -13,7 +13,7 @@ lazy_static = "1.4.0"
 log = "0.4.17"
 serde = { version = "1.0.145", features = ["derive"] }
 stderrlog = "0.5.3"
-structopt = "0.3.26"
+clap = { version = "3", features = ["derive"] }
 toml = "0.5.9"
 validator = { version = "0.16.0", features = ["derive"] }
 

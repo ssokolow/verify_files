@@ -14,12 +14,9 @@
 #![allow(clippy::blanket_clippy_restriction_lints)]
 #![forbid(unsafe_code)] // Enforce my policy of only allowing it in my own code as a last resort
 
-// stdlib imports
-use std::io;
-
 // 3rd-party imports
 use anyhow::{Context, Result};
-use structopt::{clap, StructOpt};
+use clap::Parser;
 
 // Local imports
 mod app;
@@ -33,7 +30,7 @@ mod validators;
 /// See `app::main` for the application-specific logic.
 fn main() -> Result<()> {
     // Parse command-line arguments (exiting on parse error, --version, or --help)
-    let opts = app::CliOpts::from_args();
+    let opts = app::CliOpts::parse();
 
     // Configure logging output so that -q is "decrease verbosity" rather than instant silence
     let verbosity = opts
@@ -50,20 +47,20 @@ fn main() -> Result<()> {
         .init()
         .context("Failed to initialize logging output")?;
 
-    // If requested, generate shell completions and then exit with status of "success"
-    if let Some(shell) = opts.boilerplate.dump_completions {
-        app::CliOpts::clap().gen_completions_to(
-            app::CliOpts::clap().get_bin_name().unwrap_or(clap::crate_name!()),
-            shell,
-            &mut io::stdout(),
-        );
-        Ok(())
-    } else {
-        // Run the actual `main` and rely on `impl Termination` to provide a simple, concise way to
-        // allow terminal errors that can be changed later as needed but starts out analogous to
-        // letting an unhandled exception bubble up in something like Python.
-        // TODO: Experiment with this and look for ways to polish it up further
-        app::main(opts)
+    // TODO: Re-enable completion support
+    app::main(opts)
+}
+
+// Tests go below the code where they'll be out of the way when not the target of attention
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    /// Run [`App::debug_assert`](clap::builder::App::debug_assert) checks
+    fn verify_cli() {
+        use clap::CommandFactory;
+        app::CliOpts::command().debug_assert()
     }
 }
 

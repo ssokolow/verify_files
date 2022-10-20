@@ -7,8 +7,8 @@ use std::path::PathBuf;
 
 // 3rd-party crate imports
 use anyhow::Result;
+use clap::Parser;
 use ignore::WalkBuilder;
-use structopt::StructOpt;
 
 use log::{debug, error, info, trace, warn};
 
@@ -25,25 +25,28 @@ pub const DEFAULT_VERBOSITY: usize = 2;
 pub const DEFAULT_CONFIG: &str = include_str!("../../verifiers.toml");
 
 /// Command-line argument schema
-#[derive(StructOpt, Debug)]
-#[structopt(template = HELP_TEMPLATE,
-            about = "A simple tool to recursively walk a set of paths and report corrupted files.",
-            global_setting = structopt::clap::AppSettings::ColoredHelp)]
+#[derive(Parser, Debug)]
+#[clap(template = HELP_TEMPLATE,
+       about = "A simple tool to recursively walk a set of paths and report corrupted files.",
+       version,
+       long_about = None)]
 pub struct CliOpts {
-    #[allow(clippy::missing_docs_in_private_items)] // StructOpt compile-time errors if we doc this
-    #[structopt(flatten)]
+    #[allow(clippy::missing_docs_in_private_items)] // TODO: Check if doccing still breaks stuff
+    #[clap(flatten)]
     pub boilerplate: BoilerplateOpts,
 
     /// File(s) to use as input
-    #[structopt(parse(from_os_str), validator_os = path_input_file_or_dir)]
+    ///
+    /// **TODO:** Restore use of `path_input_file_or_dir` validator
+    #[clap(value_parser)]
     inpath: Vec<PathBuf>,
 
     /// Just quickly identify files that have no checker registered
-    #[structopt(long)]
+    #[clap(long)]
     list_unrecognized: bool,
 
     /// Just list the built-in handlers which are available for use in the configuration file
-    #[structopt(long)]
+    #[clap(long)]
     list_builtins: bool,
 }
 
@@ -82,19 +85,4 @@ pub fn main(mut opts: CliOpts) -> Result<()> {
     }
 
     Ok(())
-}
-
-// Tests go below the code where they'll be out of the way when not the target of attention
-#[cfg(test)]
-mod tests {
-    use super::CliOpts;
-
-    // TODO: Unit test to verify that the doc comments on `CliOpts` or `BoilerplateOpts` aren't
-    // overriding the intended about string.
-
-    #[test]
-    /// Test something
-    fn test_something() {
-        // TODO: Test something
-    }
 }

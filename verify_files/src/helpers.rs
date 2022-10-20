@@ -1,7 +1,7 @@
 /*! Functions and templates which can be imported by `app.rs` to save effort */
 // Copyright 2017-2019, Stephan Sokolow
 
-use structopt::{clap, StructOpt};
+use clap::Parser;
 
 /// Modified version of Clap's default template for proper
 /// [help2man](https://www.gnu.org/software/help2man/) compatibility
@@ -27,22 +27,18 @@ USAGE:
 //
 // FIXME: Report that StructOpt trips Clippy's `cast_possible_truncation` lint unless I use
 //        `u64` for my `from_occurrences` inputs, which is a ridiculous state of things.
-#[derive(StructOpt, Debug)]
-#[structopt(rename_all = "kebab-case")]
+#[derive(Parser, Debug)]
+#[clap(rename_all = "kebab-case")]
 pub struct BoilerplateOpts {
     /// Decrease verbosity (-q, -qq, -qqq, etc.)
-    #[structopt(short, long, parse(from_occurrences))]
+    #[clap(short, long, parse(from_occurrences))]
     pub quiet: usize,
 
     /// Increase verbosity (-v, -vv, -vvv, etc.)
-    #[structopt(short, long, parse(from_occurrences))]
+    #[clap(short, long, parse(from_occurrences))]
     pub verbose: usize,
 
     /// Display timestamps on log messages (sec, ms, ns, none)
-    #[structopt(short, long, value_name = "resolution")]
+    #[clap(short, long, value_name = "resolution")]
     pub timestamp: Option<stderrlog::Timestamp>,
-
-    /// Write a completion definition for the specified shell to stdout (bash, zsh, etc.)
-    #[structopt(long, value_name = "shell")]
-    pub dump_completions: Option<clap::Shell>,
 }
