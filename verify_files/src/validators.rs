@@ -178,9 +178,9 @@ mod tests {
     fn path_input_file_basic_functionality() {
         for func in &[path_input_file] {
             // Existing paths
-            assert!(func(OsStr::new("/bin/sh")).is_ok());                 // OK File
-            assert!(func(OsStr::new("/bin/../etc/.././bin/sh")).is_ok()); // Non-canonicalized
-            assert!(func(OsStr::new("/../../../../bin/sh")).is_ok());     // Above root
+            assert!(func(OsStr::new("/bin/sh")).is_ok());                    // OK File
+            assert!(func(OsStr::new("/bin/../../etc/.././bin/sh")).is_ok()); // Non-canonicalized
+            assert!(func(OsStr::new("/../../../../bin/sh")).is_ok());        // Above root
 
             // Inaccessible, nonexistent, or invalid paths
             assert!(func(OsStr::new("")).is_err());                       // Empty String
