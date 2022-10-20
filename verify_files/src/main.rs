@@ -15,7 +15,6 @@
 #![forbid(unsafe_code)] // Enforce my policy of only allowing it in my own code as a last resort
 
 // stdlib imports
-use std::convert::TryInto;
 use std::io;
 
 // 3rd-party imports
@@ -46,7 +45,7 @@ fn main() -> Result<()> {
     stderrlog::new()
         .module(module_path!())
         .quiet(verbosity == 0)
-        .verbosity(verbosity.saturating_sub(1).try_into().context("Verbosity too high")?)
+        .verbosity(verbosity.saturating_sub(1))
         .timestamp(opts.boilerplate.timestamp.unwrap_or(stderrlog::Timestamp::Off))
         .init()
         .context("Failed to initialize logging output")?;

@@ -19,7 +19,7 @@ use crate::helpers::{BoilerplateOpts, HELP_TEMPLATE};
 use crate::validators::path_input_file_or_dir;
 
 /// The verbosity level when no `-q` or `-v` arguments are given, with `0` being `-q`
-pub const DEFAULT_VERBOSITY: u64 = 2;
+pub const DEFAULT_VERBOSITY: usize = 2;
 
 /// The contents of the default configuration file that is used if nothing else is found
 pub const DEFAULT_CONFIG: &str = include_str!("../../verifiers.toml");

@@ -5,34 +5,34 @@ authors = ["Stephan Sokolow <http://www.ssokolow.com/ContactMe>"]
 edition = "2018"
 
 [dependencies]
-anyhow = "1.0.31"
-faccess = "0.2.3"
-ignore = "0.4.17"
+anyhow = "1.0.65"
+faccess = "0.2.4"
+ignore = "0.4.18"
 json = "0.12.4"
 lazy_static = "1.4.0"
-log = "0.4"
-serde = "1.0.117"
-serde_derive = "1.0.117"
-stderrlog = "0.5"
-structopt = "0.3.21"
-toml = "0.5.7"
-validator = { version = "0.12.0", features = ["derive"] }
+log = "0.4.17"
+serde = "1.0.145"
+serde_derive = "1.0.145"
+stderrlog = "0.5.3"
+structopt = "0.3.26"
+toml = "0.5.9"
+validator = { version = "0.16.0", features = ["derive"] }
 
 [dependencies.image]
 default-features = false
 features = ["bmp", "gif", "ico", "jpeg", "png", "pnm", "tga", "tiff"]
-version = "0.23.12"
+version = "0.24.4"
 # TODO: Check why `tiff` wants a newer miniz_oxide than `png` and `flate2`
 
 [dependencies.flate2]
-version = "1.0"
+version = "1.0.24"
 default-features = false
 features = ["miniz_oxide"]  # Make sure we're using the same backend as `image`
 
 [dependencies.zip]
 default-features = false  # Disable bzip2 because it's not pure Rust
 features = ["deflate"]    # TODO: Do I need anything "time" brings?
-version = "0.5.9"
+version = "0.6.3"
 
 [profile.release]
 lto = true

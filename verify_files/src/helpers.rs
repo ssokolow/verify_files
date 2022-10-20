@@ -32,11 +32,11 @@ USAGE:
 pub struct BoilerplateOpts {
     /// Decrease verbosity (-q, -qq, -qqq, etc.)
     #[structopt(short, long, parse(from_occurrences))]
-    pub quiet: u64,
+    pub quiet: usize,
 
     /// Increase verbosity (-v, -vv, -vvv, etc.)
     #[structopt(short, long, parse(from_occurrences))]
-    pub verbose: u64,
+    pub verbose: usize,
 
     /// Display timestamps on log messages (sec, ms, ns, none)
     #[structopt(short, long, value_name = "resolution")]
