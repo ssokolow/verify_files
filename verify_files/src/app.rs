@@ -57,8 +57,7 @@ pub fn main(mut opts: CliOpts) -> Result<()> {
     }
 
     // TODO: Support reading a custom config before using the embedded one
-    let config = config::parse(DEFAULT_CONFIG,
-        &|x| BUILTIN_HANDLERS.contains_key(x))?;
+    let config = config::parse(DEFAULT_CONFIG, &|x| BUILTIN_HANDLERS.contains_key(x))?;
 
     // XXX: Fix this once https://github.com/BurntSushi/ripgrep/issues/1761 is resolved.
     if let Some(path1) = opts.inpath.pop() {

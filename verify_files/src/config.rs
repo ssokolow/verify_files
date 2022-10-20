@@ -36,7 +36,9 @@ macro_rules! fail_valid {
 
 /// Helper for Serde's `skip_serializing_if`
 #[allow(clippy::trivially_copy_pass_by_ref)]
-fn is_zero(int: &usize) -> bool { *int == 0 }
+fn is_zero(int: &usize) -> bool {
+    *int == 0
+}
 
 /// Validator: `argv[0]` doesn't contain any substitution tokens (as a safety net)
 fn validate_argv(argv: &[String]) -> StdResult<(), ValidationError> {
@@ -139,14 +141,18 @@ fn validate_root(input: &Root) -> StdResult<(), ValidationError> {
             let cycle = dep_chain.contains(&container);
             dep_chain.push(&container);
             if cycle {
-                fail_valid!("container_cycle", format!("Cyclical 'container' dependency: {}",
-                        dep_chain.join(" -> ")));
+                fail_valid!(
+                    "container_cycle",
+                    format!("Cyclical 'container' dependency: {}", dep_chain.join(" -> "))
+                );
             }
             if let Some(container_filetype) = input.filetypes.get(container) {
                 filetype = container_filetype
             } else {
-                fail_valid!("container_not_found", format!("'container' for {} not found: {}",
-                        id, container));
+                fail_valid!(
+                    "container_not_found",
+                    format!("'container' for {} not found: {}", id, container)
+                );
             }
         }
     }
@@ -490,8 +496,10 @@ pub fn parse(toml_str: &str, is_builtin_handler: &dyn Fn(&str) -> bool) -> Resul
     // Check for typos in filetype handler fields
     for (id, filetype) in &parsed.filetypes {
         if let Some(ref handler) = filetype.handler {
-            for handler in handler.iter().filter(|y| !(parsed.handlers.contains_key(*y) ||
-                    is_builtin_handler(y.as_str()))) {
+            for handler in handler
+                .iter()
+                .filter(|y| !(parsed.handlers.contains_key(*y) || is_builtin_handler(y.as_str())))
+            {
                 warn!("Unrecognized handler for filetype {}: {}", id, handler);
             }
         }
@@ -700,7 +708,8 @@ mod tests {
     /// Make sure the validation catches 'container' cycles
     #[test]
     fn test_rejects_container_cycle() {
-        assert_validation_result(r#"
+        assert_validation_result(
+            r#"
             [filetype.foo]
             description = "Foo"
             extension = "foo"
@@ -715,17 +724,22 @@ mod tests {
             description = "Baz"
             extension = "baz"
             container = "foo"
-        "#, "__all__");
+        "#,
+            "__all__",
+        );
     }
 
     /// Make sure the validation catches unknown 'container' values
     #[test]
     fn test_rejects_unknown_container() {
-        assert_validation_result(r#"
+        assert_validation_result(
+            r#"
             [filetype.foo]
             description = "Foo"
             extension = "foo"
             container = "bar"
-        "#, "__all__");
+        "#,
+            "__all__",
+        );
     }
 }

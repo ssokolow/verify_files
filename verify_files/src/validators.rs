@@ -119,7 +119,6 @@ mod tests {
     //       strings, columns are validators, and cells are whether they should pass? Then,
     //       auditing could be done in something which visualizes it more, like LibreOffice)
 
-
     #[test]
     #[cfg(unix)]
     #[rustfmt::skip]

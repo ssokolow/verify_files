@@ -146,7 +146,7 @@ fn exhaust_reader(mut reader: impl Read) -> Result<(), io::Error> {
             return match e.kind() {
                 io::ErrorKind::UnexpectedEof => Ok(()),
                 _ => Err(e),
-            }
+            };
         }
     }
 }
@@ -157,7 +157,7 @@ fn exhaust_reader(mut reader: impl Read) -> Result<(), io::Error> {
 /// validate the data that it must extract anyway to check the CRC.
 ///
 /// (As a means to detect corruption that occurred before the compression was applied.)
-pub fn gzip(path: &Path) -> Result<(),FailureType> {
+pub fn gzip(path: &Path) -> Result<(), FailureType> {
     let reader = File::open(path).map_err(|err| FailureType::IoError(err.to_string()))?;
     exhaust_reader(MultiGzDecoder::new(BufReader::new(reader)))
         .map_err(|err| FailureType::InvalidContent(err.to_string()))
@@ -167,7 +167,7 @@ pub fn gzip(path: &Path) -> Result<(),FailureType> {
 ///
 /// **TODO:** Test how thoroughly each format can be checked, and also check whether enabling WebP
 /// support will validate well enough to be useful even though it doesn't support chroma yet.
-pub fn image(path: &Path) -> Result<(),FailureType> {
+pub fn image(path: &Path) -> Result<(), FailureType> {
     #[allow(clippy::wildcard_enum_match_arm)]
     ImageReader::open(path)
         .map_err(|err| FailureType::IoError(err.to_string()))?
@@ -187,15 +187,14 @@ pub fn image(path: &Path) -> Result<(),FailureType> {
 ///
 /// **TODO:** Decide on an API and some real-world test data to allow detecting potential
 /// corruption in string variables using the UTF-8 subset of the plaintext handler's checks.
-pub fn json(path: &Path) -> Result<(),FailureType> {
+pub fn json(path: &Path) -> Result<(), FailureType> {
     #[allow(clippy::wildcard_enum_match_arm)]
-    let raw_data = fs::read_to_string(path)
-        .map_err(|err| match err.kind() {
-            // If we can't String it, then report a validation error because JSON must be UTF-8
-            io::ErrorKind::InvalidData => FailureType::InvalidContent(err.to_string()),
-            // ...otherwise, report an OS-level error.
-            _ => FailureType::IoError(err.to_string())
-        })?;
+    let raw_data = fs::read_to_string(path).map_err(|err| match err.kind() {
+        // If we can't String it, then report a validation error because JSON must be UTF-8
+        io::ErrorKind::InvalidData => FailureType::InvalidContent(err.to_string()),
+        // ...otherwise, report an OS-level error.
+        _ => FailureType::IoError(err.to_string()),
+    })?;
 
     // TODO: See if there's a Read-based API that could be used to reduce the memory footprint
     json::parse(&raw_data).map_err(|err| FailureType::InvalidContent(err.to_string()))?;
@@ -206,15 +205,14 @@ pub fn json(path: &Path) -> Result<(),FailureType> {
 ///
 /// **TODO:** Decide on an API and some real-world test data to allow detecting potential
 /// corruption in string variables using the UTF-8 subset of the plaintext handler's checks.
-pub fn toml(path: &Path) -> Result<(),FailureType> {
+pub fn toml(path: &Path) -> Result<(), FailureType> {
     #[allow(clippy::wildcard_enum_match_arm)]
-    let raw_data = fs::read_to_string(path)
-        .map_err(|err| match err.kind() {
-            // If we can't String it, then report a validation error because JSON must be UTF-8
-            io::ErrorKind::InvalidData => FailureType::InvalidContent(err.to_string()),
-            // ...otherwise, report an OS-level error.
-            _ => FailureType::IoError(err.to_string())
-        })?;
+    let raw_data = fs::read_to_string(path).map_err(|err| match err.kind() {
+        // If we can't String it, then report a validation error because JSON must be UTF-8
+        io::ErrorKind::InvalidData => FailureType::InvalidContent(err.to_string()),
+        // ...otherwise, report an OS-level error.
+        _ => FailureType::IoError(err.to_string()),
+    })?;
 
     // TODO: See if there's a Read-based API that could be used to reduce the memory footprint
     raw_data.parse::<toml::Value>().map_err(|err| FailureType::InvalidContent(err.to_string()))?;
@@ -227,12 +225,12 @@ pub fn toml(path: &Path) -> Result<(),FailureType> {
 /// validate files that it must extract anyway to check their CRCs.
 ///
 /// (As a means to detect corruption that occurred before the archive was generated.)
-pub fn zip(path: &Path) -> Result<(),FailureType> {
+pub fn zip(path: &Path) -> Result<(), FailureType> {
     /// Helper for `?` use pending the availability of `try` blocks in stable channel
     fn zip_inner(reader: &File) -> ZipResult<()> {
         let mut zip = ZipArchive::new(reader)?;
         for i in 0..zip.len() {
-            exhaust_reader(zip.by_index(i)?)?;  // Trigger CRC32 validation
+            exhaust_reader(zip.by_index(i)?)?; // Trigger CRC32 validation
         }
         Ok(())
     }
@@ -243,7 +241,8 @@ pub fn zip(path: &Path) -> Result<(),FailureType> {
         ZipError::InvalidArchive(e) => FailureType::InvalidContent(e.to_string()),
         ZipError::UnsupportedArchive(e) => FailureType::UnsupportedFormat(e.to_string()),
         ZipError::FileNotFound => FailureType::InternalError(
-            "'file not found' when reading Zip file by bounded index".to_string()),
+            "'file not found' when reading Zip file by bounded index".to_string(),
+        ),
     })?;
     Ok(())
 }
