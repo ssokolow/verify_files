@@ -1,8 +1,10 @@
 version: 2
 updates:
-    - package-ecosystem: "cargo"
-      directory: "/verify_files" # Location of package manifests
-      schedule:
-          interval: "weekly"
-      reviewers:
-          - "ssokolow"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "cargo"
+    directory: "/verify_files"
+    schedule:
+      interval: "monthly"

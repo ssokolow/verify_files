@@ -1,16 +1,26 @@
 name: Build and run test suite
 on: [push, pull_request]
 defaults:
-    run:
-        working-directory: verify_files
+  run:
+    working-directory: verify_files
 env:
-    CARGO_TERM_COLOR: always
+  CARGO_TERM_COLOR: always
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v2
-            - name: Build
-              run: cargo build --verbose
-            - name: Run tests
-              run: cargo test --verbose
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/git/db/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - name: Build
+        run: cargo build --verbose
+      - name: Run tests
+        run: cargo test --verbose
