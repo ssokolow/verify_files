@@ -14,7 +14,7 @@ log = "0.4.17"
 serde = { version = "1.0.152", features = ["derive"] }
 stderrlog = "0.5.4"
 clap = { version = "3", features = ["derive"] }
-toml = "0.5.9"
+toml = "0.5.10"
 validator = { version = "0.16.0", features = ["derive"] }
 
 [dependencies.image]
