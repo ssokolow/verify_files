@@ -392,7 +392,7 @@ pub struct Root {
     /// if more than one format has the same name, do not hesitate to use underscores
     /// to avoid ambiguity. (eg. ms_cab)
     #[validate]
-    #[serde(rename = "filetype", default, serialize_with = "toml::ser::tables_last")]
+    #[serde(rename = "filetype", default)]
     pub filetypes: BTreeMap<String, Filetype>,
 
     /// A list of rules for overriding `filetypes` or excluding folder for specific globs.
@@ -403,7 +403,7 @@ pub struct Root {
     /// A list of *external* handler definitions to be used by `filetypes` and `overrides`.
     /// (This list includes only subprocesses, not built-in handlers)
     #[validate]
-    #[serde(rename = "handler", default, serialize_with = "toml::ser::tables_last")]
+    #[serde(rename = "handler", default)]
     pub handlers: BTreeMap<String, Handler>,
 }
 
@@ -480,7 +480,7 @@ pub fn parse(toml_str: &str, is_builtin_handler: &dyn Fn(&str) -> bool) -> Resul
     // Parse and perform all validation where the outcome couldn't change as a result of a fallback
     // chain injecting new values.
     let parsed: Root =
-        toml::from_str(toml_str).with_context(|| "Error parsing configuration file")?;
+        toml_edit::de::from_str(toml_str).with_context(|| "Error parsing configuration file")?;
     parsed.validate().map_err(format_validation_errors)?;
     // TODO: Use a Result for all other failures too, instead of `warn!`.
 
@@ -545,7 +545,7 @@ mod tests {
     }
 
     fn do_validate(toml_str: &str) -> std::result::Result<(), ValidationErrors> {
-        let parsed: Root = toml::from_str(toml_str).unwrap();
+        let parsed: Root = toml_edit::de::from_str(toml_str).unwrap();
         parsed.validate()
     }
 
@@ -676,14 +676,14 @@ mod tests {
     /// Ensure the continued presence of a behaviour I'm not sure how I achieved
     #[test]
     fn test_rejects_empty_filetype_id() {
-        let parsed: Result<Root, _> = toml::from_str(r#"[filetype.""]"#);
+        let parsed: Result<Root, _> = toml_edit::de::from_str(r#"[filetype.""]"#);
         parsed.expect_err("Empty table names should be rejected");
     }
 
     /// Ensure the continued presence of a behaviour I'm not sure how I achieved
     #[test]
     fn test_rejects_empty_handler_id() {
-        let parsed: Result<Root, _> = toml::from_str(r#"[handler.""]"#);
+        let parsed: Result<Root, _> = toml_edit::de::from_str(r#"[handler.""]"#);
         parsed.expect_err("Empty table names should be rejected");
     }
 

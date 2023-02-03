@@ -215,7 +215,9 @@ pub fn toml(path: &Path) -> Result<(), FailureType> {
     })?;
 
     // TODO: See if there's a Read-based API that could be used to reduce the memory footprint
-    raw_data.parse::<toml::Value>().map_err(|err| FailureType::InvalidContent(err.to_string()))?;
+    raw_data
+        .parse::<toml_edit::Item>()
+        .map_err(|err| FailureType::InvalidContent(err.to_string()))?;
     Ok(())
 }
 
