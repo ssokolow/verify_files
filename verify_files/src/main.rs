@@ -22,7 +22,6 @@ use clap::Parser;
 mod app;
 mod builtin_handlers;
 mod config;
-mod helpers;
 mod validators;
 
 /// Boilerplate to parse command-line arguments, set up logging, and handle bubbled-up `Error`s.
@@ -32,18 +31,10 @@ fn main() -> Result<()> {
     // Parse command-line arguments (exiting on parse error, --version, or --help)
     let opts = app::CliOpts::parse();
 
-    // Configure logging output so that -q is "decrease verbosity" rather than instant silence
-    let verbosity = opts
-        .boilerplate
-        .verbose
-        .saturating_add(app::DEFAULT_VERBOSITY)
-        .saturating_sub(opts.boilerplate.quiet);
-
     stderrlog::new()
         .module(module_path!())
-        .quiet(verbosity == 0)
-        .verbosity(verbosity.saturating_sub(1))
-        .timestamp(opts.boilerplate.timestamp.unwrap_or(stderrlog::Timestamp::Off))
+        .verbosity(opts.verbose.log_level_filter())
+        .timestamp(opts.timestamp.unwrap_or(stderrlog::Timestamp::Off))
         .init()
         .context("Failed to initialize logging output")?;
 

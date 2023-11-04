@@ -7,7 +7,12 @@ use std::path::PathBuf;
 
 // 3rd-party crate imports
 use anyhow::Result;
-use clap::Parser;
+use clap::{
+    builder::styling::{AnsiColor, Styles},
+    //builder::{PathBufValueParser, TypedValueParser},
+    Parser,
+};
+use clap_verbosity_flag::{Verbosity, WarnLevel};
 use ignore::WalkBuilder;
 
 use log::{debug, error, info, trace, warn};
@@ -15,38 +20,43 @@ use log::{debug, error, info, trace, warn};
 // Local Imports
 use crate::builtin_handlers::ALL as BUILTIN_HANDLERS;
 use crate::config;
-use crate::helpers::{BoilerplateOpts, HELP_TEMPLATE};
 use crate::validators::path_input_file_or_dir;
-
-/// The verbosity level when no `-q` or `-v` arguments are given, with `0` being `-q`
-pub const DEFAULT_VERBOSITY: usize = 2;
 
 /// The contents of the default configuration file that is used if nothing else is found
 pub const DEFAULT_CONFIG: &str = include_str!("../../verifiers.toml");
 
+fn styles() -> Styles {
+    Styles::styled()
+        .header(AnsiColor::Yellow.on_default())
+        .usage(AnsiColor::Yellow.on_default())
+        .literal(AnsiColor::Green.on_default())
+        .placeholder(AnsiColor::Green.on_default())
+}
+
 /// Command-line argument schema
 #[derive(Parser, Debug)]
-#[clap(template = HELP_TEMPLATE,
-       about = "A simple tool to recursively walk a set of paths and report corrupted files.",
+#[clap(about = "A simple tool to recursively walk a set of paths and report corrupted files.",
        version,
-       long_about = None)]
+       long_about = None,
+       styles = styles())]
 pub struct CliOpts {
-    #[allow(clippy::missing_docs_in_private_items)] // TODO: Check if doccing still breaks stuff
-    #[clap(flatten)]
-    pub boilerplate: BoilerplateOpts,
+    #[command(flatten)]
+    pub verbose: Verbosity<WarnLevel>,
+
+    /// Display timestamps on log messages (sec, ms, ns, none)
+    #[arg(short, long, value_name = "resolution")]
+    pub timestamp: Option<stderrlog::Timestamp>,
 
     /// File(s) to use as input
-    ///
-    /// **TODO:** Restore use of `path_input_file_or_dir` validator
-    #[clap(value_parser)]
+    // **TODO:** Restore use of `path_input_file_or_dir` validator
     inpath: Vec<PathBuf>,
 
     /// Just quickly identify files that have no checker registered
-    #[clap(long)]
+    #[arg(long)]
     list_unrecognized: bool,
 
     /// Just list the built-in handlers which are available for use in the configuration file
-    #[clap(long)]
+    #[arg(long)]
     list_builtins: bool,
 }
 
