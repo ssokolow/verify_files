@@ -5,7 +5,7 @@ authors = ["Stephan Sokolow <http://www.ssokolow.com/ContactMe>"]
 edition = "2018"
 
 [dependencies]
-anyhow = "1.0.75"
+anyhow = "1.0.78"
 faccess = "0.2.4"
 ignore = "0.4.21"
 json = "0.12.4"
