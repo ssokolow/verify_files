@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 anyhow = "1.0.79"
 faccess = "0.2.4"
-ignore = "0.4.21"
+ignore = "0.4.22"
 json = "0.12.4"
 lazy_static = "1.4.0"
 log = "0.4.20"
