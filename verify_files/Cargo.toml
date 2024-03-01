@@ -12,7 +12,7 @@ json = "0.12.4"
 lazy_static = "1.4.0"
 log = "0.4.20"
 serde = { version = "1.0.197", features = ["derive"] }
-stderrlog = "0.5.4"
+stderrlog = "0.6.0"
 clap = { version = "4.5.1", features = ["derive"] }
 validator = { version = "0.16.1", features = ["derive"] }
 toml_edit = { version = "0.21.0", features = ["serde"] }
