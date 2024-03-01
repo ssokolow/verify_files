@@ -16,7 +16,7 @@ stderrlog = "0.5.4"
 clap = { version = "4.4.12", features = ["derive"] }
 validator = { version = "0.16.1", features = ["derive"] }
 toml_edit = { version = "0.21.0", features = ["serde"] }
-clap-verbosity-flag = "2.1.2"
+clap-verbosity-flag = "2.2.0"
 
 [dependencies.image]
 default-features = false
