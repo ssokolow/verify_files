@@ -1,3 +1,5 @@
+**IMPORTANT:** This repository is being shared to help diagnose a bug. It's currently in the middle of a rewrite from Python to Rust that I'd intended to complete before making it public and I will not be held responsible for the state of the code or any documentation that was written in anticipation of specs that I've since changed my mind about.
+
 ===============
 verify_files.py
 ===============
