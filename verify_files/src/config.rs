@@ -54,7 +54,8 @@ fn validate_argv(argv: &[String]) -> StdResult<(), ValidationError> {
 }
 
 /// Validator: verify structural correctness of `extension` fields
-fn validate_exts(input: &OneOrList<String>) -> StdResult<(), ValidationError> {
+fn validate_exts(input: &Option<OneOrList<String>>) -> StdResult<(), ValidationError> {
+    let input = if let Some(x) = input.as_ref() { x } else { return Ok(()) };
     if input.is_empty() || input.iter().any(String::is_empty) {
         fail_valid!("empty_ext", "Extensions may not be empty strings");
     }
@@ -71,7 +72,8 @@ fn validate_exts(input: &OneOrList<String>) -> StdResult<(), ValidationError> {
 }
 
 /// Validator: none of the `handler` fields contain empty strings
-fn validate_handlers(input: &OneOrList<String>) -> StdResult<(), ValidationError> {
+fn validate_handlers(input: &Option<OneOrList<String>>) -> StdResult<(), ValidationError> {
+    let input = if let Some(x) = input.as_ref() { x } else { return Ok(()) };
     if input.is_empty() || input.iter().any(String::is_empty) {
         fail_valid!("empty_handler", "Handler names must not be empty sequences");
     }
@@ -80,7 +82,8 @@ fn validate_handlers(input: &OneOrList<String>) -> StdResult<(), ValidationError
 }
 
 /// Validator: none of the `header` fields contain empty strings
-fn validate_headers(input: &OneOrList<Vec<u8>>) -> StdResult<(), ValidationError> {
+fn validate_headers(input: &Option<OneOrList<Vec<u8>>>) -> StdResult<(), ValidationError> {
+    let input = if let Some(x) = input.as_ref() { x } else { return Ok(()) };
     if input.is_empty() || input.iter().any(Vec::is_empty) {
         fail_valid!("empty_header", "Header patterns must not be empty sequences");
     }
@@ -162,7 +165,8 @@ fn validate_root(input: &Root) -> StdResult<(), ValidationError> {
 /// Validator: If present, the `sources` field must contain valid URLs
 ///
 /// **TODO:** Look into how much weight it would add to validate the format of these further.
-fn validate_sources(input: &OneOrList<String>) -> StdResult<(), ValidationError> {
+fn validate_sources(input: &Option<OneOrList<String>>) -> StdResult<(), ValidationError> {
+    let input = if let Some(x) = input.as_ref() { x } else { return Ok(()) };
     if input.is_empty() || input.iter().any(String::is_empty) {
         fail_valid!("empty_handler", "Source list must be absent or contain non-empty strings");
     }
@@ -240,7 +244,7 @@ pub struct Filetype {
 
     /// One or more extensions to identify the file by
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[validate(custom = "validate_exts")]
+    #[validate(custom(function = validate_exts))]
     pub extension: Option<OneOrList<String>>,
 
     /// An identifier for a built-in handler or `[handler.*]` entry.
@@ -256,12 +260,12 @@ pub struct Filetype {
     /// archives), then specify multiple `[filetype.*]` sections with the same or overlapping
     /// `extension` and `header` content.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[validate(custom = "validate_handlers")]
+    #[validate(custom(function = validate_handlers))]
     pub handler: Option<OneOrList<String>>,
 
     /// One or more headers to identify the file type by
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[validate(custom = "validate_headers")]
+    #[validate(custom(function = validate_headers))]
     pub header: Option<OneOrList<Vec<u8>>>,
 
     /// The number of bytes to skip before attempting to match the header
@@ -294,7 +298,7 @@ pub struct Override {
     /// take a *directory* path as input without risking feeding directories with file-like names
     /// to handlers that only expect files.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[validate(custom = "validate_handlers")]
+    #[validate(custom(function = validate_handlers))]
     pub handler: Option<OneOrList<String>>,
 
     /// If `true`, don't process files or descend into directories matching the given glob.
@@ -326,7 +330,10 @@ pub struct Handler {
     ///
     /// To simplify the common case, `{path}` will be appended to the end of the `Vec` if no
     /// entries contain substitution tokens.
-    #[validate(length(min = 1, message = "'argv' must not be empty"), custom = "validate_argv")]
+    #[validate(
+        length(min = 1, message = "'argv' must not be empty"),
+        custom(function = validate_argv)
+    )]
     pub argv: Vec<String>,
 
     /// A human-readable description for use in status messages instead of the command name from
@@ -369,7 +376,7 @@ pub struct Handler {
     /// It is acceptable to link to the website for Cygwin if the only suitable Windows port is
     /// provided as part of Cygwin.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[validate(custom = "validate_sources")]
+    #[validate(custom(function = validate_sources))]
     pub sources: Option<OneOrList<String>>,
 }
 
