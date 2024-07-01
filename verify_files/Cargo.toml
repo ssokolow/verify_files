@@ -9,7 +9,7 @@ anyhow = "1.0.86"
 faccess = "0.2.4"
 ignore = "0.4.22"
 json = "0.12.4"
-lazy_static = "1.4.0"
+lazy_static = "1.5.0"
 log = "0.4.21"
 serde = { version = "1.0.199", features = ["derive"] }
 stderrlog = "0.6.0"
