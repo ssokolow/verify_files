@@ -93,12 +93,16 @@ pub enum FailureType {
 
     /// The handler reported an unexpected but recoverable error
     ///
-    /// (This is for cases like [`ImageError::Limits`] and is intended as a cleaner alternative to
-    /// intentionally using panicking and `catch_unwind` like try/catch to skip to the next item to
-    /// be processed.)
+    /// This was intended for cases like [`ImageError::Limits`] and is intended as a cleaner
+    /// alternative to intentionally using panicking and `catch_unwind` like try/catch to skip to
+    /// the next item to be processed.
     ///
-    /// **TODO:** Be more clear about what purpose this serves, when to use it, and what result it
-    /// will have.
+    /// However, it's now also used as a "mark of shame" that doesn't terminate batch jobs until
+    /// I can find a proper way to circumvent `#[non_exhaustive]` and restore the ability for the
+    /// compiler to let me know when a new variant is added to an enum I want to handle
+    /// exhaustively without needing to resort to the nuclear option of using `unreachable!` and
+    /// running a fuzzer after every `cargo update`.
+    ///
     InternalError(/** Stringified form of the internal error message */ String),
 }
 
@@ -245,6 +249,16 @@ pub fn zip(path: &Path) -> Result<(), FailureType> {
         ZipError::FileNotFound => FailureType::InternalError(
             "'file not found' when reading Zip file by bounded index".to_string(),
         ),
+        // Since I don't want to bomb the entire batch-processing run, just tell the user who
+        // was responsible for the #[non_exhaustive] annotation that kept me from noticing sooner.
+        //
+        // (If I can ever find the time, maybe I'll try writing something cargo-geiger-esque that
+        // can scan a codebase for uses of #[non_exhaustive] types and report cases where a the
+        // catchall is reachable.)
+        e => FailureType::InternalError(format!(
+            "Unexpected internal error in `zip` handler: {}",
+            e.to_string()
+        )),
     })?;
     Ok(())
 }
