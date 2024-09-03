@@ -3,6 +3,7 @@ name = "verify-files"
 version = "0.1.0"
 authors = ["Stephan Sokolow <http://www.ssokolow.com/ContactMe>"]
 edition = "2018"
+license = "MIT OR Apache-2.0"  # TODO: Decide if I want something else before publishing
 
 [dependencies]
 anyhow = "1.0.81"
