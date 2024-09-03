@@ -187,7 +187,7 @@ pub fn image(path: &Path) -> Result<(), FailureType> {
     Ok(())
 }
 
-/// Handler: Use the `json` crate to do a basic well-formedness check
+/// Handler: Use the `jzon` crate to do a basic well-formedness check
 ///
 /// **TODO:** Decide on an API and some real-world test data to allow detecting potential
 /// corruption in string variables using the UTF-8 subset of the plaintext handler's checks.
@@ -201,7 +201,7 @@ pub fn json(path: &Path) -> Result<(), FailureType> {
     })?;
 
     // TODO: See if there's a Read-based API that could be used to reduce the memory footprint
-    json::parse(&raw_data).map_err(|err| FailureType::InvalidContent(err.to_string()))?;
+    jzon::parse(&raw_data).map_err(|err| FailureType::InvalidContent(err.to_string()))?;
     Ok(())
 }
 
