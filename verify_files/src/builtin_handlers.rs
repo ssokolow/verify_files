@@ -18,7 +18,7 @@ use std::path::Path;
 use flate2::bufread::MultiGzDecoder;
 
 use image::error::ImageError;
-use image::io::Reader as ImageReader;
+use image::ImageReader;
 
 use lazy_static::lazy_static;
 
