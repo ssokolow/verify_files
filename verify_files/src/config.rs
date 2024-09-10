@@ -240,7 +240,7 @@ pub struct Filetype {
 
     /// One or more extensions to identify the file by
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[validate(custom = "validate_exts")]
+    #[validate(custom(function = "validate_exts"))]
     pub extension: Option<OneOrList<String>>,
 
     /// An identifier for a built-in handler or `[handler.*]` entry.
@@ -256,12 +256,12 @@ pub struct Filetype {
     /// archives), then specify multiple `[filetype.*]` sections with the same or overlapping
     /// `extension` and `header` content.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[validate(custom = "validate_handlers")]
+    #[validate(custom(function = "validate_handlers"))]
     pub handler: Option<OneOrList<String>>,
 
     /// One or more headers to identify the file type by
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[validate(custom = "validate_headers")]
+    #[validate(custom(function = "validate_headers"))]
     pub header: Option<OneOrList<Vec<u8>>>,
 
     /// The number of bytes to skip before attempting to match the header
@@ -294,7 +294,7 @@ pub struct Override {
     /// take a *directory* path as input without risking feeding directories with file-like names
     /// to handlers that only expect files.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[validate(custom = "validate_handlers")]
+    #[validate(custom(function = "validate_handlers"))]
     pub handler: Option<OneOrList<String>>,
 
     /// If `true`, don't process files or descend into directories matching the given glob.
@@ -326,7 +326,10 @@ pub struct Handler {
     ///
     /// To simplify the common case, `{path}` will be appended to the end of the `Vec` if no
     /// entries contain substitution tokens.
-    #[validate(length(min = 1, message = "'argv' must not be empty"), custom = "validate_argv")]
+    #[validate(
+        length(min = 1, message = "'argv' must not be empty"),
+        custom(function = "validate_argv")
+    )]
     pub argv: Vec<String>,
 
     /// A human-readable description for use in status messages instead of the command name from
@@ -369,7 +372,7 @@ pub struct Handler {
     /// It is acceptable to link to the website for Cygwin if the only suitable Windows port is
     /// provided as part of Cygwin.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[validate(custom = "validate_sources")]
+    #[validate(custom(function = "validate_sources"))]
     pub sources: Option<OneOrList<String>>,
 }
 
@@ -391,18 +394,18 @@ pub struct Root {
     /// file format, in lowercase alphanumeric form (eg. jpeg, mp3, 7zip, etc.) but,
     /// if more than one format has the same name, do not hesitate to use underscores
     /// to avoid ambiguity. (eg. ms_cab)
-    #[validate]
+    #[validate(nested)]
     #[serde(rename = "filetype", default)]
     pub filetypes: BTreeMap<String, Filetype>,
 
     /// A list of rules for overriding `filetypes` or excluding folder for specific globs.
-    #[validate]
+    #[validate(nested)]
     #[serde(rename = "override", default)]
     pub overrides: Vec<Override>,
 
     /// A list of *external* handler definitions to be used by `filetypes` and `overrides`.
     /// (This list includes only subprocesses, not built-in handlers)
-    #[validate]
+    #[validate(nested)]
     #[serde(rename = "handler", default)]
     pub handlers: BTreeMap<String, Handler>,
 }
@@ -541,7 +544,9 @@ mod tests {
     /// **TODO:** Assert more
     fn assert_validation_result(toml_str: &str, section: &str) {
         let result = do_validate(toml_str).expect_err("Validation should error out").into_errors();
-        result.get(section).expect(&format!("Get section {} from error response", section));
+        result
+            .get(section)
+            .expect(&format!("Error getting section {:?} from error response", section));
     }
 
     fn do_validate(toml_str: &str) -> std::result::Result<(), ValidationErrors> {
@@ -563,19 +568,19 @@ mod tests {
                 description = ""
                 handler = "foo"
                 extension = "foo"
-            "#, "filetype");
+            "#, "filetypes");
 
         // Override with an invalid description to trigger nested validation failure
         assert_validation_result(r#"
                 [[override]]
                 path = ""
-            "#, "override");
+            "#, "overrides");
 
         // Handler with an invalid argv to trigger nested validation failure
         assert_validation_result(r#"
                 [handler.foo]
                 argv = []
-            "#, "handler");
+            "#, "handlers");
     }
 
     /// Verify that the struct-level validators are running correctly
@@ -587,13 +592,13 @@ mod tests {
                 [filetype.foo]
                 description = "Test description"
                 handler = "foo"
-            "#, "filetype");
+            "#, "filetypes");
 
         // Override that does nothing
         assert_validation_result(r#"
                 [[override]]
                 path = "quux"
-            "#, "override");
+            "#, "overrides");
     }
 
     /// Verify that sources are checked to be superficially valid URLs
@@ -618,32 +623,32 @@ mod tests {
                 [handler.foo]
                 argv = ["foo"]
                 sources = ""
-            "#, "handler");
+            "#, "handlers");
         assert_validation_result(r#"
                 [handler.foo]
                 argv = ["foo"]
                 sources = []
-            "#, "handler");
+            "#, "handlers");
         assert_validation_result(r#"
                 [handler.foo]
                 argv = ["foo"]
                 sources = [""]
-            "#, "handler");
+            "#, "handlers");
         assert_validation_result(r#"
                 [handler.foo]
                 argv = ["foo"]
                 sources = ["foo"]
-            "#, "handler");
+            "#, "handlers");
         assert_validation_result(r#"
                 [handler.foo]
                 argv = ["foo"]
                 sources = ["http://www.example.com/", ""]
-            "#, "handler");
+            "#, "handlers");
         assert_validation_result(r#"
                 [handler.foo]
                 argv = ["foo"]
                 sources = ["http://www.example.com/", "ftp://example.com/"]
-            "#, "handler");
+            "#, "handlers");
     }
 
     /// Verify that all sections are optional
@@ -694,15 +699,15 @@ mod tests {
         assert_validation_result(r#"
                 [handler.foobar]
                 argv = [ "{foobar}" ]
-            "#, "handler");
+            "#, "handlers");
         assert_validation_result(r#"
                 [handler.foobar]
                 argv = [ "foo{bar}" ]
-            "#, "handler");
+            "#, "handlers");
         assert_validation_result(r#"
                 [handler.foobar]
                 argv = [ "foo{bar}baz" ]
-            "#, "handler");
+            "#, "handlers");
     }
 
     /// Make sure the validation catches 'container' cycles
