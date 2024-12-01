@@ -26,7 +26,7 @@ version = "0.25.5"
 # TODO: Check why `tiff` wants a newer miniz_oxide than `png` and `flate2`
 
 [dependencies.flate2]
-version = "1.0.34"
+version = "1.0.35"
 default-features = false
 features = ["miniz_oxide"]  # Make sure we're using the same backend as `image`
 
