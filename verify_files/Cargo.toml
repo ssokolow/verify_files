@@ -6,7 +6,7 @@ edition = "2018"
 license = "MIT OR Apache-2.0"  # TODO: Decide if I want something else before publishing
 
 [dependencies]
-anyhow = "1.0.95"
+anyhow = "1.0.96"
 faccess = "0.2.4"
 ignore = "0.4.22"
 jzon = "0.12.4"
