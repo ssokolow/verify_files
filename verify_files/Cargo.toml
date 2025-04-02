@@ -11,7 +11,7 @@ faccess = "0.2.4"
 ignore = "0.4.22"
 jzon = "0.12.4"
 lazy_static = "1.4.0"
-log = "0.4.26"
+log = "0.4.27"
 serde = { version = "1.0.219", features = ["derive"] }
 stderrlog = "0.6.0"
 clap = { version = "4.5.31", features = ["derive"] }
