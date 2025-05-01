@@ -33,7 +33,7 @@ features = ["miniz_oxide"]  # Make sure we're using the same backend as `image`
 [dependencies.zip]
 default-features = false  # Disable bzip2 because it's not pure Rust
 features = ["deflate"]    # TODO: Do I need anything "time" brings?
-version = "2.5"
+version = "2.6"
 
 [profile.release]
 lto = true
