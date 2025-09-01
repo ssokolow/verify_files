@@ -22,7 +22,7 @@ clap-verbosity-flag = "3.0.3"
 [dependencies.image]
 default-features = false
 features = ["bmp", "gif", "ico", "jpeg", "png", "pnm", "tga", "tiff"]
-version = "0.25.6"
+version = "0.25.7"
 # TODO: Check why `tiff` wants a newer miniz_oxide than `png` and `flate2`
 
 [dependencies.flate2]
