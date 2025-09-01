@@ -14,7 +14,7 @@ lazy_static = "1.4.0"
 log = "0.4.27"
 serde = { version = "1.0.219", features = ["derive"] }
 stderrlog = "0.6.0"
-clap = { version = "4.5.42", features = ["derive"] }
+clap = { version = "4.5.46", features = ["derive"] }
 validator = { version = "0.20.0", features = ["derive"] }
 toml_edit = { version = "0.23.4", features = ["serde"] }
 clap-verbosity-flag = "3.0.3"
