@@ -76,7 +76,7 @@ pub enum FailureType {
     /// variations (like PPMd-compressed Zip files) as corruption.
     ///
     /// **TODO:** Decide how to handle cases where something imposes further validity constraints
-    /// on its container, like EPUB, JAR, or OpenDocument only supporting STORE or DEFLATE.
+    /// on its container, like EPUB, JAR, or OpenDocument only supporting `STORE` or `DEFLATE`.
     UnsupportedFormat(/** Stringified form of the internal error message */ String),
 
     /// The file cannot be read for some reason
@@ -106,8 +106,8 @@ pub enum FailureType {
 /// A return value to indicate how reliable a validator's verdict of "no problems" is.
 ///
 /// **TODO:** Decide on whether a meaningful total ordering can be had if I split
-/// `DataHashAndMetaParity` so it's possible to specify data and metadata protection level
-/// completely independently.
+/// [`DataHashAndMetaParity`](Confidence::DataHashAndMetaParity) so it's possible to specify data
+/// and metadata protection level completely independently.
 ///
 /// **TODO:** Decide whether this should instead serve as a metadata key that's applied to each
 /// validator definition for **pre**-selection of the most reliable validator available.
@@ -138,7 +138,7 @@ pub enum Confidence {
     FullHash,
 }
 
-/// Helper for APIs that validate lazily and need to have their `Read`-ers read through to the end
+/// Helper for APIs that validate lazily and need to have their [`Read`]-ers read through to the end
 fn exhaust_reader(mut reader: impl Read) -> Result<(), io::Error> {
     let mut scratch_buffer = Vec::with_capacity(0xFFFF);
     loop {
@@ -152,7 +152,7 @@ fn exhaust_reader(mut reader: impl Read) -> Result<(), io::Error> {
     }
 }
 
-/// Handler: Use the `flate2` crate to validate a stream of one or more gzipped files
+/// Handler: Use the [`flate2`] crate to validate a stream of one or more gzipped files
 ///
 /// **TODO:** Decide on the best API for selecting whether this should operate recursively to
 /// validate the data that it must extract anyway to check the CRC.
@@ -164,7 +164,7 @@ pub fn gzip(path: &Path) -> Result<(), FailureType> {
         .map_err(|err| FailureType::InvalidContent(err.to_string()))
 }
 
-/// Handler: Use the `image` crate to validate the formats it supports
+/// Handler: Use the [`mod@image`] crate to validate the formats it supports
 ///
 /// **TODO:** Test how thoroughly each format can be checked, and also check whether enabling WebP
 /// support will validate well enough to be useful even though it doesn't support chroma yet.
@@ -184,7 +184,7 @@ pub fn image(path: &Path) -> Result<(), FailureType> {
     Ok(())
 }
 
-/// Handler: Use the `jzon` crate to do a basic well-formedness check
+/// Handler: Use the [`jzon`] crate to do a basic well-formedness check
 ///
 /// **TODO:** Decide on an API and some real-world test data to allow detecting potential
 /// corruption in string variables using the UTF-8 subset of the plaintext handler's checks.
@@ -202,7 +202,7 @@ pub fn json(path: &Path) -> Result<(), FailureType> {
     Ok(())
 }
 
-/// Handler: Use the `toml` crate to do a basic well-formedness check
+/// Handler: Use the [`toml`] crate to do a basic well-formedness check
 ///
 /// **TODO:** Decide on an API and some real-world test data to allow detecting potential
 /// corruption in string variables using the UTF-8 subset of the plaintext handler's checks.
@@ -222,7 +222,8 @@ pub fn toml(path: &Path) -> Result<(), FailureType> {
     Ok(())
 }
 
-/// Handler: Use the `zip` crate to validate Zip files which use STORE or DEFLATE compression
+/// Handler: Use the [`mod@zip`] crate to validate Zip files which use `STORE` or `DEFLATE`
+/// compression
 ///
 /// **TODO:** Decide on the best API for selecting whether this should operate recursively to
 /// validate files that it must extract anyway to check their CRCs.

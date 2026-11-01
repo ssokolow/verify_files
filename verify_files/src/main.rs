@@ -30,9 +30,10 @@ mod builtin_handlers;
 mod config;
 mod validators;
 
-/// Boilerplate to parse command-line arguments, set up logging, and handle bubbled-up `Error`s.
+/// Boilerplate to parse command-line arguments, set up logging, and handle bubbled-up
+/// [`Error`](anyhow::Error)s.
 ///
-/// See `app::main` for the application-specific logic.
+/// See [`app::main`] for the application-specific logic.
 fn main() -> Result<()> {
     // Parse command-line arguments (exiting on parse error, --version, or --help)
     let opts = app::CliOpts::parse();

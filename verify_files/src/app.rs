@@ -60,7 +60,7 @@ pub struct CliOpts {
     pub list_builtins: bool,
 }
 
-/// The actual `main()`
+/// The actual [`main()`](super::main)
 pub fn main(mut opts: CliOpts) -> Result<()> {
     if opts.list_builtins {
         #[allow(clippy::print_stdout)]

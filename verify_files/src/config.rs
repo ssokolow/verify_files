@@ -2,11 +2,11 @@
 //!
 //! Invoke this machinery via the [`parse`] function.
 //!
-//! **NOTE:** Uses [`BTreeMap`] instead of [`HashMap`] to ensure the data will serialize to TOML in
-//! sorted order.
+//! **NOTE:** Uses [`BTreeMap`] instead of [`HashMap`](std::collections::HashMap) to ensure the
+//! data will serialize to TOML in sorted order.
 //!
 //! **TODO:** Consider using the [`types`
-//! module](https://docs.rs/ignore/0.4.17/ignore/types/index.html) from the `ignore` crate and
+//! module](https://docs.rs/ignore/0.4.17/ignore/types/index.html) from the [`ignore`] crate and
 //! enabling its default type definitions so error messages can give a slightly more human-friendly
 //! name for various "no handler registered for this type" situations.
 
@@ -39,7 +39,8 @@ macro_rules! fail_valid {
     }};
 }
 
-/// Helper for Serde's `skip_serializing_if`
+/// Helper for Serde's
+/// [`skip_serializing_if`](https://serde.rs/field-attrs.html#skip_serializing_if)
 #[allow(clippy::trivially_copy_pass_by_ref)]
 fn is_zero(int: &usize) -> bool {
     *int == 0
@@ -181,7 +182,7 @@ fn validate_sources(input: &OneOrList<String>) -> StdResult<(), ValidationError>
     Ok(())
 }
 
-/// Helper to add support for using `#[validate]` nesting to [`BTreeMap`]
+/// Helper to add support for using [`#[validate]`](validator) nesting to [`BTreeMap`]
 ///
 /// (As I understand it, this works by exploiting how validator is implemented using macros and,
 /// as such, can duck-type its method resolution.)
@@ -305,7 +306,7 @@ pub struct Override {
     /// If `true`, don't process files or descend into directories matching the given glob.
     ///
     /// **TODO:** Disentangle `handler` and `ignore` overrides. Aside from "make invalid states
-    /// unrepresentable" (custom handler and ignore=true), using the `ignore` crate means that the
+    /// unrepresentable" (custom handler and ignore=true), using the [`ignore`] crate means that the
     /// `message` field can't apply to overrides, so it makes more sense to do something like
     /// having an ignores [`Vec`] and a handler overrides [`BTreeMap`] at the top level.
     #[serde(default, skip_serializing_if = "Not::not")]
@@ -321,7 +322,7 @@ pub struct Override {
 /// Definition of `[handler.*]` tables.
 #[derive(Debug, Deserialize, Serialize, Validate)]
 pub struct Handler {
-    /// A template for the command to invoke via `[std::process::Command]`.
+    /// A template for the command to invoke via [`std::process::Command`].
     ///
     /// The following substitution tokens are available:
     ///
@@ -329,7 +330,7 @@ pub struct Handler {
     /// * `{devnull}`: The path to `/dev/null` or equivalent, suitable for subprocesses which
     ///   insist on producing an output file when used to check for errors.
     ///
-    /// To simplify the common case, `{path}` will be appended to the end of the `Vec` if no
+    /// To simplify the common case, `{path}` will be appended to the end of the [`Vec`] if no
     /// entries contain substitution tokens.
     #[validate(
         length(min = 1, message = "'argv' must not be empty"),
@@ -570,7 +571,7 @@ mod tests {
 
     /// Verify that nested validation is occurring
     ///
-    /// (Because it's so easy to accidentally drop a `#[validate]` and not notice)
+    /// (Because it's so easy to accidentally drop a [`#[validate]`](validator) and not notice)
     #[test]
     #[rustfmt::skip]
     fn test_nested_validation() {
