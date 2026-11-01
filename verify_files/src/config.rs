@@ -132,36 +132,24 @@ fn validate_override(input: &Override) -> StdResult<(), ValidationError> {
 
 /// Validator: all filetypes have sane `container` dependencies
 fn validate_root(input: &Root) -> StdResult<(), ValidationError> {
-    for (id, mut filetype) in &input.filetypes {
-        // Don't bother allocating the dep_chain vec for entries without `container`
-        if filetype.container.is_none() {
-            continue;
-        }
-
-        // Pre-allocate for the typical case of only one iteration plus the push() for error join()
-        // (Something like "cbz -> zip -> cbz")
-        let mut dep_chain = Vec::with_capacity(3);
-        dep_chain.push(id.as_str());
-
-        while let Some(container) = filetype.container.as_deref() {
-            let cycle = dep_chain.contains(&container);
-            dep_chain.push(&container);
-            if cycle {
-                fail_valid!(
-                    "container_cycle",
-                    format!("Cyclical 'container' dependency: {}", dep_chain.join(" -> "))
-                );
-            }
-            if let Some(container_filetype) = input.filetypes.get(container) {
-                filetype = container_filetype
-            } else {
-                fail_valid!(
-                    "container_not_found",
-                    format!("'container' for {} not found: {}", id, container)
-                );
+    for (id, filetype) in &input.filetypes {
+        if let Some(ref containers) = filetype.container {
+            for container in containers.iter() {
+                if !input.filetypes.contains_key(container) {
+                    fail_valid!(
+                        "container_not_found",
+                        format!("'container' for {} not found: {}", id, container)
+                    );
+                }
             }
         }
     }
+
+    // TODO: Verify that there are no container cycles
+    // fail_valid!(
+    //    "container_cycle",
+    //    format!("Cyclical 'container' dependency: {}", dep_chain.join(" -> "))
+    // );
     Ok(())
 }
 
