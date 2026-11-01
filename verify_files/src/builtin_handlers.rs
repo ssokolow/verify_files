@@ -28,7 +28,7 @@ use zip::result::{ZipError, ZipResult};
 /// A registry of all built-in handlers, with descriptions suitable for display to end-users,
 /// keyed by the IDs exposed to the config file.
 ///
-/// (Uses a BTreeMap to control the ordering of user-visible readouts without an extra sort)
+/// (Uses a [`BTreeMap`] to control the ordering of user-visible readouts without an extra sort)
 #[allow(clippy::as_conversions, reason = "AFAIK, there's no other way to do this in std")]
 pub static ALL: LazyLock<BTreeMap<&'static str, (&'static str, HandlerFn)>> = LazyLock::new(|| {
     let mut x = BTreeMap::new();
@@ -140,13 +140,13 @@ pub enum Confidence {
 
 /// Helper for APIs that validate lazily and need to have their `Read`-ers read through to the end
 fn exhaust_reader(mut reader: impl Read) -> Result<(), io::Error> {
-    let mut scratch_buffer = [0; 0xFFFF];
+    let mut scratch_buffer = Vec::with_capacity(0xFFFF);
     loop {
-        if let Err(e) = reader.read_exact(&mut scratch_buffer) {
+        if let Err(err) = reader.read_exact(&mut scratch_buffer) {
             #[allow(clippy::wildcard_enum_match_arm)]
-            return match e.kind() {
+            return match err.kind() {
                 io::ErrorKind::UnexpectedEof => Ok(()),
-                _ => Err(e),
+                _ => Err(err),
             };
         }
     }
@@ -175,11 +175,11 @@ pub fn image(path: &Path) -> Result<(), FailureType> {
         .with_guessed_format()
         .map_err(|err| FailureType::IoError(err.to_string()))?
         .decode()
-        .map_err(|err| match err {
-            ImageError::Decoding(e) => FailureType::InvalidContent(e.to_string()),
-            ImageError::Unsupported(e) => FailureType::UnsupportedFormat(e.to_string()),
-            ImageError::IoError(e) => FailureType::IoError(e.to_string()),
-            e => FailureType::InternalError(e.to_string()),
+        .map_err(|x| match x {
+            ImageError::Decoding(err) => FailureType::InvalidContent(err.to_string()),
+            ImageError::Unsupported(err) => FailureType::UnsupportedFormat(err.to_string()),
+            ImageError::IoError(err) => FailureType::IoError(err.to_string()),
+            err => FailureType::InternalError(err.to_string()),
         })?;
     Ok(())
 }
@@ -238,11 +238,13 @@ pub fn zip(path: &Path) -> Result<(), FailureType> {
         Ok(())
     }
 
-    let reader = File::open(path).map_err(|e| FailureType::IoError(e.to_string()))?;
+    let reader = File::open(path).map_err(|x| FailureType::IoError(x.to_string()))?;
+
+    #[allow(clippy::wildcard_enum_match_arm, reason = "Required. It's #[non_exhaustive]")]
     zip_inner(&reader).map_err(|err| match err {
-        ZipError::Io(e) => FailureType::IoError(e.to_string()),
-        ZipError::InvalidArchive(e) => FailureType::InvalidContent(e.to_string()),
-        ZipError::UnsupportedArchive(e) => FailureType::UnsupportedFormat(e.to_string()),
+        ZipError::Io(x) => FailureType::IoError(x.to_string()),
+        ZipError::InvalidArchive(x) => FailureType::InvalidContent(x.to_string()),
+        ZipError::UnsupportedArchive(x) => FailureType::UnsupportedFormat(x.to_string()),
         ZipError::FileNotFound => FailureType::InternalError(
             "'file not found' when reading Zip file by bounded index".to_string(),
         ),
@@ -252,10 +254,7 @@ pub fn zip(path: &Path) -> Result<(), FailureType> {
         // (If I can ever find the time, maybe I'll try writing something cargo-geiger-esque that
         // can scan a codebase for uses of #[non_exhaustive] types and report cases where a the
         // catchall is reachable.)
-        e => FailureType::InternalError(format!(
-            "Unexpected internal error in `zip` handler: {}",
-            e.to_string()
-        )),
+        x => FailureType::InternalError(format!("Unexpected internal error in `zip` handler: {x}")),
     })?;
     Ok(())
 }

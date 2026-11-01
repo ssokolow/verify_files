@@ -2,7 +2,7 @@
 //!
 //! Invoke this machinery via the [`parse`] function.
 //!
-//! **NOTE:** Uses `BTreeMap` instead of `HashMap` to ensure the data will serialize to TOML in
+//! **NOTE:** Uses [`BTreeMap`] instead of [`HashMap`] to ensure the data will serialize to TOML in
 //! sorted order.
 //!
 //! **TODO:** Consider using the [`types`
@@ -10,16 +10,21 @@
 //! enabling its default type definitions so error messages can give a slightly more human-friendly
 //! name for various "no handler registered for this type" situations.
 
+#![allow(clippy::default_numeric_fallback, reason = "False positives and allow() scoping bugs")]
+
 // Standard library imports
 use std::collections::BTreeMap;
-use std::fmt::Write;
+use std::fmt::Write as _;
+use std::ops::Deref;
 use std::ops::Not;
 use std::result::Result as StdResult;
+use std::slice;
 
 // 3rd-party crate imports
-use anyhow::{anyhow, Context, Result}; // It's an internal API, so no need for thiserror yet.
+use anyhow::{anyhow, Context as _, Result}; // It's an internal API, so no need for thiserror yet.
 use log::warn;
 use serde::{Deserialize, Serialize};
+use toml_edit::de::from_str as toml_from_str;
 use validator::{Validate, ValidationError, ValidationErrors};
 
 // ----==== Helpers for Schema ====----
@@ -42,7 +47,7 @@ fn is_zero(int: &usize) -> bool {
 
 /// Validator: `argv[0]` doesn't contain any substitution tokens (as a safety net)
 fn validate_argv(argv: &[String]) -> StdResult<(), ValidationError> {
-    if let Some(argv0) = argv.get(0) {
+    if let [argv0, ..] = argv {
         if argv0.contains('{') {
             fail_valid!(
                 "argv0_subst",
@@ -176,7 +181,7 @@ fn validate_sources(input: &OneOrList<String>) -> StdResult<(), ValidationError>
     Ok(())
 }
 
-/// Helper to add support for using `#[validate]` nesting to `BTreeMap`
+/// Helper to add support for using `#[validate]` nesting to [`BTreeMap`]
 ///
 /// (As I understand it, this works by exploiting how validator is implemented using macros and,
 /// as such, can duck-type its method resolution.)
@@ -190,7 +195,7 @@ pub trait ValidateExtensions {
 impl<K, V: Validate> ValidateExtensions for BTreeMap<K, V> {
     fn validate(&self) -> Result<(), ValidationErrors> {
         for value in self.values() {
-            value.validate()?
+            value.validate()?;
         }
         Ok(())
     }
@@ -211,12 +216,12 @@ pub enum OneOrList<T> {
 }
 use OneOrList::{List, One};
 
-impl<T> ::std::ops::Deref for OneOrList<T> {
+impl<T> Deref for OneOrList<T> {
     type Target = [T];
 
     fn deref(&self) -> &[T] {
         match *self {
-            One(ref x) => std::slice::from_ref(x),
+            One(ref x) => slice::from_ref(x),
             List(ref x) => x.as_slice(),
         }
     }
@@ -232,7 +237,7 @@ pub struct Filetype {
     /// (eg. OpenDocument and CBZ are specialized forms of Zip files.)
     #[serde(skip_serializing_if = "Option::is_none")]
     #[validate(length(min = 1, message = "'container' must not be an empty string if present"))]
-    pub container: Option<String>,
+    pub container: Option<OneOrList<String>>,
 
     /// A human-readable description for use in status messages
     #[validate(length(min = 1, message = "'description' must not be an empty string"))]
@@ -272,7 +277,7 @@ pub struct Filetype {
 
     /// A special case for the image verifier
     ///
-    /// **TODO:** Refactor to either remove this or turn it into a BTreeMap for arbitrary keys
+    /// **TODO:** Refactor to either remove this or turn it into a [`BTreeMap`] for arbitrary keys
     /// passed to builtin handlers and exposed to the argv string substitution.
     #[serde(default, skip_serializing_if = "Not::not")]
     pub multipage: bool,
@@ -302,7 +307,7 @@ pub struct Override {
     /// **TODO:** Disentangle `handler` and `ignore` overrides. Aside from "make invalid states
     /// unrepresentable" (custom handler and ignore=true), using the `ignore` crate means that the
     /// `message` field can't apply to overrides, so it makes more sense to do something like
-    /// having an ignores `Vec` and a handler overrides `BTreeMap` at the top level.
+    /// having an ignores [`Vec`] and a handler overrides [`BTreeMap`] at the top level.
     #[serde(default, skip_serializing_if = "Not::not")]
     pub ignore: bool,
 
@@ -322,7 +327,7 @@ pub struct Handler {
     ///
     /// * `{path}`: The path to the file to be validated.
     /// * `{devnull}`: The path to `/dev/null` or equivalent, suitable for subprocesses which
-    ///    insist on producing an output file when used to check for errors.
+    ///   insist on producing an output file when used to check for errors.
     ///
     /// To simplify the common case, `{path}` will be appended to the end of the `Vec` if no
     /// entries contain substitution tokens.
@@ -383,7 +388,8 @@ pub struct Handler {
 pub struct Root {
     /// A list of filetype definitions, including mappings to handlers.
     ///
-    /// It is represented as a hashmap to ensure that each filetype has a unique identifer. This
+    /// It is represented as a map to ensure that each filetype has a unique identifer (and
+    /// a [`BTreeMap`] to ensure the entries are alphabetized in output). This
     /// is for two reasons:
     ///
     /// 1. It allows the TOML parser to handle preventing duplicate IDs.
@@ -393,12 +399,12 @@ pub struct Root {
     /// By convention, the identifier is the most natural single-word name for the
     /// file format, in lowercase alphanumeric form (eg. jpeg, mp3, 7zip, etc.) but,
     /// if more than one format has the same name, do not hesitate to use underscores
-    /// to avoid ambiguity. (eg. ms_cab)
+    /// to avoid ambiguity. (eg. `ms_cab`)
     #[validate(nested)]
     #[serde(rename = "filetype", default)]
     pub filetypes: BTreeMap<String, Filetype>,
 
-    /// A list of rules for overriding `filetypes` or excluding folder for specific globs.
+    /// A list of rules for overriding `filetypes` or excluding folders for specific globs.
     #[validate(nested)]
     #[serde(rename = "override", default)]
     pub overrides: Vec<Override>,
@@ -432,17 +438,17 @@ pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
             List(map) => {
                 for (idx, record_errors) in map {
                     for (field, error) in record_errors.into_errors() {
+                        #![allow(clippy::use_debug, reason="Escape so all bytes are unambiguous")]
                         match error {
                             Field(x) => {
                                 for err in x {
                                     let _ = writeln!(&mut out_str,
-                                        "  {} entry {:>3}, {:>10} field: {}",
-                                        section, idx, field,
+                                        "  {section} entry {idx:>3}, {field:>10} field: {}",
                                         err.message.as_ref().unwrap_or(&err.code));
                                 }
                             },
-                            x @ Struct(..) | x @ List(..) => {
-                                let _ = writeln!(&mut out_str, "{:#?}", x);
+                            x @ (Struct(..) | List(..)) => {
+                                let _ = writeln!(&mut out_str, "{x:#?}");
                             },
                         }
                     }
@@ -450,6 +456,7 @@ pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
             },
             Struct(record_errors) => {
                 for (field, error) in record_errors.into_errors() {
+                    #![allow(clippy::use_debug, reason="Escape so all bytes are unambiguous")]
                     match error {
                         Field(x) => {
                             for err in x {
@@ -459,8 +466,8 @@ pub fn format_validation_errors(errors: ValidationErrors) -> anyhow::Error {
                                     err.message.as_ref().unwrap_or(&err.code));
                             }
                         },
-                        x @ Struct(..) | x @ List(..) => {
-                            let _ = writeln!(&mut out_str, "{:#?}", x);
+                        x @ (Struct(..) | List(..)) => {
+                            let _ = writeln!(&mut out_str, "{x:#?}");
                         },
                     }
                 }
@@ -483,23 +490,27 @@ pub fn parse(toml_str: &str, is_builtin_handler: &dyn Fn(&str) -> bool) -> Resul
     // Parse and perform all validation where the outcome couldn't change as a result of a fallback
     // chain injecting new values.
     let parsed: Root =
-        toml_edit::de::from_str(toml_str).with_context(|| "Error parsing configuration file")?;
+        toml_from_str(toml_str).with_context(|| "Error parsing configuration file")?;
     parsed.validate().map_err(format_validation_errors)?;
     // TODO: Use a Result for all other failures too, instead of `warn!`.
 
     // Check for `container` values that don't match any filetype IDs
+    //
+    // TODO: Unit test this
     for (id, filetype) in &parsed.filetypes {
-        if let Some(ref container) = filetype.container {
-            if !parsed.filetypes.contains_key(container.as_str()) {
-                warn!("Invalid container ID for filetype {}: {}", id, container);
+        if let Some(ref containers) = filetype.container {
+            for container in containers.iter() {
+                if !parsed.filetypes.contains_key(container) {
+                    warn!("Invalid container ID for filetype {}: {}", id, container);
+                }
             }
         }
     }
 
     // Check for typos in filetype handler fields
     for (id, filetype) in &parsed.filetypes {
-        if let Some(ref handler) = filetype.handler {
-            for handler in handler
+        if let Some(ref handlers) = filetype.handler {
+            for handler in handlers
                 .iter()
                 .filter(|y| !(parsed.handlers.contains_key(*y) || is_builtin_handler(y.as_str())))
             {
@@ -511,8 +522,8 @@ pub fn parse(toml_str: &str, is_builtin_handler: &dyn Fn(&str) -> bool) -> Resul
     // Check for typos in override handler fields
     for override_ in &parsed.overrides {
         // Check for typos in handler fields
-        if let Some(handler) = override_.handler.as_deref() {
-            for handler in handler.iter().filter(|y| !parsed.handlers.contains_key(*y)) {
+        if let Some(handlers) = override_.handler.as_deref() {
+            for handler in handlers.iter().filter(|y| !parsed.handlers.contains_key(*y)) {
                 warn!("Unrecognized handler for override {:#?}: {}", override_.path, handler);
             }
         }
@@ -536,6 +547,7 @@ pub fn parse(toml_str: &str, is_builtin_handler: &dyn Fn(&str) -> bool) -> Resul
 // ----==== Tests ====----
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
 
@@ -577,10 +589,10 @@ mod tests {
             "#, "overrides");
 
         // Handler with an invalid argv to trigger nested validation failure
-        assert_validation_result(r#"
+        assert_validation_result("
                 [handler.foo]
                 argv = []
-            "#, "handlers");
+            ", "handlers");
     }
 
     /// Verify that the struct-level validators are running correctly

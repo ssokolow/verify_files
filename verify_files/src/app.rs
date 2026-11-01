@@ -15,16 +15,16 @@ use clap::{
 use clap_verbosity_flag::{Verbosity, WarnLevel};
 use ignore::WalkBuilder;
 
-use log::{debug, error, info, trace, warn};
+use log::error;
 
 // Local Imports
 use crate::builtin_handlers::ALL as BUILTIN_HANDLERS;
 use crate::config;
-use crate::validators::path_input_file_or_dir;
 
 /// The contents of the default configuration file that is used if nothing else is found
 pub const DEFAULT_CONFIG: &str = include_str!("../../verifiers.toml");
 
+/// Definition for Clap 3.x-style colorized `--help` output
 fn styles() -> Styles {
     Styles::styled()
         .header(AnsiColor::Yellow.on_default())
@@ -49,22 +49,23 @@ pub struct CliOpts {
 
     /// File(s) to use as input
     // **TODO:** Restore use of `path_input_file_or_dir` validator
-    inpath: Vec<PathBuf>,
+    pub inpath: Vec<PathBuf>,
 
     /// Just quickly identify files that have no checker registered
     #[arg(long)]
-    list_unrecognized: bool,
+    pub list_unrecognized: bool,
 
     /// Just list the built-in handlers which are available for use in the configuration file
     #[arg(long)]
-    list_builtins: bool,
+    pub list_builtins: bool,
 }
 
 /// The actual `main()`
 pub fn main(mut opts: CliOpts) -> Result<()> {
     if opts.list_builtins {
-        for (id, (description, _)) in BUILTIN_HANDLERS.iter() {
-            println!("{:10}\t{}", id, description);
+        #[allow(clippy::print_stdout)]
+        for (id, &(description, _)) in BUILTIN_HANDLERS.iter() {
+            println!("{id:10}\t{description}");
         }
         return Ok(());
     }

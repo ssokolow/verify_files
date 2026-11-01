@@ -11,12 +11,18 @@
 #![warn(warnings, rust_2018_idioms)]
 #![warn(clippy::all, clippy::pedantic, clippy::restriction)]
 #![allow(clippy::float_arithmetic, clippy::implicit_return, clippy::needless_return)]
-#![allow(clippy::blanket_clippy_restriction_lints)]
+#![allow(clippy::question_mark_used, clippy::single_call_fn, clippy::allow_attributes)]
+#![allow(clippy::allow_attributes_without_reason, clippy::inline_trait_bounds)]
+#![allow(clippy::doc_paragraphs_missing_punctuation, clippy::std_instead_of_core)]
+#![allow(clippy::blanket_clippy_restriction_lints, clippy::iter_over_hash_type)]
+#![allow(clippy::std_instead_of_alloc, clippy::str_to_string, clippy::ref_patterns)]
+#![allow(clippy::pattern_type_mismatch)]
+#![allow(clippy::arbitrary_source_item_ordering, reason = "'mod' or not, locals after third-party")]
 #![forbid(unsafe_code)] // Enforce my policy of only allowing it in my own code as a last resort
 
 // 3rd-party imports
-use anyhow::{Context, Result};
-use clap::Parser;
+use anyhow::{Context as _, Result};
+use clap::Parser as _;
 
 // Local imports
 mod app;

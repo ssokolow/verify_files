@@ -87,8 +87,7 @@ pub fn path_input_dir<P: AsRef<Path> + ?Sized>(value: &P) -> Result<(), OsString
 ///    file, and keep it open until you are finished. This will both verify its validity and
 ///    minimize the window in which another process could render the path invalid.
 #[rustfmt::skip]
-pub fn path_input_file<P: AsRef<Path> + ?Sized>(value: &P)
-        -> std::result::Result<(), OsString> {
+pub fn path_input_file<P: AsRef<Path> + ?Sized>(value: &P) -> Result<(), OsString> {
     let path = value.as_ref();
 
     if path.is_dir() {
