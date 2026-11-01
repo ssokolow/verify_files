@@ -14,37 +14,34 @@ use std::collections::BTreeMap;
 use std::fs::{self, File};
 use std::io::{self, BufReader, Read};
 use std::path::Path;
+use std::sync::LazyLock;
 
 use flate2::bufread::MultiGzDecoder;
 
 use image::error::ImageError;
 use image::ImageReader;
 
-use lazy_static::lazy_static;
-
 use zip::read::ZipArchive;
 use zip::result::{ZipError, ZipResult};
 
+// Chosen because it's already a transitive dependency, unlike `phf`
+/// A registry of all built-in handlers, with descriptions suitable for display to end-users,
+/// keyed by the IDs exposed to the config file.
+///
+/// (Uses a BTreeMap to control the ordering of user-visible readouts without an extra sort)
+#[allow(clippy::as_conversions, reason = "AFAIK, there's no other way to do this in std")]
+pub static ALL: LazyLock<BTreeMap<&'static str, (&'static str, HandlerFn)>> = LazyLock::new(|| {
+    let mut x = BTreeMap::new();
+    x.insert("gzip", ("GZip CRC check (built-in)", gzip as HandlerFn));
+    x.insert("image", ("BMP/GIF/ICO/JPEG/PNG/PNM/TGA/TIFF handler (built-in)", image as HandlerFn));
+    x.insert("json", ("JSON well-formedness check (built-in)", json as HandlerFn));
+    x.insert("toml", ("TOML well-formedness check (built-in)", toml as HandlerFn));
+    x.insert("zip", ("STORE/DEFLATE-compressed Zip CRC check (built-in)", zip as HandlerFn));
+    x
+});
+
 /// The function signature for file-type handler implementations
 pub type HandlerFn = fn(&Path) -> Result<(), FailureType>;
-
-// Chosen because it's already a transitive dependency, unlike `phf`
-lazy_static! {
-    /// A registry of all built-in handlers, with descriptions suitable for display to end-users,
-    /// keyed by the IDs exposed to the config file.
-    ///
-    /// (Uses a BTreeMap to control the ordering of user-visible readouts without an extra sort)
-    pub static ref ALL: BTreeMap<&'static str, (&'static str, HandlerFn)> = {
-        let mut m = BTreeMap::new();
-        m.insert("gzip", ("GZip CRC check (built-in)", gzip as HandlerFn));
-        m.insert("image", ("BMP/GIF/ICO/JPEG/PNG/PNM/TGA/TIFF handler (built-in)",
-                image as HandlerFn));
-        m.insert("json", ("JSON well-formedness check (built-in)", json as HandlerFn));
-        m.insert("toml", ("TOML well-formedness check (built-in)", toml as HandlerFn));
-        m.insert("zip", ("STORE/DEFLATE-compressed Zip CRC check (built-in)", zip as HandlerFn));
-        m
-    };
-}
 
 /// A return value to indicate whether a handler couldn't verify the given file because it was
 /// corrupted or because it uses features not supported by the validator.
